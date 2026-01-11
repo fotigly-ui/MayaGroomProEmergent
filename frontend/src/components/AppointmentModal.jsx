@@ -414,15 +414,48 @@ export function AppointmentModal({
 
           <DialogFooter className="gap-2">
             {isEditing && (
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={loading}
-                data-testid="delete-appointment-btn"
-              >
-                Delete
-              </Button>
+              <>
+                {/* SMS Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={smsLoading}
+                      data-testid="sms-dropdown-btn"
+                    >
+                      {smsLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <MessageSquare size={16} className="mr-2" />}
+                      Send SMS
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => handleSendSMS('confirmation_request')}>
+                      <Send size={14} className="mr-2" /> Confirmation Request
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSendSMS('reminder_24h')}>
+                      <Send size={14} className="mr-2" /> 24h Reminder
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSendSMS('appointment_changed')}>
+                      <Send size={14} className="mr-2" /> Appointment Changed
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSendSMS('appointment_rescheduled')}>
+                      <Send size={14} className="mr-2" /> Rescheduled Notice
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleSendSMS('appointment_cancelled')}>
+                      <Send size={14} className="mr-2" /> Cancellation Notice
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={loading}
+                  data-testid="delete-appointment-btn"
+                >
+                  Delete
+                </Button>
+              </>
             )}
             <Button
               type="button"
