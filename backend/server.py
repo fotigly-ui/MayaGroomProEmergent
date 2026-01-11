@@ -827,6 +827,11 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
         raise HTTPException(status_code=404, detail="Appointment not found")
     
     appt = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
+    
+    # Send SMS if status changed to something notable
+    if sms_type:
+        background_tasks.add_task(send_appointment_sms, user_id, appt, sms_type)
+    
     return parse_datetime_fields(appt, ["date_time", "end_time", "created_at"])
 
 @api_router.delete("/appointments/{appointment_id}")
