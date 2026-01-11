@@ -26,6 +26,7 @@ export function AppointmentModal({
   services 
 }) {
   const [loading, setLoading] = useState(false);
+  const [smsLoading, setSmsLoading] = useState(false);
   const [clientId, setClientId] = useState('');
   const [clientPets, setClientPets] = useState([]);
   const [dateTime, setDateTime] = useState('');
@@ -34,6 +35,41 @@ export function AppointmentModal({
   const [appointmentPets, setAppointmentPets] = useState([]);
 
   const isEditing = !!appointment;
+
+  const handleSendSMS = async (messageType) => {
+    if (!appointment) return;
+    
+    setSmsLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      const res = await axios.post(`${API_URL}/sms/send`, {
+        client_id: appointment.client_id,
+        message_type: messageType,
+        appointment_id: appointment.id
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.data.status === 'sent') {
+        toast.success('SMS sent successfully');
+      } else if (res.data.status === 'pending') {
+        // Copy to clipboard for manual sending
+        await navigator.clipboard.writeText(res.data.message);
+        toast.success(
+          <div>
+            <p className="font-medium">Message copied to clipboard!</p>
+            <p className="text-sm mt-1">Send to: {res.data.phone}</p>
+          </div>
+        );
+      } else {
+        toast.error('Failed to send SMS: ' + (res.data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      toast.error('Failed to send SMS');
+    } finally {
+      setSmsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (open) {
