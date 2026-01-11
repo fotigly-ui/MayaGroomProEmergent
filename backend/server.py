@@ -878,6 +878,46 @@ async def get_dashboard_stats(user_id: str = Depends(get_current_user)):
         "waitlist_count": waitlist_count
     }
 
+# ==================== BACKUP FUNCTIONS ====================
+
+async def backup_collection_to_supabase(collection_name: str, user_id: str):
+    """Backup a MongoDB collection to Supabase for a specific user"""
+    if not supabase_client:
+        return
+    
+    try:
+        # Fetch all documents for this user
+        docs = await db[collection_name].find({"user_id": user_id}, {"_id": 0}).to_list(10000)
+        
+        if not docs:
+            return
+        
+        backup_data = {
+            "id": f"{user_id}_{collection_name}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+            "user_id": user_id,
+            "collection": collection_name,
+            "data": docs,
+            "backup_at": datetime.now(timezone.utc).isoformat(),
+            "count": len(docs)
+        }
+        
+        # Upsert to Supabase
+        supabase_client.table("maya_backups").upsert(backup_data).execute()
+        logger.info(f"Backed up {len(docs)} documents from {collection_name} for user {user_id}")
+    except Exception as e:
+        logger.error(f"Backup failed for {collection_name}: {e}")
+
+async def backup_user_data(user_id: str):
+    """Backup all data for a user"""
+    collections = ["clients", "pets", "services", "items", "appointments", "waitlist", "recurring_templates", "settings"]
+    for collection in collections:
+        await backup_collection_to_supabase(collection, user_id)
+
+def trigger_backup(user_id: str):
+    """Trigger async backup in background"""
+    if supabase_client:
+        asyncio.create_task(backup_user_data(user_id))
+
 # ==================== ROOT ROUTE ====================
 
 @api_router.get("/")
