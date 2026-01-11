@@ -292,6 +292,67 @@ class MayaGroomProAPITester:
         self.log_test("List Waitlist", success, f"Status: {status}" if not success else "")
         return success
 
+    def test_sms_templates_get(self):
+        """Test get SMS templates"""
+        success, response, status = self.make_request('GET', 'sms/templates', None, 200)
+        self.log_test("Get SMS Templates", success, f"Status: {status}" if not success else "")
+        return success
+
+    def test_sms_templates_update(self):
+        """Test update SMS templates"""
+        data = {
+            "appointment_booked": {
+                "name": "Appointment Booked",
+                "template": "Hi {client_name}! Your appointment for {pet_names} at {business_name} is confirmed for {date} at {time}. See you then!",
+                "enabled": True
+            },
+            "confirmation_request": {
+                "name": "Confirmation Request", 
+                "template": "Hi {client_name}! Please confirm your appointment for {pet_names} on {date} at {time}.",
+                "enabled": True
+            }
+        }
+        
+        success, response, status = self.make_request('PUT', 'sms/templates', data, 200)
+        self.log_test("Update SMS Templates", success, f"Status: {status}" if not success else "")
+        return success
+
+    def test_sms_preview(self):
+        """Test SMS preview"""
+        success, response, status = self.make_request('POST', 'sms/preview?message_type=appointment_booked', {}, 200)
+        if success and 'preview' in response:
+            self.log_test("SMS Preview", True)
+            return True
+        else:
+            self.log_test("SMS Preview", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_sms_send(self):
+        """Test SMS send (manual mode)"""
+        if not self.test_client_id:
+            self.log_test("SMS Send", False, "No test client ID available")
+            return False
+            
+        data = {
+            "client_id": self.test_client_id,
+            "message_type": "confirmation_request",
+            "appointment_id": self.test_appointment_id
+        }
+        
+        success, response, status = self.make_request('POST', 'sms/send', data, 200)
+        if success and 'status' in response:
+            self.log_test("SMS Send", True, f"SMS Status: {response.get('status')}")
+            return True
+        else:
+            self.log_test("SMS Send", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_sms_messages_list(self):
+        """Test list SMS messages"""
+        success, response, status = self.make_request('GET', 'sms/messages', None, 200)
+        self.log_test("List SMS Messages", success, f"Status: {status}" if not success else "")
+        return success
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting Maya Groom Pro API Tests...")
