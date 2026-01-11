@@ -924,6 +924,29 @@ def trigger_backup(user_id: str):
 async def root():
     return {"message": "Maya Groom Pro API", "version": "1.0.0"}
 
+@api_router.post("/backup")
+async def trigger_manual_backup(background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user)):
+    """Manually trigger a backup of all user data"""
+    if not supabase_client:
+        raise HTTPException(status_code=503, detail="Backup service not configured")
+    
+    background_tasks.add_task(backup_user_data, user_id)
+    return {"message": "Backup started", "status": "processing"}
+
+@api_router.get("/backup/status")
+async def get_backup_status(user_id: str = Depends(get_current_user)):
+    """Get the latest backup status"""
+    if not supabase_client:
+        return {"status": "not_configured"}
+    
+    try:
+        result = supabase_client.table("maya_backups").select("*").eq("user_id", user_id).order("backup_at", desc=True).limit(1).execute()
+        if result.data:
+            return {"status": "active", "last_backup": result.data[0].get("backup_at")}
+        return {"status": "no_backups"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 # Include router and middleware
 app.include_router(api_router)
 
