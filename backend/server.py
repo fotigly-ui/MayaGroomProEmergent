@@ -706,6 +706,8 @@ async def create_appointment(appt: AppointmentCreate, background_tasks: Backgrou
     await db.appointments.insert_one(appt_doc)
     # Trigger backup
     background_tasks.add_task(backup_collection_to_supabase, "appointments", user_id)
+    # Send SMS notification if automated
+    background_tasks.add_task(send_appointment_sms, user_id, appt_doc, "appointment_booked")
     return new_appointment
 
 @api_router.get("/appointments", response_model=List[Appointment])
