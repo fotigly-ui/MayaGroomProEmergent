@@ -396,6 +396,13 @@ class MayaGroomProAPITester:
         
         self.test_dashboard_stats()
 
+        # Test SMS endpoints
+        self.test_sms_templates_get()
+        self.test_sms_templates_update()
+        self.test_sms_preview()
+        self.test_sms_send()
+        self.test_sms_messages_list()
+
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
