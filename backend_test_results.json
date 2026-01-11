@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-01-11T22:50:56.304602",
-  "total_tests": 18,
-  "passed_tests": 18,
-  "success_rate": 1.0,
+  "timestamp": "2026-01-11T22:51:19.151461",
+  "total_tests": 23,
+  "passed_tests": 22,
+  "success_rate": 0.9565217391304348,
   "results": [
     {
       "test": "User Login",
@@ -91,6 +91,31 @@
     },
     {
       "test": "Dashboard Stats",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Get SMS Templates",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Update SMS Templates",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "SMS Preview",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "SMS Send",
+      "success": false,
+      "details": "Status: 400, Response: {\"detail\":\"SMS is not enabled\"}"
+    },
+    {
+      "test": "List SMS Messages",
       "success": true,
       "details": ""
     }
