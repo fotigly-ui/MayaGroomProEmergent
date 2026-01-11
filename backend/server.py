@@ -386,10 +386,12 @@ async def update_settings(update: SettingsUpdate, user_id: str = Depends(get_cur
 # ==================== CLIENT ROUTES ====================
 
 @api_router.post("/clients", response_model=Client)
-async def create_client(client: ClientCreate, user_id: str = Depends(get_current_user)):
+async def create_client(client: ClientCreate, background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user)):
     new_client = Client(user_id=user_id, **client.model_dump())
     client_doc = prepare_doc_for_mongo(new_client.model_dump())
     await db.clients.insert_one(client_doc)
+    # Trigger backup
+    background_tasks.add_task(backup_collection_to_supabase, "clients", user_id)
     return new_client
 
 @api_router.get("/clients", response_model=List[Client])
@@ -563,7 +565,7 @@ async def delete_item(item_id: str, user_id: str = Depends(get_current_user)):
 # ==================== APPOINTMENT ROUTES ====================
 
 @api_router.post("/appointments", response_model=Appointment)
-async def create_appointment(appt: AppointmentCreate, user_id: str = Depends(get_current_user)):
+async def create_appointment(appt: AppointmentCreate, background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user)):
     # Get client name
     client = await db.clients.find_one({"id": appt.client_id, "user_id": user_id}, {"_id": 0})
     if not client:
