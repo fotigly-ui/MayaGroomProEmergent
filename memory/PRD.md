@@ -36,9 +36,24 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 - [x] Waitlist management
 - [x] Appointment booking with pets and services
 - [x] Business settings (Australian format)
-- [x] Mobile-responsive layout
+- [x] Mobile-responsive layout (fixed sidebar issue)
 - [x] Supabase backup integration
 - [x] Warm terracotta theme
+- [x] **SMS Notifications System**:
+  - Manual mode (copy message to send from own phone)
+  - Automated mode (via Twilio)
+  - 7 customizable templates:
+    - Appointment Booked
+    - Appointment Changed
+    - Appointment Rescheduled
+    - Appointment Cancelled
+    - No Show
+    - Confirmation Request
+    - 24-Hour Reminder
+  - Template variables: {client_name}, {pet_names}, {business_name}, {business_phone}, {date}, {time}
+  - Auto-send options with configurable timing
+  - Message preview functionality
+  - SMS button in appointment modal for manual sending
 
 ## Tech Stack
 - **Frontend**: React 19, Tailwind CSS, Shadcn/UI
