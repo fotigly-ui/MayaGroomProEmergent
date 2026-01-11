@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-01-11T21:54:08.537766",
+  "total_tests": 18,
+  "passed_tests": 18,
+  "success_rate": 1.0,
+  "results": [
+    {
+      "test": "User Login",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Get Current User",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Get Settings",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Update Settings",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Create Client",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Clients",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Get Client",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Create Service",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Services",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Create Item",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Items",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Create Pet",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Pets",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Create Appointment",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Appointments",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Create Waitlist Entry",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Waitlist",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Dashboard Stats",
+      "success": true,
+      "details": ""
+    }
+  ]
+}
