@@ -64,6 +64,45 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
 
+# Default SMS Templates
+DEFAULT_SMS_TEMPLATES = {
+    "appointment_booked": {
+        "name": "Appointment Booked",
+        "template": "Hi {client_name}! Your appointment for {pet_names} at {business_name} is confirmed for {date} at {time}. See you then! Reply CONFIRM to confirm.",
+        "enabled": True
+    },
+    "appointment_changed": {
+        "name": "Appointment Changed",
+        "template": "Hi {client_name}, your appointment for {pet_names} at {business_name} has been updated. New details: {date} at {time}. Reply CONFIRM to confirm.",
+        "enabled": True
+    },
+    "appointment_rescheduled": {
+        "name": "Appointment Rescheduled",
+        "template": "Hi {client_name}, your appointment has been rescheduled to {date} at {time}. If this doesn't work, please call us at {business_phone}.",
+        "enabled": True
+    },
+    "appointment_cancelled": {
+        "name": "Appointment Cancelled",
+        "template": "Hi {client_name}, your appointment for {pet_names} on {date} at {business_name} has been cancelled. Contact us to rebook: {business_phone}",
+        "enabled": True
+    },
+    "no_show": {
+        "name": "No Show",
+        "template": "Hi {client_name}, we missed you today at {business_name}! Please contact us at {business_phone} to reschedule your appointment for {pet_names}.",
+        "enabled": True
+    },
+    "confirmation_request": {
+        "name": "Confirmation Request",
+        "template": "Hi {client_name}! Reminder: You have an appointment for {pet_names} at {business_name} on {date} at {time}. Reply CONFIRM to confirm or call {business_phone} to reschedule.",
+        "enabled": True
+    },
+    "reminder_24h": {
+        "name": "24-Hour Reminder",
+        "template": "Hi {client_name}! Just a reminder: {pet_names} appointment tomorrow at {time} at {business_name}. See you soon!",
+        "enabled": True
+    }
+}
+
 # Settings Model
 class Settings(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -82,7 +121,18 @@ class Settings(BaseModel):
     gst_rate: float = 10.0
     use_24_hour_clock: bool = True
     logo_data_url: str = ""
-    sms_templates: dict = Field(default_factory=dict)
+    # SMS Settings
+    sms_enabled: bool = False
+    sms_mode: str = "manual"  # "manual" or "automated"
+    sms_provider: str = ""  # "twilio" or "native" (for using own phone)
+    twilio_account_sid: str = ""
+    twilio_auth_token: str = ""
+    twilio_phone_number: str = ""
+    sms_templates: dict = Field(default_factory=lambda: DEFAULT_SMS_TEMPLATES.copy())
+    # Reminder settings
+    send_confirmation_request: bool = True
+    confirmation_request_days: int = 2  # Days before appointment
+    send_24h_reminder: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -101,7 +151,17 @@ class SettingsUpdate(BaseModel):
     gst_rate: Optional[float] = None
     use_24_hour_clock: Optional[bool] = None
     logo_data_url: Optional[str] = None
+    # SMS Settings
+    sms_enabled: Optional[bool] = None
+    sms_mode: Optional[str] = None
+    sms_provider: Optional[str] = None
+    twilio_account_sid: Optional[str] = None
+    twilio_auth_token: Optional[str] = None
+    twilio_phone_number: Optional[str] = None
     sms_templates: Optional[dict] = None
+    send_confirmation_request: Optional[bool] = None
+    confirmation_request_days: Optional[int] = None
+    send_24h_reminder: Optional[bool] = None
 
 # Client Model
 class ClientCreate(BaseModel):
