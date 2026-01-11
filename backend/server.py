@@ -335,6 +335,27 @@ class RecurringTemplate(BaseModel):
     active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+# SMS Message Log Model
+class SMSMessage(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    user_id: str
+    client_id: str
+    client_name: str = ""
+    phone: str
+    message_type: str  # appointment_booked, confirmation_request, etc.
+    message_text: str
+    status: str = "pending"  # pending, sent, failed, delivered
+    sent_at: Optional[datetime] = None
+    appointment_id: Optional[str] = None
+    error_message: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class SendSMSRequest(BaseModel):
+    client_id: str
+    message_type: str
+    appointment_id: Optional[str] = None
+    custom_message: Optional[str] = None
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
