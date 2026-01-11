@@ -43,9 +43,9 @@ export function Layout({ children }) {
   };
 
   return (
-    <div className="main-layout">
-      {/* Desktop Sidebar */}
-      <aside className="sidebar hidden md:flex">
+    <div className="min-h-screen bg-[#F5EBE0]">
+      {/* Desktop Sidebar - Only visible on md and up */}
+      <aside className="fixed left-0 top-0 bottom-0 w-[280px] bg-white border-r border-maya-border hidden md:flex flex-col p-6 z-40">
         {/* Logo */}
         <div className="logo-container mb-8">
           <img src={LOGO_URL} alt="Maya Groom Pro" />
@@ -103,8 +103,8 @@ export function Layout({ children }) {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="main-content flex-1 overflow-auto">
+      {/* Main Content - Offset on desktop for sidebar */}
+      <main className="min-h-screen md:ml-[280px] pb-20 md:pb-0">
         {children}
       </main>
 
