@@ -1,0 +1,161 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "Maya Groom Pro",
+      "archetype": "Organic & Earthy",
+      "tone": "Warm, Professional, Efficient, Friendly",
+      "principles": [
+        "Fusion: Artisan Aesthetics + SaaS Efficiency",
+        "Emotion: Trust and Warmth through color",
+        "Clarity: Calendar is the heart, keep it breathable",
+        "Tactility: Paper-like textures and soft shadows"
+      ]
+    },
+    "typography": {
+      "font_family": {
+        "headings": "Outfit, sans-serif",
+        "body": "Plus Jakarta Sans, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "weights": {
+        "light": 300,
+        "regular": 400,
+        "medium": 500,
+        "semibold": 600,
+        "bold": 700
+      },
+      "scale": {
+        "h1": "text-4xl md:text-5xl font-bold tracking-tight",
+        "h2": "text-3xl md:text-4xl font-semibold tracking-tight",
+        "h3": "text-2xl font-semibold",
+        "h4": "text-xl font-medium",
+        "body_lg": "text-lg leading-relaxed",
+        "body_base": "text-base leading-relaxed",
+        "caption": "text-sm text-muted-foreground",
+        "tiny": "text-xs font-medium tracking-wide uppercase"
+      }
+    },
+    "colors": {
+      "palette": {
+        "primary": {
+          "DEFAULT": "#C75B2A",
+          "foreground": "#FFFFFF",
+          "hover": "#B04A1E",
+          "light": "#F2DCD3"
+        },
+        "background": {
+          "DEFAULT": "#F5EBE0",
+          "paper": "#FFFFFF",
+          "subtle": "#EBE0D6"
+        },
+        "text": {
+          "main": "#2D2A26",
+          "muted": "#6B665F",
+          "inverted": "#FFFFFF"
+        },
+        "status": {
+          "success": "#4A7C59",
+          "warning": "#D9A44A",
+          "error": "#D94A4A",
+          "info": "#4A6FA5"
+        },
+        "border": {
+          "DEFAULT": "#E6D5C3",
+          "focus": "#C75B2A"
+        }
+      },
+      "gradients": {
+        "warm_glow": "linear-gradient(135deg, #F5EBE0 0%, #EBE0D6 100%)",
+        "primary_shimmer": "linear-gradient(45deg, #C75B2A, #D97B4A)"
+      }
+    },
+    "layout": {
+      "spacing": {
+        "container_padding": "p-4 md:p-8 lg:p-12",
+        "section_gap": "gap-8 md:gap-12",
+        "element_gap": "gap-4"
+      },
+      "radius": {
+        "default": "rounded-xl",
+        "card": "rounded-2xl",
+        "button": "rounded-full",
+        "input": "rounded-lg"
+      },
+      "grids": {
+        "dashboard": "grid grid-cols-1 md:grid-cols-12 gap-6",
+        "calendar": "grid grid-cols-8 gap-0 border-collapse",
+        "form": "grid grid-cols-1 md:grid-cols-2 gap-6"
+      }
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-[#C75B2A] text-white hover:bg-[#B04A1E] rounded-full px-8 py-3 font-medium transition-all shadow-md hover:shadow-lg active:scale-95",
+        "secondary": "bg-white text-[#2D2A26] border border-[#E6D5C3] hover:bg-[#F5EBE0] rounded-full px-6 py-2 font-medium transition-all",
+        "ghost": "text-[#6B665F] hover:text-[#C75B2A] hover:bg-[#C75B2A]/10 rounded-lg px-4 py-2 transition-colors"
+      },
+      "cards": {
+        "default": "bg-white rounded-2xl shadow-sm border border-[#E6D5C3]/50 p-6 hover:shadow-md transition-shadow duration-300",
+        "interactive": "bg-white rounded-2xl shadow-sm border border-[#E6D5C3]/50 p-6 cursor-pointer hover:border-[#C75B2A] hover:shadow-md transition-all group"
+      },
+      "inputs": {
+        "default": "bg-white border border-[#E6D5C3] rounded-lg px-4 py-3 focus:ring-2 focus:ring-[#C75B2A]/20 focus:border-[#C75B2A] outline-none transition-all placeholder:text-[#6B665F]/50"
+      },
+      "navigation": {
+        "bottom_bar": "fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-[#E6D5C3] py-3 px-6 flex justify-between items-center z-50 md:hidden shadow-[0_-4px_20px_rgba(0,0,0,0.05)]",
+        "sidebar": "hidden md:flex flex-col w-64 bg-white border-r border-[#E6D5C3] h-screen sticky top-0 p-6"
+      }
+    },
+    "visual_enhancers": {
+      "shadows": {
+        "soft": "0 4px 20px -2px rgba(45, 42, 38, 0.05)",
+        "float": "0 10px 40px -10px rgba(199, 91, 42, 0.15)"
+      },
+      "textures": {
+        "noise": "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E\")"
+      }
+    },
+    "assets": {
+      "images": {
+        "hero_dog": {
+          "url": "https://images.pexels.com/photos/35536945/pexels-photo-35536945.jpeg",
+          "alt": "Cute dog portrait",
+          "usage": "Hero section, Welcome dashboard"
+        },
+        "grooming_action": {
+          "url": "https://images.pexels.com/photos/6131161/pexels-photo-6131161.jpeg",
+          "alt": "Professional grooming service",
+          "usage": "Services page, Booking flow"
+        },
+        "tools": {
+          "url": "https://images.pexels.com/photos/6130975/pexels-photo-6130975.jpeg",
+          "alt": "Grooming tools",
+          "usage": "Items/Inventory page background or accent"
+        }
+      },
+      "icons": {
+        "library": "lucide-react",
+        "style": "Stroke width 1.5px, rounded caps"
+      }
+    }
+  },
+  "implementation_guide": {
+    "setup": [
+      "Install fonts: Outfit and Plus Jakarta Sans via Google Fonts",
+      "Configure Tailwind theme with the palette above",
+      "Set global body background to #F5EBE0",
+      "Apply the noise texture to the body pseudo-element"
+    ],
+    "calendar_logic": {
+      "view": "Week view by default (Mon-Sat)",
+      "time_slots": "Start 7:00 AM, End 7:00 PM",
+      "interaction": "Click empty slot to create, Drag to move",
+      "visuals": "Current time indicator is a solid #C75B2A line with a dot"
+    },
+    "universal_rules": [
+      "Do not use pure black (#000000). Use #2D2A26.",
+      "Do not use default shadows. Use the custom soft shadows.",
+      "Always add 'data-testid' to interactive elements.",
+      "Ensure all text on the Cream background has sufficient contrast."
+    ]
+  }
+}
