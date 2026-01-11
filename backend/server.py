@@ -746,30 +746,36 @@ async def get_appointment(appointment_id: str, user_id: str = Depends(get_curren
     return parse_datetime_fields(appt, ["date_time", "end_time", "created_at"])
 
 @api_router.put("/appointments/{appointment_id}", response_model=Appointment)
-async def update_appointment(appointment_id: str, update: AppointmentUpdate, user_id: str = Depends(get_current_user)):
+async def update_appointment(appointment_id: str, update: AppointmentUpdate, background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user)):
     update_data = {}
+    original_appt = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
+    
+    if not original_appt:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    sms_type = None
     
     if update.date_time:
         update_data["date_time"] = update.date_time.isoformat()
         # Recalculate end time
-        appt = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
-        if appt:
-            duration = appt.get("total_duration", 60)
-            update_data["end_time"] = (update.date_time + timedelta(minutes=duration)).isoformat()
+        duration = original_appt.get("total_duration", 60)
+        update_data["end_time"] = (update.date_time + timedelta(minutes=duration)).isoformat()
+        sms_type = "appointment_rescheduled"
     
     if update.status:
         update_data["status"] = update.status
-        # Track no-shows
+        # Track no-shows and send appropriate SMS
         if update.status == "no_show":
-            appt = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
-            if appt:
-                await db.clients.update_one(
-                    {"id": appt["client_id"]},
-                    {
-                        "$inc": {"no_show_count": 1},
-                        "$set": {"last_no_show": datetime.now(timezone.utc).isoformat()}
-                    }
-                )
+            await db.clients.update_one(
+                {"id": original_appt["client_id"]},
+                {
+                    "$inc": {"no_show_count": 1},
+                    "$set": {"last_no_show": datetime.now(timezone.utc).isoformat()}
+                }
+            )
+            sms_type = "no_show"
+        elif update.status == "cancelled":
+            sms_type = "appointment_cancelled"
     
     if update.notes is not None:
         update_data["notes"] = update.notes
