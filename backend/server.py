@@ -963,6 +963,297 @@ async def get_dashboard_stats(user_id: str = Depends(get_current_user)):
         "waitlist_count": waitlist_count
     }
 
+# ==================== SMS FUNCTIONS ====================
+
+async def get_user_settings(user_id: str) -> dict:
+    """Get user settings from database"""
+    settings = await db.settings.find_one({"user_id": user_id}, {"_id": 0})
+    if not settings:
+        return {}
+    return settings
+
+def format_sms_template(template: str, variables: dict) -> str:
+    """Replace template variables with actual values"""
+    message = template
+    for key, value in variables.items():
+        message = message.replace(f"{{{key}}}", str(value))
+    return message
+
+async def send_twilio_sms(to_phone: str, message: str, settings: dict) -> tuple:
+    """Send SMS via Twilio"""
+    try:
+        from twilio.rest import Client as TwilioClient
+        
+        account_sid = settings.get("twilio_account_sid")
+        auth_token = settings.get("twilio_auth_token")
+        from_phone = settings.get("twilio_phone_number")
+        
+        if not all([account_sid, auth_token, from_phone]):
+            return False, "Twilio credentials not configured"
+        
+        client = TwilioClient(account_sid, auth_token)
+        
+        # Ensure Australian format
+        if not to_phone.startswith("+"):
+            to_phone = "+61" + to_phone.lstrip("0")
+        
+        message_obj = client.messages.create(
+            body=message,
+            from_=from_phone,
+            to=to_phone
+        )
+        
+        return True, message_obj.sid
+    except Exception as e:
+        logger.error(f"Twilio SMS error: {e}")
+        return False, str(e)
+
+async def create_sms_log(user_id: str, client_id: str, client_name: str, phone: str, 
+                         message_type: str, message_text: str, appointment_id: str = None,
+                         status: str = "pending", error_message: str = None) -> str:
+    """Create SMS message log entry"""
+    sms_log = {
+        "id": str(uuid.uuid4()),
+        "user_id": user_id,
+        "client_id": client_id,
+        "client_name": client_name,
+        "phone": phone,
+        "message_type": message_type,
+        "message_text": message_text,
+        "status": status,
+        "appointment_id": appointment_id,
+        "error_message": error_message,
+        "sent_at": datetime.now(timezone.utc).isoformat() if status == "sent" else None,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.sms_messages.insert_one(sms_log)
+    return sms_log["id"]
+
+async def send_appointment_sms(user_id: str, appointment: dict, message_type: str):
+    """Send SMS for appointment events (if automated mode is enabled)"""
+    try:
+        settings = await get_user_settings(user_id)
+        
+        if not settings.get("sms_enabled"):
+            return
+        
+        if settings.get("sms_mode") != "automated":
+            return
+        
+        templates = settings.get("sms_templates", DEFAULT_SMS_TEMPLATES)
+        template_config = templates.get(message_type)
+        
+        if not template_config or not template_config.get("enabled"):
+            return
+        
+        # Get client info
+        client = await db.clients.find_one({"id": appointment["client_id"]}, {"_id": 0})
+        if not client or not client.get("phone"):
+            return
+        
+        # Format message
+        appt_date = datetime.fromisoformat(appointment["date_time"].replace("Z", "+00:00"))
+        pet_names = ", ".join([p.get("pet_name", "") for p in appointment.get("pets", [])])
+        
+        variables = {
+            "client_name": client.get("name", ""),
+            "pet_names": pet_names or "your pet",
+            "business_name": settings.get("business_name", "our salon"),
+            "business_phone": settings.get("phone", ""),
+            "date": appt_date.strftime("%A, %B %d"),
+            "time": appt_date.strftime("%I:%M %p") if not settings.get("use_24_hour_clock") else appt_date.strftime("%H:%M")
+        }
+        
+        message = format_sms_template(template_config["template"], variables)
+        
+        # Send via Twilio if configured
+        if settings.get("sms_provider") == "twilio":
+            success, result = await send_twilio_sms(client["phone"], message, settings)
+            status = "sent" if success else "failed"
+            error = None if success else result
+        else:
+            # Manual/native mode - just log it for user to send manually
+            status = "pending"
+            error = None
+        
+        await create_sms_log(
+            user_id=user_id,
+            client_id=client["id"],
+            client_name=client["name"],
+            phone=client["phone"],
+            message_type=message_type,
+            message_text=message,
+            appointment_id=appointment.get("id"),
+            status=status,
+            error_message=error
+        )
+        
+    except Exception as e:
+        logger.error(f"Error sending appointment SMS: {e}")
+
+# ==================== SMS ROUTES ====================
+
+@api_router.get("/sms/templates")
+async def get_sms_templates(user_id: str = Depends(get_current_user)):
+    """Get SMS templates for user"""
+    settings = await db.settings.find_one({"user_id": user_id}, {"_id": 0})
+    if not settings:
+        return {"templates": DEFAULT_SMS_TEMPLATES}
+    return {"templates": settings.get("sms_templates", DEFAULT_SMS_TEMPLATES)}
+
+@api_router.put("/sms/templates")
+async def update_sms_templates(templates: dict, user_id: str = Depends(get_current_user)):
+    """Update SMS templates"""
+    await db.settings.update_one(
+        {"user_id": user_id},
+        {"$set": {"sms_templates": templates, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return {"message": "Templates updated"}
+
+@api_router.post("/sms/send")
+async def send_sms(request: SendSMSRequest, background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user)):
+    """Send SMS to a client (manual trigger)"""
+    settings = await get_user_settings(user_id)
+    
+    if not settings.get("sms_enabled"):
+        raise HTTPException(status_code=400, detail="SMS is not enabled")
+    
+    # Get client
+    client = await db.clients.find_one({"id": request.client_id, "user_id": user_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    if not client.get("phone"):
+        raise HTTPException(status_code=400, detail="Client has no phone number")
+    
+    # Get appointment if provided
+    appointment = None
+    if request.appointment_id:
+        appointment = await db.appointments.find_one({"id": request.appointment_id}, {"_id": 0})
+    
+    # Format message
+    if request.custom_message:
+        message = request.custom_message
+    else:
+        templates = settings.get("sms_templates", DEFAULT_SMS_TEMPLATES)
+        template_config = templates.get(request.message_type)
+        
+        if not template_config:
+            raise HTTPException(status_code=400, detail="Invalid message type")
+        
+        if appointment:
+            appt_date = datetime.fromisoformat(appointment["date_time"].replace("Z", "+00:00"))
+            pet_names = ", ".join([p.get("pet_name", "") for p in appointment.get("pets", [])])
+        else:
+            appt_date = datetime.now(timezone.utc)
+            pet_names = "your pet"
+        
+        variables = {
+            "client_name": client.get("name", ""),
+            "pet_names": pet_names,
+            "business_name": settings.get("business_name", "our salon"),
+            "business_phone": settings.get("phone", ""),
+            "date": appt_date.strftime("%A, %B %d"),
+            "time": appt_date.strftime("%I:%M %p") if not settings.get("use_24_hour_clock") else appt_date.strftime("%H:%M")
+        }
+        
+        message = format_sms_template(template_config["template"], variables)
+    
+    # Send or log
+    if settings.get("sms_provider") == "twilio":
+        success, result = await send_twilio_sms(client["phone"], message, settings)
+        status = "sent" if success else "failed"
+        error = None if success else result
+    else:
+        # For native/manual - return message for user to copy
+        status = "pending"
+        error = None
+    
+    log_id = await create_sms_log(
+        user_id=user_id,
+        client_id=client["id"],
+        client_name=client["name"],
+        phone=client["phone"],
+        message_type=request.message_type,
+        message_text=message,
+        appointment_id=request.appointment_id,
+        status=status,
+        error_message=error
+    )
+    
+    return {
+        "id": log_id,
+        "status": status,
+        "message": message,
+        "phone": client["phone"],
+        "error": error
+    }
+
+@api_router.get("/sms/messages")
+async def get_sms_messages(client_id: str = "", limit: int = 50, user_id: str = Depends(get_current_user)):
+    """Get SMS message history"""
+    query = {"user_id": user_id}
+    if client_id:
+        query["client_id"] = client_id
+    
+    messages = await db.sms_messages.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    return messages
+
+@api_router.put("/sms/messages/{message_id}/status")
+async def update_sms_status(message_id: str, status: str, user_id: str = Depends(get_current_user)):
+    """Update SMS message status (for manual sends)"""
+    result = await db.sms_messages.update_one(
+        {"id": message_id, "user_id": user_id},
+        {"$set": {"status": status, "sent_at": datetime.now(timezone.utc).isoformat() if status == "sent" else None}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return {"message": "Status updated"}
+
+@api_router.post("/sms/preview")
+async def preview_sms(message_type: str, appointment_id: str = None, user_id: str = Depends(get_current_user)):
+    """Preview an SMS message without sending"""
+    settings = await get_user_settings(user_id)
+    templates = settings.get("sms_templates", DEFAULT_SMS_TEMPLATES)
+    template_config = templates.get(message_type)
+    
+    if not template_config:
+        raise HTTPException(status_code=400, detail="Invalid message type")
+    
+    # Get sample data
+    if appointment_id:
+        appointment = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
+        if appointment:
+            client = await db.clients.find_one({"id": appointment["client_id"]}, {"_id": 0})
+            appt_date = datetime.fromisoformat(appointment["date_time"].replace("Z", "+00:00"))
+            pet_names = ", ".join([p.get("pet_name", "") for p in appointment.get("pets", [])])
+        else:
+            client = {"name": "Sample Client"}
+            appt_date = datetime.now(timezone.utc)
+            pet_names = "Buddy"
+    else:
+        client = {"name": "Sample Client"}
+        appt_date = datetime.now(timezone.utc)
+        pet_names = "Buddy"
+    
+    variables = {
+        "client_name": client.get("name", "Sample Client"),
+        "pet_names": pet_names or "Buddy",
+        "business_name": settings.get("business_name", "Your Business"),
+        "business_phone": settings.get("phone", "0400 000 000"),
+        "date": appt_date.strftime("%A, %B %d"),
+        "time": appt_date.strftime("%I:%M %p") if not settings.get("use_24_hour_clock") else appt_date.strftime("%H:%M")
+    }
+    
+    message = format_sms_template(template_config["template"], variables)
+    
+    return {
+        "template": template_config["template"],
+        "preview": message,
+        "variables": variables,
+        "char_count": len(message)
+    }
+
 # ==================== BACKUP FUNCTIONS ====================
 
 async def backup_collection_to_supabase(collection_name: str, user_id: str):
