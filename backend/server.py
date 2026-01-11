@@ -623,6 +623,8 @@ async def create_appointment(appt: AppointmentCreate, background_tasks: Backgrou
     appt_doc["pets"] = [prepare_doc_for_mongo(p) if isinstance(p, dict) else p for p in appt_doc.get("pets", [])]
     
     await db.appointments.insert_one(appt_doc)
+    # Trigger backup
+    background_tasks.add_task(backup_collection_to_supabase, "appointments", user_id)
     return new_appointment
 
 @api_router.get("/appointments", response_model=List[Appointment])
