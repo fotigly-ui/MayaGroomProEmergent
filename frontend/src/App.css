@@ -1,34 +1,287 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
-}
+/* Maya Groom Pro App Styles */
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
-
-.App-header {
-    background-color: #0f0f10;
+.app-container {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+}
+
+/* Layout */
+.main-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 280px;
+    background: white;
+    border-right: 1px solid #E6D5C3;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+}
+
+.main-content {
+    flex: 1;
+    padding-bottom: 80px;
+}
+
+@media (min-width: 768px) {
+    .main-content {
+        padding-bottom: 0;
+    }
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid #E6D5C3;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 50;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+}
+
+@media (min-width: 768px) {
+    .bottom-nav {
+        display: none;
+    }
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    transition: all 0.2s;
+    color: #6B665F;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    color: #C75B2A;
+    background: rgba(199, 91, 42, 0.1);
+}
+
+.nav-item span {
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Cards */
+.card-maya {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid rgba(230, 213, 195, 0.5);
+    padding: 1.5rem;
+    box-shadow: 0 4px 20px -2px rgba(45, 42, 38, 0.05);
+    transition: all 0.3s;
+}
+
+.card-maya:hover {
+    box-shadow: 0 10px 40px -10px rgba(199, 91, 42, 0.15);
+}
+
+.card-maya-interactive {
+    cursor: pointer;
+}
+
+.card-maya-interactive:hover {
+    border-color: #C75B2A;
+}
+
+/* Buttons */
+.btn-maya-primary {
+    background: #C75B2A;
+    color: white;
+    border-radius: 9999px;
+    padding: 0.75rem 2rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(199, 91, 42, 0.2);
+}
+
+.btn-maya-primary:hover {
+    background: #B04A1E;
+    box-shadow: 0 6px 16px rgba(199, 91, 42, 0.3);
+}
+
+.btn-maya-primary:active {
+    transform: scale(0.98);
+}
+
+.btn-maya-secondary {
+    background: white;
+    color: #2D2A26;
+    border: 1px solid #E6D5C3;
+    border-radius: 9999px;
+    padding: 0.5rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-maya-secondary:hover {
+    background: #F5EBE0;
+    border-color: #C75B2A;
+}
+
+/* Inputs */
+.input-maya {
+    background: white;
+    border: 1px solid #E6D5C3;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+    transition: all 0.2s;
+    outline: none;
+}
+
+.input-maya:focus {
+    border-color: #C75B2A;
+    box-shadow: 0 0 0 3px rgba(199, 91, 42, 0.1);
+}
+
+.input-maya::placeholder {
+    color: rgba(107, 102, 95, 0.5);
+}
+
+/* Calendar specific */
+.week-header {
+    display: grid;
+    grid-template-columns: 60px repeat(7, 1fr);
+    border-bottom: 1px solid #E6D5C3;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.week-header-cell {
+    padding: 1rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+.week-header-cell.today {
+    color: #C75B2A;
+}
+
+.day-number {
+    width: 36px;
+    height: 36px;
+    display: flex;
     align-items: center;
     justify-content: center;
-    font-size: calc(10px + 2vmin);
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+.day-number.today {
+    background: #C75B2A;
     color: white;
 }
 
-.App-link {
-    color: #61dafb;
+/* Time column */
+.time-label {
+    font-size: 0.75rem;
+    color: #6B665F;
+    padding-right: 0.5rem;
+    text-align: right;
 }
 
-@keyframes App-logo-spin {
+/* Status badges */
+.status-scheduled {
+    background: #4A6FA5;
+    color: white;
+}
+
+.status-completed {
+    background: #4A7C59;
+    color: white;
+}
+
+.status-cancelled {
+    background: #6B665F;
+    color: white;
+}
+
+.status-no-show {
+    background: #D94A4A;
+    color: white;
+}
+
+/* Animations */
+@keyframes fadeIn {
     from {
-        transform: rotate(0deg);
+        opacity: 0;
+        transform: translateY(10px);
     }
     to {
-        transform: rotate(360deg);
+        opacity: 1;
+        transform: translateY(0);
     }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-up {
+    animation: slideUp 0.4s ease-out;
+}
+
+/* Logo styling */
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo-container img {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+}
+
+.logo-text {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: #C75B2A;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: #6B665F;
+}
+
+.empty-state-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1rem;
+    opacity: 0.5;
 }
