@@ -78,8 +78,11 @@ export default function Settings() {
     twilio_auth_token: settings?.twilio_auth_token || '',
     twilio_phone_number: settings?.twilio_phone_number || '',
     send_confirmation_request: settings?.send_confirmation_request ?? true,
-    confirmation_request_days: settings?.confirmation_request_days || 2,
-    send_24h_reminder: settings?.send_24h_reminder ?? true
+    confirmation_request_value: settings?.confirmation_request_value || 2,
+    confirmation_request_unit: settings?.confirmation_request_unit || 'days',
+    send_24h_reminder: settings?.send_24h_reminder ?? true,
+    reminder_value: settings?.reminder_value || 24,
+    reminder_unit: settings?.reminder_unit || 'hours'
   });
   
   const [smsTemplates, setSmsTemplates] = useState(settings?.sms_templates || DEFAULT_TEMPLATES);
