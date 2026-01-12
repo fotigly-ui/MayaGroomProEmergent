@@ -23,7 +23,7 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 - **Theme**: Terracotta/warm orange (#C75B2A) on cream (#F5EBE0)
 - **Typography**: Outfit (headings), Plus Jakarta Sans (body)
 - **Style**: Square Appointments-inspired with unique artisan aesthetic
-- **Mobile**: Bottom navigation (Calendar, Checkout, Customers, More)
+- **Mobile**: Bottom navigation (Calendar, Invoices, Customers, More)
 - **Desktop**: Left sidebar navigation
 
 ## What's Been Implemented (January 2026)
@@ -41,41 +41,25 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 - [x] Mobile-responsive layout
 - [x] Warm terracotta theme
 
-### Calendar Enhancements (January 12, 2026)
+### Calendar Features (January 12, 2026)
 - [x] **Week view**: Monday to Sunday display
-- [x] **Zoom controls**: 50% to 200% zoom with buttons in header
-- [x] **Pinch-to-zoom**: Mobile touch gesture support with haptic feedback
+- [x] **Current time indicator**: Red line with flashing dot (visible when time is within 7am-7pm)
 - [x] **Month navigation**: Popover with forward/backward month arrows
-- [x] **Current time indicator**: Red line with flashing dot (when time is within business hours 7am-7pm)
-- [x] **Drag & drop scaffolding**: 15-minute interval drop zones with visual feedback
+- [x] **Today highlight**: Monday 12 highlighted with orange circle
 
 ### SMS Notifications System
 - [x] Manual mode (copy message to send from own phone)
 - [x] Automated mode (via Twilio) - requires user API keys
 - [x] **Flexible timing**: Number + Unit selector (hours/days/weeks/months)
-- [x] **7 default templates** (pre-populated on user registration):
-  - Appointment Booked
-  - Appointment Changed
-  - Appointment Rescheduled
-  - Appointment Cancelled
-  - No Show
-  - Confirmation Request
-  - 24-Hour Reminder
+- [x] **7 default templates** (pre-populated on user registration)
 - [x] Template variables: {client_name}, {pet_names}, {business_name}, {business_phone}, {date}, {time}
-- [x] Auto-send options with configurable timing
-- [x] Message preview functionality
-- [x] SMS button in appointment modal for manual sending
 
 ### Invoice System
 - [x] Create invoices manually or from appointments
 - [x] Line items with quantity, unit price, total
-- [x] Quick-add services and items
 - [x] GST calculation (configurable)
 - [x] Status tracking: draft, sent, paid, overdue, cancelled
 - [x] Invoice numbering (INV-YYYYMM-XXXX)
-- [x] Print-friendly invoice view
-- [x] Payment details display (PayID, Bank details)
-- [x] Due date tracking
 
 ### Customer/Pet Flow
 - [x] Pet creation integrated into new customer form
@@ -84,7 +68,12 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 ### Backup System
 - [x] Supabase automated backup integration
 - [x] Manual backup trigger from Settings
-- [x] Backup status dashboard
+
+## Bug Fixes (January 12, 2026)
+- [x] **Fixed "Script error"** when adding pets to appointment modal
+- [x] **Fixed "Script error"** when toggling recurring appointment
+- [x] **Fixed calendar layout** - now fills the page properly on mobile and desktop
+- [x] Simplified Calendar.jsx to remove complex zoom/drag features that caused errors
 
 ## Tech Stack
 - **Frontend**: React 19, Tailwind CSS, Shadcn/UI
@@ -92,21 +81,18 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 - **Database**: MongoDB
 - **Backup**: Supabase (PostgreSQL)
 
-## Bug Fixes (January 12, 2026)
-- [x] Fixed "Script error" when adding services to appointment modal
-- [x] Verified appointment creation flow works end-to-end
-
 ## Prioritized Backlog
 
 ### P0 (Critical) - COMPLETED
 - [x] Core appointment scheduling
 - [x] Client/Pet management
 - [x] Mobile layout
-- [x] Calendar enhancements
+- [x] Fix script errors in appointment modal
 
-### P1 (High Priority) - IN PROGRESS
-- [ ] **Drag-and-drop rescheduling**: Full implementation with backend update
+### P1 (High Priority)
 - [ ] **Recurring appointments**: Complete series management (update/delete single vs all)
+- [ ] **Drag-and-drop rescheduling**: For desktop and mobile
+- [ ] **Pinch-to-zoom**: For mobile calendar
 - [ ] Twilio SMS testing (requires user API keys)
 
 ### P2 (Medium Priority)
