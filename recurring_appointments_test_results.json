@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-01-12T13:01:43.282597",
+  "timestamp": "2026-01-12T13:02:04.548711",
   "total_tests": 7,
-  "passed_tests": 6,
-  "success_rate": 0.8571428571428571,
+  "passed_tests": 7,
+  "success_rate": 1.0,
   "results": [
     {
       "test": "Recurring Appointments Creation",
@@ -31,8 +31,8 @@
     },
     {
       "test": "Verify Single Appointment Deleted",
-      "success": false,
-      "details": "Appointment still exists"
+      "success": true,
+      "details": ""
     },
     {
       "test": "Appointment Listing with Date Filters",
@@ -41,8 +41,8 @@
     }
   ],
   "test_data": {
-    "recurring_id": "fceebe88-6352-46ad-92dc-5da2b120648a",
-    "client_id": "13d75bed-b997-4dd0-8a34-5341c56e454e",
-    "service_id": "e89baeae-a0f5-419e-964d-3935cd3cfc75"
+    "recurring_id": "0417dda4-68c1-41d2-b62c-15b680e97e91",
+    "client_id": "01ee58a9-1891-473c-9916-32debda64fd5",
+    "service_id": "1816c138-c625-45b1-99d2-f606fd1d8621"
   }
 }
