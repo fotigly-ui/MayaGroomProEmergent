@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { Plus, Trash2, Clock, Calendar, User } from 'lucide-react';
 import { Layout, PageHeader } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
 import { Textarea } from '../components/ui/textarea';
-import { waitlistAPI, clientsAPI, servicesAPI, petsAPI } from '../lib/api';
+import { waitlistAPI, clientsAPI, servicesAPI } from '../lib/api';
 import { formatDate, cn } from '../lib/utils';
 import { toast } from 'sonner';
 
@@ -18,6 +20,8 @@ export default function Waitlist() {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
     client_id: '',
+    preferred_date: '',
+    preferred_timeframe: '',
     preferred_services: [],
     notes: ''
   });
@@ -45,7 +49,13 @@ export default function Waitlist() {
   };
 
   const openModal = () => {
-    setFormData({ client_id: '', preferred_services: [], notes: '' });
+    setFormData({ 
+      client_id: '', 
+      preferred_date: format(new Date(), 'yyyy-MM-dd'),
+      preferred_timeframe: '8-12',
+      preferred_services: [], 
+      notes: '' 
+    });
     setShowModal(true);
   };
 
@@ -53,6 +63,10 @@ export default function Waitlist() {
     e.preventDefault();
     if (!formData.client_id) {
       toast.error('Please select a client');
+      return;
+    }
+    if (!formData.preferred_date) {
+      toast.error('Please select a preferred date');
       return;
     }
 
@@ -79,10 +93,20 @@ export default function Waitlist() {
   };
 
   const getServiceNames = (serviceIds) => {
+    if (!serviceIds || serviceIds.length === 0) return 'Any service';
     return serviceIds
       .map(id => services.find(s => s.id === id)?.name)
       .filter(Boolean)
       .join(', ');
+  };
+
+  const getTimeframeLabel = (tf) => {
+    const labels = {
+      '8-12': '8:00 AM - 12:00 PM',
+      '12-5': '12:00 PM - 5:00 PM',
+      'any': 'Any time'
+    };
+    return labels[tf] || tf;
   };
 
   return (
@@ -116,11 +140,19 @@ export default function Waitlist() {
                     <User size={16} className="text-maya-text-muted" />
                     {entry.client_name}
                   </h3>
-                  <div className="text-sm text-maya-text-muted mt-1">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      Added {formatDate(entry.date_added)}
-                    </span>
+                  <div className="flex flex-wrap gap-3 text-sm text-maya-text-muted mt-1">
+                    {entry.preferred_date && (
+                      <span className="flex items-center gap-1">
+                        <Calendar size={14} />
+                        {formatDate(entry.preferred_date)}
+                      </span>
+                    )}
+                    {entry.preferred_timeframe && (
+                      <span className="flex items-center gap-1 bg-maya-cream px-2 py-0.5 rounded">
+                        <Clock size={14} />
+                        {getTimeframeLabel(entry.preferred_timeframe)}
+                      </span>
+                    )}
                   </div>
                   {entry.preferred_services?.length > 0 && (
                     <p className="text-sm text-maya-text-muted mt-1">
@@ -132,6 +164,9 @@ export default function Waitlist() {
                       "{entry.notes}"
                     </p>
                   )}
+                  <p className="text-xs text-maya-text-muted/60 mt-1">
+                    Added {formatDate(entry.date_added)}
+                  </p>
                 </div>
               </div>
               <Button
@@ -181,6 +216,36 @@ export default function Waitlist() {
                 </SelectContent>
               </Select>
             </div>
+
+            <div className="space-y-2">
+              <Label>Preferred Date *</Label>
+              <Input
+                type="date"
+                value={formData.preferred_date}
+                onChange={(e) => setFormData({ ...formData, preferred_date: e.target.value })}
+                min={format(new Date(), 'yyyy-MM-dd')}
+                data-testid="waitlist-date"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Preferred Timeframe *</Label>
+              <Select 
+                value={formData.preferred_timeframe} 
+                onValueChange={(v) => setFormData({ ...formData, preferred_timeframe: v })}
+              >
+                <SelectTrigger data-testid="waitlist-timeframe">
+                  <SelectValue placeholder="Select timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="8-12">Morning (8:00 AM - 12:00 PM)</SelectItem>
+                  <SelectItem value="12-5">Afternoon (12:00 PM - 5:00 PM)</SelectItem>
+                  <SelectItem value="any">Any time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label>Preferred Services</Label>
               <div className="grid grid-cols-2 gap-2">
@@ -217,6 +282,7 @@ export default function Waitlist() {
                 ))}
               </div>
             </div>
+
             <div className="space-y-2">
               <Label>Notes</Label>
               <Textarea
