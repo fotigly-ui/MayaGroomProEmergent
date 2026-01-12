@@ -368,13 +368,13 @@ class RecurringAppointmentsAPITester:
             self.log_test("Delete Single Appointment", False, f"Status: {status}")
             return False
         
-        # Verify it's deleted
+        # Verify it's deleted (should return 404)
         success, response, status = self.make_request('GET', f'appointments/{self.test_single_appointment_id}', None, 404)
-        if not success:
+        if success:  # success means we got the expected 404
             self.log_test("Verify Single Appointment Deleted", True)
             return True
         else:
-            self.log_test("Verify Single Appointment Deleted", False, "Appointment still exists")
+            self.log_test("Verify Single Appointment Deleted", False, f"Expected 404, got {status}")
             return False
 
     def test_appointment_listing_with_filters(self):
