@@ -423,6 +423,13 @@ class MayaGroomProAPITester:
         self.test_sms_send()
         self.test_sms_messages_list()
 
+        # Test Invoice endpoints
+        self.test_invoices_create()
+        self.test_invoices_list()
+        self.test_invoices_get()
+        self.test_invoices_from_appointment()
+        self.test_invoices_update_status()
+
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
