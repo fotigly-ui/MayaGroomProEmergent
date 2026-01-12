@@ -370,16 +370,33 @@ export function AppointmentModal({
 
   const handleDelete = async () => {
     if (!appointment) return;
-    if (!window.confirm('Are you sure you want to delete this appointment?')) return;
+    
+    // If recurring, ask if delete series
+    if (appointment.is_recurring && appointment.recurring_id) {
+      const choice = window.confirm('Delete this appointment or entire series?\n\nOK = Delete Series\nCancel = Delete Only This One');
+      const deleteSeries = choice;
+      
+      setLoading(true);
+      try {
+        await appointmentsAPI.delete(appointment.id, { params: { delete_series: deleteSeries } });
+        toast.success(deleteSeries ? 'Series deleted' : 'Appointment deleted');
+        promptSmsAfterAction('appointment_cancelled', () => onSave());
+      } catch (error) {
+        toast.error('Failed to delete appointment');
+        setLoading(false);
+      }
+    } else {
+      if (!window.confirm('Are you sure you want to delete this appointment?')) return;
 
-    setLoading(true);
-    try {
-      await appointmentsAPI.delete(appointment.id);
-      toast.success('Appointment deleted');
-      promptSmsAfterAction('appointment_cancelled', () => onSave());
-    } catch (error) {
-      toast.error('Failed to delete appointment');
-      setLoading(false);
+      setLoading(true);
+      try {
+        await appointmentsAPI.delete(appointment.id);
+        toast.success('Appointment deleted');
+        promptSmsAfterAction('appointment_cancelled', () => onSave());
+      } catch (error) {
+        toast.error('Failed to delete appointment');
+        setLoading(false);
+      }
     }
   };
 
