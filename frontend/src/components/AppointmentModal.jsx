@@ -436,6 +436,17 @@ export function AppointmentModal({
           <DialogFooter className="gap-2">
             {isEditing && (
               <>
+                {/* Generate Invoice Button */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleGenerateInvoice}
+                  disabled={invoiceLoading}
+                  data-testid="generate-invoice-btn"
+                >
+                  {invoiceLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <FileText size={16} className="mr-2" />}
+                  Invoice
+                </Button>
                 {/* SMS Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
