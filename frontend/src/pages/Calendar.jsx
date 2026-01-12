@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Send, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Send, MessageSquare, Phone, Copy, Mail, MapPin, Navigation } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
@@ -14,9 +14,19 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
-// Business hours: 6am to 10pm (each hour = 60px height)
-const HOURS = Array.from({ length: 17 }, (_, i) => i + 6);
-const HOUR_HEIGHT = 60;
+// 24-hour coverage: 00:00 to 23:45 in 15-minute intervals
+const generateTimeSlots = () => {
+  const slots = [];
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 15) {
+      slots.push({ hour, minute, label: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}` });
+    }
+  }
+  return slots;
+};
+
+const TIME_SLOTS = generateTimeSlots();
+const SLOT_HEIGHT = 20; // Height per 15-min slot (can be zoomed)
 
 export default function CalendarPage() {
   const { settings } = useAuth();
@@ -30,20 +40,28 @@ export default function CalendarPage() {
   const [services, setServices] = useState([]);
   const [popoverMonth, setPopoverMonth] = useState(new Date());
   
+  // Zoom state
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [initialPinchDistance, setInitialPinchDistance] = useState(null);
+  
   // Drag and drop state
   const [draggedAppointment, setDraggedAppointment] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   
-  // Confirmation dialog state
+  // Dialogs
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingReschedule, setPendingReschedule] = useState(null);
-  
-  // SMS prompt state
   const [showSmsPrompt, setShowSmsPrompt] = useState(false);
   
+  // Contact action dialogs
+  const [showPhoneOptions, setShowPhoneOptions] = useState(false);
+  const [showAddressOptions, setShowAddressOptions] = useState(false);
+  const [showEmailOptions, setShowEmailOptions] = useState(false);
+  const [selectedContact, setSelectedContact] = useState(null);
+  
   const scrollRef = useRef(null);
+  const calendarRef = useRef(null);
 
-  // Week dates for the header (Mon-Sun)
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
     return addDays(weekStart, i);
@@ -93,17 +111,52 @@ export default function CalendarPage() {
     if (scrollRef.current) {
       const now = new Date();
       const hour = now.getHours();
-      const scrollPosition = (hour - 6) * HOUR_HEIGHT - 100;
+      const slotIndex = hour * 4; // 4 slots per hour
+      const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100;
       scrollRef.current.scrollTop = Math.max(0, scrollPosition);
     }
-  }, []);
+  }, [zoomLevel]);
+
+  // Pinch to zoom handlers
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      const distance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      setInitialPinchDistance(distance);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2 && initialPinchDistance) {
+      e.preventDefault(); // Prevent page zoom
+      const currentDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const scale = currentDistance / initialPinchDistance;
+      
+      if (scale > 1.05) {
+        setZoomLevel(prev => Math.min(prev * 1.05, 3));
+        setInitialPinchDistance(currentDistance);
+      } else if (scale < 0.95) {
+        setZoomLevel(prev => Math.max(prev * 0.95, 0.5));
+        setInitialPinchDistance(currentDistance);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setInitialPinchDistance(null);
+  };
 
   const navigatePrev = () => setSelectedDate(subWeeks(selectedDate, 1));
   const navigateNext = () => setSelectedDate(addWeeks(selectedDate, 1));
 
-  const handleSlotClick = (hour) => {
+  const handleSlotClick = (hour, minute) => {
     const slotDate = new Date(selectedDate);
-    slotDate.setHours(hour, 0, 0, 0);
+    slotDate.setHours(hour, minute, 0, 0);
     setSelectedSlot(slotDate);
     setSelectedAppointment(null);
     setShowModal(true);
@@ -127,6 +180,54 @@ export default function CalendarPage() {
     handleModalClose();
   };
 
+  // Contact actions
+  const handlePhoneClick = (phone, e) => {
+    e.stopPropagation();
+    setSelectedContact({ phone });
+    setShowPhoneOptions(true);
+  };
+
+  const handleEmailClick = (email, e) => {
+    e.stopPropagation();
+    setSelectedContact({ email });
+    setShowEmailOptions(true);
+  };
+
+  const handleAddressClick = (address, e) => {
+    e.stopPropagation();
+    setSelectedContact({ address });
+    setShowAddressOptions(true);
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard');
+  };
+
+  const openNativeCall = (phone) => {
+    window.location.href = `tel:${phone.replace(/\D/g, '')}`;
+  };
+
+  const openNativeSMS = (phone, message = '') => {
+    const cleanPhone = phone.replace(/\D/g, '');
+    window.location.href = `sms:${cleanPhone}${message ? `?body=${encodeURIComponent(message)}` : ''}`;
+  };
+
+  const openNativeEmail = (email) => {
+    window.location.href = `mailto:${email}`;
+  };
+
+  const openInMaps = (address, app) => {
+    const encodedAddress = encodeURIComponent(address);
+    if (app === 'apple') {
+      window.location.href = `maps://?q=${encodedAddress}`;
+    } else if (app === 'google') {
+      window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    } else if (app === 'waze') {
+      window.location.href = `https://waze.com/ul?q=${encodedAddress}`;
+    }
+  };
+
   // Drag and drop handlers
   const handleDragStart = (e, appointment) => {
     setDraggedAppointment(appointment);
@@ -134,20 +235,20 @@ export default function CalendarPage() {
     e.dataTransfer.setData('text/plain', appointment.id);
   };
 
-  const handleDragOver = (e, hour) => {
+  const handleDragOver = (e, hour, minute) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (draggedAppointment) {
-      setDragPreview({ hour });
+      setDragPreview({ hour, minute });
     }
   };
 
-  const handleDrop = async (e, hour) => {
+  const handleDrop = async (e, hour, minute) => {
     e.preventDefault();
     if (!draggedAppointment) return;
     
     const newDateTime = new Date(selectedDate);
-    newDateTime.setHours(hour, 0, 0, 0);
+    newDateTime.setHours(hour, minute, 0, 0);
     
     setPendingReschedule({
       appointment: draggedAppointment,
@@ -197,8 +298,7 @@ export default function CalendarPage() {
       if (res.data.status === 'sent') {
         toast.success('SMS sent');
       } else if (res.data.status === 'pending') {
-        const cleanPhone = res.data.phone.replace(/\D/g, '');
-        window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(res.data.message)}`;
+        openNativeSMS(res.data.phone, res.data.message);
         toast.success('Opening messaging app...');
       }
     } catch (error) {
@@ -219,6 +319,41 @@ export default function CalendarPage() {
     isSameDay(new Date(appt.date_time), selectedDate)
   );
 
+  // Group overlapping appointments
+  const getOverlappingGroups = () => {
+    const sorted = [...selectedDayAppointments].sort((a, b) => 
+      new Date(a.date_time) - new Date(b.date_time)
+    );
+    
+    const groups = [];
+    let currentGroup = [];
+    
+    sorted.forEach((appt) => {
+      const apptStart = new Date(appt.date_time);
+      const apptEnd = new Date(apptStart.getTime() + (appt.total_duration || 60) * 60000);
+      
+      if (currentGroup.length === 0) {
+        currentGroup.push(appt);
+      } else {
+        const lastAppt = currentGroup[currentGroup.length - 1];
+        const lastEnd = new Date(new Date(lastAppt.date_time).getTime() + (lastAppt.total_duration || 60) * 60000);
+        
+        if (apptStart < lastEnd) {
+          currentGroup.push(appt);
+        } else {
+          groups.push([...currentGroup]);
+          currentGroup = [appt];
+        }
+      }
+    });
+    
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+    
+    return groups;
+  };
+
   // Current time indicator
   const [currentTime, setCurrentTime] = useState(new Date());
   useEffect(() => {
@@ -229,77 +364,85 @@ export default function CalendarPage() {
   const getCurrentTimePosition = () => {
     const hour = currentTime.getHours();
     const minutes = currentTime.getMinutes();
-    if (hour < 6 || hour > 22) return null;
-    return ((hour - 6) * HOUR_HEIGHT + (minutes / 60) * HOUR_HEIGHT);
+    const slotIndex = hour * 4 + Math.floor(minutes / 15);
+    const offsetInSlot = (minutes % 15) / 15;
+    return (slotIndex + offsetInSlot) * SLOT_HEIGHT * zoomLevel;
   };
 
   const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isToday(selectedDate);
 
-  // Calculate appointment position and height
-  const getAppointmentStyle = (appt) => {
+  // Calculate appointment position and height with zoom
+  const getAppointmentStyle = (appt, groupSize, indexInGroup) => {
     const apptDate = new Date(appt.date_time);
     const hour = apptDate.getHours();
     const minutes = apptDate.getMinutes();
     const duration = appt.total_duration || 60;
     
-    const top = (hour - 6) * HOUR_HEIGHT + (minutes / 60) * HOUR_HEIGHT;
-    const height = (duration / 60) * HOUR_HEIGHT;
+    const slotIndex = hour * 4 + Math.floor(minutes / 15);
+    const offsetInSlot = (minutes % 15) / 15;
+    const top = (slotIndex + offsetInSlot) * SLOT_HEIGHT * zoomLevel;
+    const height = (duration / 15) * SLOT_HEIGHT * zoomLevel;
+    
+    const width = groupSize > 1 ? `${100 / groupSize}%` : '100%';
+    const left = groupSize > 1 ? `${(indexInGroup / groupSize) * 100}%` : '0';
     
     return {
       top: `${top}px`,
-      height: `${Math.max(height, 40)}px`,
-      minHeight: '40px'
+      height: `${Math.max(height, 30)}px`,
+      minHeight: '30px',
+      width,
+      left
     };
   };
+
+  const groups = getOverlappingGroups();
 
   return (
     <Layout>
       <div className="h-full flex flex-col bg-white">
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <button className="text-lg font-semibold text-gray-900 hover:text-primary flex items-center gap-1">
-                  {format(selectedDate, 'MMMM yyyy')}
-                  <ChevronRight size={16} className="rotate-90" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <div className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <Button variant="ghost" size="icon" onClick={() => setPopoverMonth(subMonths(popoverMonth, 1))}>
-                      <ChevronLeft size={16} />
-                    </Button>
-                    <span className="font-semibold">{format(popoverMonth, 'MMMM yyyy')}</span>
-                    <Button variant="ghost" size="icon" onClick={() => setPopoverMonth(addMonths(popoverMonth, 1))}>
-                      <ChevronRight size={16} />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-7 gap-1 text-center text-sm">
-                    {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
-                      <div key={i} className="p-2 text-gray-500 font-medium">{day}</div>
-                    ))}
-                    {popoverMonthDates.map((date, i) => (
-                      <button
-                        key={i}
-                        onClick={() => { setSelectedDate(date); }}
-                        className={cn(
-                          "p-2 rounded-full hover:bg-gray-100 transition-colors",
-                          !isSameMonth(date, popoverMonth) && "text-gray-300",
-                          isToday(date) && "bg-primary text-white hover:bg-primary",
-                          isSameDay(date, selectedDate) && !isToday(date) && "ring-2 ring-primary"
-                        )}
-                      >
-                        {format(date, 'd')}
-                      </button>
-                    ))}
-                  </div>
+        {/* FIXED Header */}
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0 bg-white z-10">
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="text-lg font-semibold text-gray-900 hover:text-primary flex items-center gap-1">
+                {format(selectedDate, 'MMMM yyyy')}
+                <ChevronRight size={16} className="rotate-90" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <div className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <Button variant="ghost" size="icon" onClick={() => setPopoverMonth(subMonths(popoverMonth, 1))}>
+                    <ChevronLeft size={16} />
+                  </Button>
+                  <span className="font-semibold">{format(popoverMonth, 'MMMM yyyy')}</span>
+                  <Button variant="ghost" size="icon" onClick={() => setPopoverMonth(addMonths(popoverMonth, 1))}>
+                    <ChevronRight size={16} />
+                  </Button>
                 </div>
-              </PopoverContent>
-            </Popover>
-          </div>
+                <div className="grid grid-cols-7 gap-1 text-center text-sm">
+                  {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
+                    <div key={i} className="p-2 text-gray-500 font-medium">{day}</div>
+                  ))}
+                  {popoverMonthDates.map((date, i) => (
+                    <button
+                      key={i}
+                      onClick={() => { setSelectedDate(date); }}
+                      className={cn(
+                        "p-2 rounded-full hover:bg-gray-100 transition-colors",
+                        !isSameMonth(date, popoverMonth) && "text-gray-300",
+                        isToday(date) && "bg-primary text-white hover:bg-primary",
+                        isSameDay(date, selectedDate) && !isToday(date) && "ring-2 ring-primary"
+                      )}
+                    >
+                      {format(date, 'd')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
           <button
             onClick={() => { setSelectedSlot(new Date()); setSelectedAppointment(null); setShowModal(true); }}
             className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary-hover"
@@ -309,8 +452,8 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        {/* Week Day Selector */}
-        <div className="flex border-b border-gray-200 flex-shrink-0">
+        {/* FIXED Week Day Selector */}
+        <div className="flex border-b border-gray-200 flex-shrink-0 bg-white z-10">
           <button 
             onClick={navigatePrev}
             className="px-2 flex items-center text-gray-400 hover:text-primary"
@@ -349,10 +492,16 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        {/* Day Schedule - Shows ONLY selected day's appointments */}
-        <div className="flex-1 overflow-auto relative" ref={scrollRef}>
-          {/* Current Time Indicator - Only show if selected date is today */}
-          {currentTimePos !== null && isSelectedDateToday && (
+        {/* SCROLLABLE Calendar Grid - This is the ONLY part that scrolls/zooms */}
+        <div 
+          className="flex-1 overflow-auto relative touch-pan-y"
+          ref={scrollRef}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Current Time Indicator */}
+          {isSelectedDateToday && (
             <div
               className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
               style={{ top: `${currentTimePos}px` }}
@@ -375,84 +524,121 @@ export default function CalendarPage() {
               className="fixed z-50 bg-primary text-white px-3 py-2 rounded-lg shadow-lg pointer-events-none text-sm font-medium"
               style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
             >
-              Moving to {String(dragPreview.hour).padStart(2, '0')}:00
+              Moving to {String(dragPreview.hour).padStart(2, '0')}:{String(dragPreview.minute).padStart(2, '0')}
             </div>
           )}
 
           {/* Time Grid */}
-          <div className="relative" style={{ height: `${HOURS.length * HOUR_HEIGHT}px` }}>
-            {/* Hour lines */}
-            {HOURS.map((hour, i) => {
-              const isDropTarget = dragPreview && dragPreview.hour === hour;
+          <div 
+            className="relative" 
+            style={{ height: `${TIME_SLOTS.length * SLOT_HEIGHT * zoomLevel}px` }}
+            ref={calendarRef}
+          >
+            {/* Time slot lines - 15 min intervals */}
+            {TIME_SLOTS.map((slot, i) => {
+              const isHourMark = slot.minute === 0;
+              const isDropTarget = dragPreview && dragPreview.hour === slot.hour && dragPreview.minute === slot.minute;
               
               return (
                 <div
-                  key={hour}
+                  key={i}
                   className={cn(
-                    "absolute left-0 right-0 flex border-t border-gray-100 cursor-pointer hover:bg-blue-50/30",
+                    "absolute left-0 right-0 flex cursor-pointer hover:bg-blue-50/30",
+                    isHourMark ? "border-t border-gray-200" : "border-t border-gray-100/50",
                     isDropTarget && "bg-primary/20"
                   )}
-                  style={{ top: `${i * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
-                  onClick={() => handleSlotClick(hour)}
-                  onDragOver={(e) => handleDragOver(e, hour)}
-                  onDrop={(e) => handleDrop(e, hour)}
-                  data-testid={`slot-${format(selectedDate, 'yyyy-MM-dd')}-${hour}`}
+                  style={{ 
+                    top: `${i * SLOT_HEIGHT * zoomLevel}px`, 
+                    height: `${SLOT_HEIGHT * zoomLevel}px` 
+                  }}
+                  onClick={() => handleSlotClick(slot.hour, slot.minute)}
+                  onDragOver={(e) => handleDragOver(e, slot.hour, slot.minute)}
+                  onDrop={(e) => handleDrop(e, slot.hour, slot.minute)}
+                  data-testid={`slot-${slot.label}`}
                 >
-                  <div className="w-14 flex-shrink-0 pr-2 pt-0 text-right">
-                    <span className="text-xs text-gray-400">
-                      {hour.toString().padStart(2, '0')}:00
-                    </span>
+                  <div className="w-14 flex-shrink-0 pr-2 text-right">
+                    {isHourMark && (
+                      <span className="text-xs text-gray-400">
+                        {slot.label}
+                      </span>
+                    )}
                   </div>
                   <div className="flex-1" />
                 </div>
               );
             })}
 
-            {/* Appointments for SELECTED day only */}
-            {selectedDayAppointments.map((appt) => {
-              const style = getAppointmentStyle(appt);
-              
-              return (
-                <div
-                  key={appt.id}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, appt)}
-                  onDragEnd={handleDragEnd}
-                  onClick={(e) => handleAppointmentClick(appt, e)}
-                  className={cn(
-                    "absolute left-14 right-2 bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-3 py-2 overflow-hidden cursor-grab active:cursor-grabbing hover:bg-blue-200 transition-colors shadow-sm",
-                    draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
-                  )}
-                  style={style}
-                  data-testid={`appointment-${appt.id}`}
-                >
-                  {/* Checkbox indicator */}
-                  <div className="absolute top-2 right-2 w-5 h-5 rounded border border-gray-300 bg-white" />
-                  
-                  <div className="text-sm font-semibold text-gray-900 truncate pr-6">
-                    {appt.client_name}
-                    {appt.pets?.length > 0 && (
-                      <span className="font-normal text-gray-600">
-                        {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
-                      </span>
+            {/* Appointments - positioned absolutely, side by side for overlapping */}
+            {groups.map((group, groupIndex) => (
+              group.map((appt, apptIndex) => {
+                const style = getAppointmentStyle(appt, group.length, apptIndex);
+                const client = clients.find(c => c.id === appt.client_id);
+                
+                return (
+                  <div
+                    key={appt.id}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, appt)}
+                    onDragEnd={handleDragEnd}
+                    onClick={(e) => handleAppointmentClick(appt, e)}
+                    className={cn(
+                      "absolute bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing hover:bg-blue-200 transition-colors shadow-sm",
+                      draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
+                    )}
+                    style={{
+                      ...style,
+                      left: `calc(56px + ${style.left})`,
+                      width: `calc(${style.width} - 60px)`,
+                      right: '8px'
+                    }}
+                    data-testid={`appointment-${appt.id}`}
+                  >
+                    <div className="text-xs font-semibold text-gray-900 truncate">
+                      {appt.client_name}
+                      {appt.pets?.length > 0 && (
+                        <span className="font-normal text-gray-600">
+                          {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-gray-600">
+                      {format(new Date(appt.date_time), 'HH:mm')}
+                    </div>
+                    {/* Services */}
+                    {parseInt(style.height) > 50 && (
+                      <div className="text-[10px] text-gray-500 mt-0.5 line-clamp-2">
+                        {appt.pets?.flatMap(p => 
+                          services
+                            .filter(s => p.services?.includes(s.id))
+                            .map(s => s.name)
+                        ).filter(Boolean).join(', ') || 'No services'}
+                      </div>
+                    )}
+                    {/* Contact buttons */}
+                    {parseInt(style.height) > 70 && client && (
+                      <div className="flex gap-2 mt-1">
+                        {client.phone && (
+                          <button
+                            onClick={(e) => handlePhoneClick(client.phone, e)}
+                            className="text-[10px] text-blue-600 flex items-center gap-0.5 hover:underline"
+                          >
+                            <Phone size={10} /> Call
+                          </button>
+                        )}
+                        {client.email && (
+                          <button
+                            onClick={(e) => handleEmailClick(client.email, e)}
+                            className="text-[10px] text-blue-600 flex items-center gap-0.5 hover:underline"
+                          >
+                            <Mail size={10} /> Email
+                          </button>
+                        )}
+                      </div>
                     )}
                   </div>
-                  <div className="text-xs text-gray-600 mt-0.5">
-                    {format(new Date(appt.date_time), 'HH:mm')}
-                  </div>
-                  {/* Show services if there's enough height */}
-                  {parseInt(style.height) > 60 && (
-                    <div className="text-xs text-gray-500 mt-1 line-clamp-2">
-                      {appt.pets?.flatMap(p => 
-                        services
-                          .filter(s => p.services?.includes(s.id))
-                          .map(s => s.name)
-                      ).filter(Boolean).join(', ') || 'No services'}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                );
+              })
+            ))}
           </div>
         </div>
       </div>
@@ -482,29 +668,20 @@ export default function CalendarPage() {
               <div className="bg-gray-50 rounded-lg p-3 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-gray-500">From:</span>
-                  <span className="font-medium">
-                    {format(pendingReschedule.oldDateTime, 'HH:mm')}
-                  </span>
+                  <span className="font-medium">{format(pendingReschedule.oldDateTime, 'HH:mm')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-gray-500">To:</span>
-                  <span className="font-medium text-primary">
-                    {format(pendingReschedule.newDateTime, 'HH:mm')}
-                  </span>
+                  <span className="font-medium text-primary">{format(pendingReschedule.newDateTime, 'HH:mm')}</span>
                 </div>
               </div>
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => {
-              setShowConfirmDialog(false);
-              setPendingReschedule(null);
-            }}>
+            <Button variant="outline" onClick={() => { setShowConfirmDialog(false); setPendingReschedule(null); }}>
               Cancel
             </Button>
-            <Button className="btn-maya-primary" onClick={confirmReschedule}>
-              Confirm
-            </Button>
+            <Button className="btn-maya-primary" onClick={confirmReschedule}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -518,18 +695,109 @@ export default function CalendarPage() {
               Notify Customer?
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600">
-            Would you like to send an SMS to notify the customer about the reschedule?
-          </p>
+          <p className="text-sm text-gray-600">Send SMS to notify about the reschedule?</p>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={skipSMS}>
-              No, Skip
-            </Button>
+            <Button variant="outline" onClick={skipSMS}>No, Skip</Button>
             <Button className="btn-maya-primary" onClick={sendRescheduleSMS}>
-              <Send size={16} className="mr-2" />
-              Yes, Send SMS
+              <Send size={16} className="mr-2" /> Yes, Send SMS
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phone Options Dialog */}
+      <Dialog open={showPhoneOptions} onOpenChange={setShowPhoneOptions}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Contact Options</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start" 
+              onClick={() => { openNativeCall(selectedContact?.phone); setShowPhoneOptions(false); }}
+            >
+              <Phone size={16} className="mr-2" /> Call {selectedContact?.phone}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => { openNativeSMS(selectedContact?.phone); setShowPhoneOptions(false); }}
+            >
+              <MessageSquare size={16} className="mr-2" /> Send SMS
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => { copyToClipboard(selectedContact?.phone); setShowPhoneOptions(false); }}
+            >
+              <Copy size={16} className="mr-2" /> Copy Number
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Address Options Dialog */}
+      <Dialog open={showAddressOptions} onOpenChange={setShowAddressOptions}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Open Address In</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => { openInMaps(selectedContact?.address, 'apple'); setShowAddressOptions(false); }}
+            >
+              <MapPin size={16} className="mr-2" /> Apple Maps
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => { openInMaps(selectedContact?.address, 'google'); setShowAddressOptions(false); }}
+            >
+              <Navigation size={16} className="mr-2" /> Google Maps
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => { openInMaps(selectedContact?.address, 'waze'); setShowAddressOptions(false); }}
+            >
+              <Navigation size={16} className="mr-2" /> Waze
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => { copyToClipboard(selectedContact?.address); setShowAddressOptions(false); }}
+            >
+              <Copy size={16} className="mr-2" /> Copy Address
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Options Dialog */}
+      <Dialog open={showEmailOptions} onOpenChange={setShowEmailOptions}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Email Options</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => { openNativeEmail(selectedContact?.email); setShowEmailOptions(false); }}
+            >
+              <Mail size={16} className="mr-2" /> Open Email App
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => { copyToClipboard(selectedContact?.email); setShowEmailOptions(false); }}
+            >
+              <Copy size={16} className="mr-2" /> Copy Email
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </Layout>
