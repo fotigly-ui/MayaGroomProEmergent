@@ -391,9 +391,9 @@ export default function CalendarPage() {
 
   return (
     <Layout>
-      <div className="h-full flex flex-col bg-white dark:bg-gray-900">
+      <div className="h-full flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
         {/* FIXED Header - Month */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 bg-white dark:bg-gray-900 z-20">
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 flex-shrink-0">
           <Popover>
             <PopoverTrigger asChild>
               <button className="text-lg font-semibold text-gray-900 dark:text-white hover:text-primary flex items-center gap-1">
@@ -421,8 +421,8 @@ export default function CalendarPage() {
                       key={i}
                       onClick={() => { setSelectedDate(date); }}
                       className={cn(
-                        "p-2 rounded-full hover:bg-gray-100 transition-colors",
-                        !isSameMonth(date, popoverMonth) && "text-gray-300",
+                        "p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                        !isSameMonth(date, popoverMonth) && "text-gray-300 dark:text-gray-600",
                         isToday(date) && "bg-primary text-white hover:bg-primary",
                         isSameDay(date, selectedDate) && !isToday(date) && "ring-2 ring-primary"
                       )}
@@ -456,7 +456,7 @@ export default function CalendarPage() {
         </div>
 
         {/* FIXED Week Day Selector */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700 flex-shrink-0 bg-white dark:bg-gray-900 z-20">
+        <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 flex-shrink-0">
           <button onClick={navigatePrev} className="px-2 flex items-center text-gray-400 hover:text-primary">
             <ChevronLeft size={20} />
           </button>
@@ -491,7 +491,7 @@ export default function CalendarPage() {
 
         {/* SCROLLABLE Calendar Grid */}
         <div 
-          className="flex-1 overflow-auto relative touch-pan-y"
+          className="flex-1 overflow-y-auto relative touch-pan-y bg-white dark:bg-gray-900"
           ref={scrollRef}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
