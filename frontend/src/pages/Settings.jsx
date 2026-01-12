@@ -89,6 +89,8 @@ export default function Settings() {
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [templateForm, setTemplateForm] = useState({ template: '', enabled: true });
   const [previewData, setPreviewData] = useState(null);
+  const [backupStatus, setBackupStatus] = useState(null);
+  const [backupLoading, setBackupLoading] = useState(false);
 
   useEffect(() => {
     if (settings) {
