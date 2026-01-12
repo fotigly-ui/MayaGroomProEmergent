@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Send, MessageSquare, Phone, Copy, Mail, MapPin, Navigation } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Send, MessageSquare, Phone, Copy, MapPin, Navigation, Calendar as CalendarIcon } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
@@ -26,7 +26,16 @@ const generateTimeSlots = () => {
 };
 
 const TIME_SLOTS = generateTimeSlots();
-const SLOT_HEIGHT = 20; // Height per 15-min slot (can be zoomed)
+const SLOT_HEIGHT = 20;
+
+// Status colors
+const STATUS_COLORS = {
+  scheduled: { bg: 'bg-blue-100', border: 'border-blue-500', text: 'text-blue-900' },
+  confirmed: { bg: 'bg-green-100', border: 'border-green-500', text: 'text-green-900' },
+  completed: { bg: 'bg-gray-100', border: 'border-gray-500', text: 'text-gray-900' },
+  cancelled: { bg: 'bg-red-100', border: 'border-red-500', text: 'text-red-900' },
+  no_show: { bg: 'bg-orange-100', border: 'border-orange-500', text: 'text-orange-900' }
+};
 
 export default function CalendarPage() {
   const { settings } = useAuth();
@@ -44,7 +53,7 @@ export default function CalendarPage() {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [initialPinchDistance, setInitialPinchDistance] = useState(null);
   
-  // Drag and drop state
+  // Drag state
   const [draggedAppointment, setDraggedAppointment] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
   
@@ -52,15 +61,12 @@ export default function CalendarPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingReschedule, setPendingReschedule] = useState(null);
   const [showSmsPrompt, setShowSmsPrompt] = useState(false);
-  
-  // Contact action dialogs
   const [showPhoneOptions, setShowPhoneOptions] = useState(false);
   const [showAddressOptions, setShowAddressOptions] = useState(false);
-  const [showEmailOptions, setShowEmailOptions] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
   
   const scrollRef = useRef(null);
-  const calendarRef = useRef(null);
+  const hasScrolledToTime = useRef(false);
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -106,16 +112,18 @@ export default function CalendarPage() {
     setPopoverMonth(selectedDate);
   }, [selectedDate]);
 
-  // Scroll to current time on mount
+  // Scroll to current time on first load
   useEffect(() => {
-    if (scrollRef.current) {
+    if (scrollRef.current && !hasScrolledToTime.current) {
       const now = new Date();
       const hour = now.getHours();
-      const slotIndex = hour * 4; // 4 slots per hour
+      const minutes = now.getMinutes();
+      const slotIndex = hour * 4 + Math.floor(minutes / 15);
       const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100;
       scrollRef.current.scrollTop = Math.max(0, scrollPosition);
+      hasScrolledToTime.current = true;
     }
-  }, [zoomLevel]);
+  }, [loading, zoomLevel]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
@@ -130,7 +138,7 @@ export default function CalendarPage() {
 
   const handleTouchMove = (e) => {
     if (e.touches.length === 2 && initialPinchDistance) {
-      e.preventDefault(); // Prevent page zoom
+      e.preventDefault();
       const currentDistance = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -153,6 +161,11 @@ export default function CalendarPage() {
 
   const navigatePrev = () => setSelectedDate(subWeeks(selectedDate, 1));
   const navigateNext = () => setSelectedDate(addWeeks(selectedDate, 1));
+  
+  const goToToday = () => {
+    setSelectedDate(new Date());
+    hasScrolledToTime.current = false; // Will trigger scroll to current time
+  };
 
   const handleSlotClick = (hour, minute) => {
     const slotDate = new Date(selectedDate);
@@ -187,12 +200,6 @@ export default function CalendarPage() {
     setShowPhoneOptions(true);
   };
 
-  const handleEmailClick = (email, e) => {
-    e.stopPropagation();
-    setSelectedContact({ email });
-    setShowEmailOptions(true);
-  };
-
   const handleAddressClick = (address, e) => {
     e.stopPropagation();
     setSelectedContact({ address });
@@ -213,10 +220,6 @@ export default function CalendarPage() {
     window.location.href = `sms:${cleanPhone}${message ? `?body=${encodeURIComponent(message)}` : ''}`;
   };
 
-  const openNativeEmail = (email) => {
-    window.location.href = `mailto:${email}`;
-  };
-
   const openInMaps = (address, app) => {
     const encodedAddress = encodeURIComponent(address);
     if (app === 'apple') {
@@ -228,7 +231,7 @@ export default function CalendarPage() {
     }
   };
 
-  // Drag and drop handlers
+  // Drag handlers
   const handleDragStart = (e, appointment) => {
     setDraggedAppointment(appointment);
     e.dataTransfer.effectAllowed = 'move';
@@ -285,24 +288,14 @@ export default function CalendarPage() {
   const sendRescheduleSMS = async () => {
     if (!pendingReschedule) return;
     
-    try {
-      const token = localStorage.getItem('maya_token');
-      const res = await axios.post(`${API_URL}/sms/send`, {
-        client_id: pendingReschedule.appointment.client_id,
-        message_type: 'appointment_rescheduled',
-        appointment_id: pendingReschedule.appointment.id
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (res.data.status === 'sent') {
-        toast.success('SMS sent');
-      } else if (res.data.status === 'pending') {
-        openNativeSMS(res.data.phone, res.data.message);
-        toast.success('Opening messaging app...');
-      }
-    } catch (error) {
-      toast.error('Failed to send SMS');
+    // Get client phone directly and open native SMS
+    const client = clients.find(c => c.id === pendingReschedule.appointment.client_id);
+    if (client?.phone) {
+      const message = `Hi ${client.name}, your appointment has been rescheduled to ${format(pendingReschedule.newDateTime, 'EEEE, MMMM d')} at ${format(pendingReschedule.newDateTime, 'HH:mm')}.`;
+      openNativeSMS(client.phone, message);
+      toast.success('Opening messaging app...');
+    } else {
+      toast.error('Client phone not available');
     }
     
     setShowSmsPrompt(false);
@@ -314,7 +307,7 @@ export default function CalendarPage() {
     setPendingReschedule(null);
   };
 
-  // Get appointments for the SELECTED day only
+  // Get appointments for selected day
   const selectedDayAppointments = appointments.filter(appt => 
     isSameDay(new Date(appt.date_time), selectedDate)
   );
@@ -335,10 +328,14 @@ export default function CalendarPage() {
       if (currentGroup.length === 0) {
         currentGroup.push(appt);
       } else {
-        const lastAppt = currentGroup[currentGroup.length - 1];
-        const lastEnd = new Date(new Date(lastAppt.date_time).getTime() + (lastAppt.total_duration || 60) * 60000);
+        // Check overlap with ALL in current group
+        const hasOverlap = currentGroup.some(existingAppt => {
+          const existingStart = new Date(existingAppt.date_time);
+          const existingEnd = new Date(existingStart.getTime() + (existingAppt.total_duration || 60) * 60000);
+          return apptStart < existingEnd && apptEnd > existingStart;
+        });
         
-        if (apptStart < lastEnd) {
+        if (hasOverlap) {
           currentGroup.push(appt);
         } else {
           groups.push([...currentGroup]);
@@ -354,7 +351,7 @@ export default function CalendarPage() {
     return groups;
   };
 
-  // Current time indicator
+  // Current time
   const [currentTime, setCurrentTime] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -372,7 +369,7 @@ export default function CalendarPage() {
   const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isToday(selectedDate);
 
-  // Calculate appointment position and height with zoom
+  // Appointment style
   const getAppointmentStyle = (appt, groupSize, indexInGroup) => {
     const apptDate = new Date(appt.date_time);
     const hour = apptDate.getHours();
@@ -387,25 +384,19 @@ export default function CalendarPage() {
     const width = groupSize > 1 ? `${100 / groupSize}%` : '100%';
     const left = groupSize > 1 ? `${(indexInGroup / groupSize) * 100}%` : '0';
     
-    return {
-      top: `${top}px`,
-      height: `${Math.max(height, 30)}px`,
-      minHeight: '30px',
-      width,
-      left
-    };
+    return { top: `${top}px`, height: `${Math.max(height, 40)}px`, minHeight: '40px', width, left };
   };
 
   const groups = getOverlappingGroups();
 
   return (
     <Layout>
-      <div className="h-full flex flex-col bg-white">
-        {/* FIXED Header */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0 bg-white z-10">
+      <div className="h-full flex flex-col bg-white dark:bg-gray-900">
+        {/* FIXED Header - Month */}
+        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 flex-shrink-0 bg-white dark:bg-gray-900 z-20">
           <Popover>
             <PopoverTrigger asChild>
-              <button className="text-lg font-semibold text-gray-900 hover:text-primary flex items-center gap-1">
+              <button className="text-lg font-semibold text-gray-900 dark:text-white hover:text-primary flex items-center gap-1">
                 {format(selectedDate, 'MMMM yyyy')}
                 <ChevronRight size={16} className="rotate-90" />
               </button>
@@ -443,21 +434,30 @@ export default function CalendarPage() {
               </div>
             </PopoverContent>
           </Popover>
-          <button
-            onClick={() => { setSelectedSlot(new Date()); setSelectedAppointment(null); setShowModal(true); }}
-            className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary-hover"
-            data-testid="new-appointment-btn"
-          >
-            <Plus size={20} />
-          </button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={goToToday}
+              className="text-xs"
+              data-testid="today-btn"
+            >
+              <CalendarIcon size={14} className="mr-1" />
+              Today
+            </Button>
+            <button
+              onClick={() => { setSelectedSlot(new Date()); setSelectedAppointment(null); setShowModal(true); }}
+              className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary-hover"
+              data-testid="new-appointment-btn"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
         </div>
 
         {/* FIXED Week Day Selector */}
-        <div className="flex border-b border-gray-200 flex-shrink-0 bg-white z-10">
-          <button 
-            onClick={navigatePrev}
-            className="px-2 flex items-center text-gray-400 hover:text-primary"
-          >
+        <div className="flex border-b border-gray-200 dark:border-gray-700 flex-shrink-0 bg-white dark:bg-gray-900 z-20">
+          <button onClick={navigatePrev} className="px-2 flex items-center text-gray-400 hover:text-primary">
             <ChevronLeft size={20} />
           </button>
           {weekDates.map((date, i) => (
@@ -466,33 +466,30 @@ export default function CalendarPage() {
               onClick={() => setSelectedDate(date)}
               className={cn(
                 "flex-1 py-3 text-center transition-colors",
-                isSameDay(date, selectedDate) && "bg-gray-50"
+                isSameDay(date, selectedDate) && "bg-gray-50 dark:bg-gray-800"
               )}
             >
               <div className={cn(
                 "text-xs font-medium uppercase",
-                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-500"
+                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-500 dark:text-gray-400"
               )}>
                 {format(date, 'EEE').charAt(0)}
               </div>
               <div className={cn(
                 "text-sm font-semibold mt-1 w-8 h-8 mx-auto flex items-center justify-center rounded-full",
-                isSameDay(date, selectedDate) && "bg-gray-800 text-white",
+                isSameDay(date, selectedDate) && "bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900",
                 isToday(date) && !isSameDay(date, selectedDate) && "text-primary"
               )}>
                 {format(date, 'd')}
               </div>
             </button>
           ))}
-          <button 
-            onClick={navigateNext}
-            className="px-2 flex items-center text-gray-400 hover:text-primary"
-          >
+          <button onClick={navigateNext} className="px-2 flex items-center text-gray-400 hover:text-primary">
             <ChevronRight size={20} />
           </button>
         </div>
 
-        {/* SCROLLABLE Calendar Grid - This is the ONLY part that scrolls/zooms */}
+        {/* SCROLLABLE Calendar Grid */}
         <div 
           className="flex-1 overflow-auto relative touch-pan-y"
           ref={scrollRef}
@@ -507,7 +504,7 @@ export default function CalendarPage() {
               style={{ top: `${currentTimePos}px` }}
             >
               <div className="w-14 flex justify-end pr-1">
-                <span className="text-[10px] font-bold text-red-500 bg-white px-1">
+                <span className="text-[10px] font-bold text-red-500 bg-white dark:bg-gray-900 px-1">
                   {format(currentTime, 'HH:mm')}
                 </span>
               </div>
@@ -520,21 +517,13 @@ export default function CalendarPage() {
 
           {/* Drag Preview */}
           {dragPreview && draggedAppointment && (
-            <div
-              className="fixed z-50 bg-primary text-white px-3 py-2 rounded-lg shadow-lg pointer-events-none text-sm font-medium"
-              style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
-            >
+            <div className="fixed z-50 bg-primary text-white px-3 py-2 rounded-lg shadow-lg pointer-events-none text-sm font-medium" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>
               Moving to {String(dragPreview.hour).padStart(2, '0')}:{String(dragPreview.minute).padStart(2, '0')}
             </div>
           )}
 
           {/* Time Grid */}
-          <div 
-            className="relative" 
-            style={{ height: `${TIME_SLOTS.length * SLOT_HEIGHT * zoomLevel}px` }}
-            ref={calendarRef}
-          >
-            {/* Time slot lines - 15 min intervals */}
+          <div className="relative" style={{ height: `${TIME_SLOTS.length * SLOT_HEIGHT * zoomLevel}px` }}>
             {TIME_SLOTS.map((slot, i) => {
               const isHourMark = slot.minute === 0;
               const isDropTarget = dragPreview && dragPreview.hour === slot.hour && dragPreview.minute === slot.minute;
@@ -543,24 +532,18 @@ export default function CalendarPage() {
                 <div
                   key={i}
                   className={cn(
-                    "absolute left-0 right-0 flex cursor-pointer hover:bg-blue-50/30",
-                    isHourMark ? "border-t border-gray-200" : "border-t border-gray-100/50",
+                    "absolute left-0 right-0 flex cursor-pointer hover:bg-blue-50/30 dark:hover:bg-blue-900/20",
+                    isHourMark ? "border-t border-gray-200 dark:border-gray-700" : "border-t border-gray-100/50 dark:border-gray-800/50",
                     isDropTarget && "bg-primary/20"
                   )}
-                  style={{ 
-                    top: `${i * SLOT_HEIGHT * zoomLevel}px`, 
-                    height: `${SLOT_HEIGHT * zoomLevel}px` 
-                  }}
+                  style={{ top: `${i * SLOT_HEIGHT * zoomLevel}px`, height: `${SLOT_HEIGHT * zoomLevel}px` }}
                   onClick={() => handleSlotClick(slot.hour, slot.minute)}
                   onDragOver={(e) => handleDragOver(e, slot.hour, slot.minute)}
                   onDrop={(e) => handleDrop(e, slot.hour, slot.minute)}
-                  data-testid={`slot-${slot.label}`}
                 >
                   <div className="w-14 flex-shrink-0 pr-2 text-right">
                     {isHourMark && (
-                      <span className="text-xs text-gray-400">
-                        {slot.label}
-                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">{slot.label}</span>
                     )}
                   </div>
                   <div className="flex-1" />
@@ -568,11 +551,12 @@ export default function CalendarPage() {
               );
             })}
 
-            {/* Appointments - positioned absolutely, side by side for overlapping */}
-            {groups.map((group, groupIndex) => (
+            {/* Appointments */}
+            {groups.map((group) => (
               group.map((appt, apptIndex) => {
                 const style = getAppointmentStyle(appt, group.length, apptIndex);
                 const client = clients.find(c => c.id === appt.client_id);
+                const colors = STATUS_COLORS[appt.status] || STATUS_COLORS.scheduled;
                 
                 return (
                   <div
@@ -582,7 +566,8 @@ export default function CalendarPage() {
                     onDragEnd={handleDragEnd}
                     onClick={(e) => handleAppointmentClick(appt, e)}
                     className={cn(
-                      "absolute bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing hover:bg-blue-200 transition-colors shadow-sm",
+                      "absolute border-l-4 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing hover:opacity-90 transition-colors shadow-sm",
+                      colors.bg, colors.border, colors.text,
                       draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
                     )}
                     style={{
@@ -593,44 +578,42 @@ export default function CalendarPage() {
                     }}
                     data-testid={`appointment-${appt.id}`}
                   >
-                    <div className="text-xs font-semibold text-gray-900 truncate">
+                    <div className="text-xs font-semibold truncate">
                       {appt.client_name}
                       {appt.pets?.length > 0 && (
-                        <span className="font-normal text-gray-600">
+                        <span className="font-normal opacity-80">
                           {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
                         </span>
                       )}
                     </div>
-                    <div className="text-[10px] text-gray-600">
+                    <div className="text-[10px] opacity-80">
                       {format(new Date(appt.date_time), 'HH:mm')}
                     </div>
                     {/* Services */}
                     {parseInt(style.height) > 50 && (
-                      <div className="text-[10px] text-gray-500 mt-0.5 line-clamp-2">
+                      <div className="text-[10px] opacity-70 mt-0.5 line-clamp-1">
                         {appt.pets?.flatMap(p => 
-                          services
-                            .filter(s => p.services?.includes(s.id))
-                            .map(s => s.name)
+                          services.filter(s => p.services?.includes(s.id)).map(s => s.name)
                         ).filter(Boolean).join(', ') || 'No services'}
                       </div>
                     )}
-                    {/* Contact buttons */}
+                    {/* Address & Phone */}
                     {parseInt(style.height) > 70 && client && (
-                      <div className="flex gap-2 mt-1">
+                      <div className="flex gap-2 mt-1 flex-wrap">
                         {client.phone && (
                           <button
                             onClick={(e) => handlePhoneClick(client.phone, e)}
-                            className="text-[10px] text-blue-600 flex items-center gap-0.5 hover:underline"
+                            className="text-[10px] flex items-center gap-0.5 hover:underline opacity-80"
                           >
-                            <Phone size={10} /> Call
+                            <Phone size={10} />
                           </button>
                         )}
-                        {client.email && (
+                        {client.address && (
                           <button
-                            onClick={(e) => handleEmailClick(client.email, e)}
-                            className="text-[10px] text-blue-600 flex items-center gap-0.5 hover:underline"
+                            onClick={(e) => handleAddressClick(client.address, e)}
+                            className="text-[10px] flex items-center gap-0.5 hover:underline opacity-80"
                           >
-                            <Mail size={10} /> Email
+                            <MapPin size={10} />
                           </button>
                         )}
                       </div>
@@ -643,7 +626,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* Appointment Modal */}
+      {/* Modals */}
       <AppointmentModal
         open={showModal}
         onClose={handleModalClose}
@@ -654,7 +637,6 @@ export default function CalendarPage() {
         services={services}
       />
 
-      {/* Reschedule Confirmation Dialog */}
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -662,10 +644,10 @@ export default function CalendarPage() {
           </DialogHeader>
           {pendingReschedule && (
             <div className="space-y-3">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Move <span className="font-semibold">{pendingReschedule.appointment.client_name}</span>'s appointment?
               </p>
-              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-gray-500">From:</span>
                   <span className="font-medium">{format(pendingReschedule.oldDateTime, 'HH:mm')}</span>
@@ -678,15 +660,12 @@ export default function CalendarPage() {
             </div>
           )}
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setShowConfirmDialog(false); setPendingReschedule(null); }}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => { setShowConfirmDialog(false); setPendingReschedule(null); }}>Cancel</Button>
             <Button className="btn-maya-primary" onClick={confirmReschedule}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* SMS Prompt Dialog */}
       <Dialog open={showSmsPrompt} onOpenChange={setShowSmsPrompt}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -695,7 +674,7 @@ export default function CalendarPage() {
               Notify Customer?
             </DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-gray-600">Send SMS to notify about the reschedule?</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Send SMS to notify about the reschedule?</p>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={skipSMS}>No, Skip</Button>
             <Button className="btn-maya-primary" onClick={sendRescheduleSMS}>
@@ -705,97 +684,43 @@ export default function CalendarPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Phone Options Dialog */}
       <Dialog open={showPhoneOptions} onOpenChange={setShowPhoneOptions}>
         <DialogContent className="max-w-xs">
           <DialogHeader>
             <DialogTitle>Contact Options</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start" 
-              onClick={() => { openNativeCall(selectedContact?.phone); setShowPhoneOptions(false); }}
-            >
+            <Button variant="outline" className="w-full justify-start" onClick={() => { openNativeCall(selectedContact?.phone); setShowPhoneOptions(false); }}>
               <Phone size={16} className="mr-2" /> Call {selectedContact?.phone}
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => { openNativeSMS(selectedContact?.phone); setShowPhoneOptions(false); }}
-            >
+            <Button variant="outline" className="w-full justify-start" onClick={() => { openNativeSMS(selectedContact?.phone); setShowPhoneOptions(false); }}>
               <MessageSquare size={16} className="mr-2" /> Send SMS
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => { copyToClipboard(selectedContact?.phone); setShowPhoneOptions(false); }}
-            >
+            <Button variant="outline" className="w-full justify-start" onClick={() => { copyToClipboard(selectedContact?.phone); setShowPhoneOptions(false); }}>
               <Copy size={16} className="mr-2" /> Copy Number
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Address Options Dialog */}
       <Dialog open={showAddressOptions} onOpenChange={setShowAddressOptions}>
         <DialogContent className="max-w-xs">
           <DialogHeader>
-            <DialogTitle>Open Address In</DialogTitle>
+            <DialogTitle>Navigate to Address</DialogTitle>
           </DialogHeader>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{selectedContact?.address}</p>
           <div className="space-y-2">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => { openInMaps(selectedContact?.address, 'apple'); setShowAddressOptions(false); }}
-            >
+            <Button variant="outline" className="w-full justify-start" onClick={() => { openInMaps(selectedContact?.address, 'apple'); setShowAddressOptions(false); }}>
               <MapPin size={16} className="mr-2" /> Apple Maps
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => { openInMaps(selectedContact?.address, 'google'); setShowAddressOptions(false); }}
-            >
+            <Button variant="outline" className="w-full justify-start" onClick={() => { openInMaps(selectedContact?.address, 'google'); setShowAddressOptions(false); }}>
               <Navigation size={16} className="mr-2" /> Google Maps
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => { openInMaps(selectedContact?.address, 'waze'); setShowAddressOptions(false); }}
-            >
+            <Button variant="outline" className="w-full justify-start" onClick={() => { openInMaps(selectedContact?.address, 'waze'); setShowAddressOptions(false); }}>
               <Navigation size={16} className="mr-2" /> Waze
             </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => { copyToClipboard(selectedContact?.address); setShowAddressOptions(false); }}
-            >
+            <Button variant="outline" className="w-full justify-start" onClick={() => { copyToClipboard(selectedContact?.address); setShowAddressOptions(false); }}>
               <Copy size={16} className="mr-2" /> Copy Address
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Email Options Dialog */}
-      <Dialog open={showEmailOptions} onOpenChange={setShowEmailOptions}>
-        <DialogContent className="max-w-xs">
-          <DialogHeader>
-            <DialogTitle>Email Options</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => { openNativeEmail(selectedContact?.email); setShowEmailOptions(false); }}
-            >
-              <Mail size={16} className="mr-2" /> Open Email App
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => { copyToClipboard(selectedContact?.email); setShowEmailOptions(false); }}
-            >
-              <Copy size={16} className="mr-2" /> Copy Email
             </Button>
           </div>
         </DialogContent>
