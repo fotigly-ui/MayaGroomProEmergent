@@ -374,6 +374,106 @@ class MayaGroomProAPITester:
         self.log_test("List SMS Messages", success, f"Status: {status}" if not success else "")
         return success
 
+    def test_invoices_create(self):
+        """Test create invoice"""
+        if not self.test_client_id:
+            self.log_test("Create Invoice", False, "No test client ID available")
+            return False
+            
+        data = {
+            "client_id": self.test_client_id,
+            "items": [
+                {
+                    "name": "Full Groom Service",
+                    "quantity": 1,
+                    "unit_price": 85.00,
+                    "total": 85.00
+                },
+                {
+                    "name": "Nail Clipping",
+                    "quantity": 1,
+                    "unit_price": 15.00,
+                    "total": 15.00
+                }
+            ],
+            "notes": "Test invoice creation",
+            "due_date": (datetime.now() + timedelta(days=30)).isoformat()
+        }
+        
+        success, response, status = self.make_request('POST', 'invoices', data, 200)
+        if success and 'id' in response:
+            self.test_invoice_id = response['id']
+            # Verify GST calculation
+            expected_subtotal = 100.00
+            expected_gst = 10.00  # 10% GST
+            expected_total = 110.00
+            
+            if (response.get('subtotal') == expected_subtotal and 
+                response.get('gst_amount') == expected_gst and
+                response.get('total') == expected_total):
+                self.log_test("Create Invoice (with GST calculation)", True)
+                return True
+            else:
+                self.log_test("Create Invoice", False, f"GST calculation incorrect: subtotal={response.get('subtotal')}, gst={response.get('gst_amount')}, total={response.get('total')}")
+                return False
+        else:
+            self.log_test("Create Invoice", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_invoices_list(self):
+        """Test list invoices"""
+        success, response, status = self.make_request('GET', 'invoices', None, 200)
+        self.log_test("List Invoices", success, f"Status: {status}" if not success else "")
+        return success
+
+    def test_invoices_get(self):
+        """Test get specific invoice"""
+        if not self.test_invoice_id:
+            self.log_test("Get Invoice", False, "No test invoice ID available")
+            return False
+            
+        success, response, status = self.make_request('GET', f'invoices/{self.test_invoice_id}', None, 200)
+        self.log_test("Get Invoice", success, f"Status: {status}" if not success else "")
+        return success
+
+    def test_invoices_from_appointment(self):
+        """Test create invoice from appointment"""
+        if not self.test_appointment_id:
+            self.log_test("Create Invoice from Appointment", False, "No test appointment ID available")
+            return False
+            
+        success, response, status = self.make_request('POST', f'invoices/from-appointment/{self.test_appointment_id}', {}, 200)
+        if success and 'id' in response and 'invoice_number' in response:
+            self.log_test("Create Invoice from Appointment", True, f"Invoice: {response.get('invoice_number')}")
+            return True
+        else:
+            self.log_test("Create Invoice from Appointment", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_invoices_update_status(self):
+        """Test update invoice status"""
+        if not self.test_invoice_id:
+            self.log_test("Update Invoice Status", False, "No test invoice ID available")
+            return False
+            
+        data = {
+            "status": "sent"
+        }
+        
+        success, response, status = self.make_request('PUT', f'invoices/{self.test_invoice_id}', data, 200)
+        if success and response.get('status') == 'sent':
+            self.log_test("Update Invoice Status", True)
+            return True
+        else:
+            self.log_test("Update Invoice Status", False, f"Status: {status}, Response: {response}")
+            return False
+
+    def test_invoices_filter_by_status(self):
+        """Test filter invoices by status"""
+        success, response, status = self.make_request('GET', 'invoices?status=sent', None, 200)
+        self.log_test("Filter Invoices by Status", success, f"Status: {status}" if not success else "")
+        return success
+
     def run_all_tests(self):
         """Run all API tests"""
         print("🚀 Starting Maya Groom Pro API Tests...")
