@@ -1,14 +1,18 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, MoreVertical } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, MoreVertical, Send, MessageSquare } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { appointmentsAPI, clientsAPI, servicesAPI } from '../lib/api';
 import { cn, isToday, formatCurrency } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { AppointmentModal } from '../components/AppointmentModal';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { toast } from 'sonner';
+import axios from 'axios';
+
+const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
 // Business hours: 6am to 10pm
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6);
@@ -24,7 +28,18 @@ export default function CalendarPage() {
   const [clients, setClients] = useState([]);
   const [services, setServices] = useState([]);
   const [popoverMonth, setPopoverMonth] = useState(new Date());
+  
+  // Drag and drop state
   const [draggedAppointment, setDraggedAppointment] = useState(null);
+  const [dragPreview, setDragPreview] = useState(null);
+  
+  // Confirmation dialog state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingReschedule, setPendingReschedule] = useState(null);
+  
+  // SMS prompt state
+  const [showSmsPrompt, setShowSmsPrompt] = useState(false);
+  
   const scrollRef = useRef(null);
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
@@ -119,9 +134,16 @@ export default function CalendarPage() {
     e.dataTransfer.setData('text/plain', appointment.id);
   };
 
-  const handleDragOver = (e) => {
+  const handleDragOver = (e, date, hour) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+    if (draggedAppointment) {
+      setDragPreview({ date, hour });
+    }
+  };
+
+  const handleDragLeave = () => {
+    // Don't clear immediately to prevent flickering
   };
 
   const handleDrop = async (e, date, hour) => {
@@ -131,20 +153,73 @@ export default function CalendarPage() {
     const newDateTime = new Date(date);
     newDateTime.setHours(hour, 0, 0, 0);
     
-    try {
-      await appointmentsAPI.update(draggedAppointment.id, {
-        date_time: newDateTime.toISOString()
-      });
-      toast.success('Appointment rescheduled');
-      fetchData();
-    } catch (error) {
-      toast.error('Failed to reschedule');
-    }
+    // Show confirmation dialog
+    setPendingReschedule({
+      appointment: draggedAppointment,
+      newDateTime,
+      oldDateTime: new Date(draggedAppointment.date_time)
+    });
+    setShowConfirmDialog(true);
+    
     setDraggedAppointment(null);
+    setDragPreview(null);
   };
 
   const handleDragEnd = () => {
     setDraggedAppointment(null);
+    setDragPreview(null);
+  };
+
+  const confirmReschedule = async () => {
+    if (!pendingReschedule) return;
+    
+    try {
+      await appointmentsAPI.update(pendingReschedule.appointment.id, {
+        date_time: pendingReschedule.newDateTime.toISOString()
+      });
+      toast.success('Appointment rescheduled');
+      fetchData();
+      setShowConfirmDialog(false);
+      
+      // Show SMS prompt
+      setShowSmsPrompt(true);
+    } catch (error) {
+      toast.error('Failed to reschedule');
+    }
+  };
+
+  const sendRescheduleSMS = async () => {
+    if (!pendingReschedule) return;
+    
+    try {
+      const token = localStorage.getItem('maya_token');
+      const res = await axios.post(`${API_URL}/sms/send`, {
+        client_id: pendingReschedule.appointment.client_id,
+        message_type: 'appointment_rescheduled',
+        appointment_id: pendingReschedule.appointment.id
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (res.data.status === 'sent') {
+        toast.success('SMS sent');
+      } else if (res.data.status === 'pending') {
+        // Open native SMS app
+        const cleanPhone = res.data.phone.replace(/\D/g, '');
+        window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(res.data.message)}`;
+        toast.success('Opening messaging app...');
+      }
+    } catch (error) {
+      toast.error('Failed to send SMS');
+    }
+    
+    setShowSmsPrompt(false);
+    setPendingReschedule(null);
+  };
+
+  const skipSMS = () => {
+    setShowSmsPrompt(false);
+    setPendingReschedule(null);
   };
 
   // Get appointments for a specific day
@@ -277,6 +352,20 @@ export default function CalendarPage() {
             </div>
           )}
 
+          {/* Drag Preview */}
+          {dragPreview && draggedAppointment && (
+            <div
+              className="fixed z-50 bg-primary text-white px-3 py-2 rounded-lg shadow-lg pointer-events-none text-sm font-medium"
+              style={{
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            >
+              Moving to: {format(dragPreview.date, 'EEE d')} at {String(dragPreview.hour).padStart(2, '0')}:00
+            </div>
+          )}
+
           {/* Time Rows */}
           <div className="relative">
             {HOURS.map((hour) => (
@@ -288,74 +377,90 @@ export default function CalendarPage() {
                   </span>
                 </div>
                 {/* Day Columns */}
-                {weekDates.map((date, dayIndex) => (
-                  <div
-                    key={dayIndex}
-                    className={cn(
-                      "flex-1 border-l border-t border-gray-100 relative cursor-pointer hover:bg-blue-50/30",
-                      isToday(date) && "bg-gray-50/50"
-                    )}
-                    onClick={() => handleSlotClick(date, hour)}
-                    onDragOver={handleDragOver}
-                    onDrop={(e) => handleDrop(e, date, hour)}
-                    data-testid={`slot-${format(date, 'yyyy-MM-dd')}-${hour}`}
-                  >
-                    {/* Appointments for this hour */}
-                    {getAppointmentsForDay(date)
-                      .filter(appt => new Date(appt.date_time).getHours() === hour)
-                      .map((appt) => {
-                        const duration = appt.total_duration || 60;
-                        const heightPx = (duration / 60) * 60;
-                        const minutes = new Date(appt.date_time).getMinutes();
-                        const topOffset = (minutes / 60) * 60;
-                        
-                        return (
-                          <div
-                            key={appt.id}
-                            draggable
-                            onDragStart={(e) => handleDragStart(e, appt)}
-                            onDragEnd={handleDragEnd}
-                            onClick={(e) => handleAppointmentClick(appt, e)}
-                            className={cn(
-                              "absolute left-0.5 right-0.5 bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing z-10 hover:bg-blue-200 transition-colors",
-                              draggedAppointment?.id === appt.id && "opacity-50"
-                            )}
-                            style={{
-                              top: `${topOffset}px`,
-                              height: `${Math.max(heightPx - 2, 28)}px`,
-                              minHeight: '28px'
-                            }}
-                            data-testid={`appointment-${appt.id}`}
-                          >
-                            {/* Checkbox indicator */}
-                            <div className="absolute top-1 right-1 w-4 h-4 rounded border border-gray-300 bg-white" />
-                            
-                            <div className="text-xs font-semibold text-gray-900 truncate pr-5">
-                              {appt.client_name}
-                              {appt.pets?.length > 0 && (
-                                <span className="font-normal text-gray-600">
-                                  {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
-                                </span>
+                {weekDates.map((date, dayIndex) => {
+                  const isDropTarget = dragPreview && 
+                    isSameDay(dragPreview.date, date) && 
+                    dragPreview.hour === hour;
+                  
+                  return (
+                    <div
+                      key={dayIndex}
+                      className={cn(
+                        "flex-1 border-l border-t border-gray-100 relative cursor-pointer hover:bg-blue-50/30",
+                        isToday(date) && "bg-gray-50/50",
+                        isDropTarget && "bg-primary/20 ring-2 ring-primary ring-inset"
+                      )}
+                      onClick={() => handleSlotClick(date, hour)}
+                      onDragOver={(e) => handleDragOver(e, date, hour)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, date, hour)}
+                      data-testid={`slot-${format(date, 'yyyy-MM-dd')}-${hour}`}
+                    >
+                      {/* Drop target time indicator */}
+                      {isDropTarget && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs font-bold text-primary">
+                            {String(hour).padStart(2, '0')}:00
+                          </span>
+                        </div>
+                      )}
+                      
+                      {/* Appointments for this hour */}
+                      {getAppointmentsForDay(date)
+                        .filter(appt => new Date(appt.date_time).getHours() === hour)
+                        .map((appt) => {
+                          const duration = appt.total_duration || 60;
+                          const heightPx = (duration / 60) * 60;
+                          const minutes = new Date(appt.date_time).getMinutes();
+                          const topOffset = (minutes / 60) * 60;
+                          
+                          return (
+                            <div
+                              key={appt.id}
+                              draggable
+                              onDragStart={(e) => handleDragStart(e, appt)}
+                              onDragEnd={handleDragEnd}
+                              onClick={(e) => handleAppointmentClick(appt, e)}
+                              className={cn(
+                                "absolute left-0.5 right-0.5 bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing z-10 hover:bg-blue-200 transition-colors",
+                                draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
+                              )}
+                              style={{
+                                top: `${topOffset}px`,
+                                height: `${Math.max(heightPx - 2, 28)}px`,
+                                minHeight: '28px'
+                              }}
+                              data-testid={`appointment-${appt.id}`}
+                            >
+                              <div className="absolute top-1 right-1 w-4 h-4 rounded border border-gray-300 bg-white" />
+                              
+                              <div className="text-xs font-semibold text-gray-900 truncate pr-5">
+                                {appt.client_name}
+                                {appt.pets?.length > 0 && (
+                                  <span className="font-normal text-gray-600">
+                                    {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-[10px] text-gray-600 truncate">
+                                {format(new Date(appt.date_time), 'HH:mm')}
+                              </div>
+                              {heightPx > 40 && (
+                                <div className="text-[10px] text-gray-500 truncate mt-0.5">
+                                  {appt.pets?.map(p => 
+                                    services
+                                      .filter(s => p.services?.includes(s.id))
+                                      .map(s => s.name)
+                                      .join(', ')
+                                  ).filter(Boolean).join(', ')}
+                                </div>
                               )}
                             </div>
-                            <div className="text-[10px] text-gray-600 truncate">
-                              {format(new Date(appt.date_time), 'HH:mm')}
-                            </div>
-                            {heightPx > 40 && (
-                              <div className="text-[10px] text-gray-500 truncate mt-0.5">
-                                {appt.pets?.map(p => 
-                                  services
-                                    .filter(s => p.services?.includes(s.id))
-                                    .map(s => s.name)
-                                    .join(', ')
-                                ).filter(Boolean).join(', ')}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                  </div>
-                ))}
+                          );
+                        })}
+                    </div>
+                  );
+                })}
               </div>
             ))}
           </div>
@@ -372,6 +477,71 @@ export default function CalendarPage() {
         clients={clients}
         services={services}
       />
+
+      {/* Reschedule Confirmation Dialog */}
+      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Confirm Reschedule</DialogTitle>
+          </DialogHeader>
+          {pendingReschedule && (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">
+                Move <span className="font-semibold">{pendingReschedule.appointment.client_name}</span>'s appointment?
+              </p>
+              <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-500">From:</span>
+                  <span className="font-medium">
+                    {format(pendingReschedule.oldDateTime, 'EEE, MMM d')} at {format(pendingReschedule.oldDateTime, 'HH:mm')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-500">To:</span>
+                  <span className="font-medium text-primary">
+                    {format(pendingReschedule.newDateTime, 'EEE, MMM d')} at {format(pendingReschedule.newDateTime, 'HH:mm')}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => {
+              setShowConfirmDialog(false);
+              setPendingReschedule(null);
+            }}>
+              Cancel
+            </Button>
+            <Button className="btn-maya-primary" onClick={confirmReschedule}>
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* SMS Prompt Dialog */}
+      <Dialog open={showSmsPrompt} onOpenChange={setShowSmsPrompt}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare size={20} className="text-primary" />
+              Notify Customer?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600">
+            Would you like to send an SMS to notify the customer about the reschedule?
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={skipSMS}>
+              No, Skip
+            </Button>
+            <Button className="btn-maya-primary" onClick={sendRescheduleSMS}>
+              <Send size={16} className="mr-2" />
+              Yes, Send SMS
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
