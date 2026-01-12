@@ -125,6 +125,43 @@ export default function Settings() {
     }
   }, [settings]);
 
+  useEffect(() => {
+    fetchBackupStatus();
+  }, []);
+
+  const fetchBackupStatus = async () => {
+    try {
+      const token = localStorage.getItem('maya_token');
+      const res = await axios.get(`${API_URL}/backup/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setBackupStatus(res.data);
+    } catch (error) {
+      console.error('Failed to fetch backup status');
+    }
+  };
+
+  const triggerBackup = async () => {
+    setBackupLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      await axios.post(`${API_URL}/backup`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Backup started! Your data is being saved to Supabase.');
+      // Refresh status after a delay
+      setTimeout(fetchBackupStatus, 3000);
+    } catch (error) {
+      if (error.response?.status === 503) {
+        toast.error('Backup service not configured');
+      } else {
+        toast.error('Failed to start backup');
+      }
+    } finally {
+      setBackupLoading(false);
+    }
+  };
+
   const handleSave = async (e) => {
     e.preventDefault();
     setLoading(true);
