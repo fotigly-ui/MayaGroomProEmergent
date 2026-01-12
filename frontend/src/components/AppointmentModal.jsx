@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from './ui/dialog';
 import { Button } from './ui/button';
@@ -10,12 +10,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { appointmentsAPI, petsAPI } from '../lib/api';
 import { formatCurrency, formatDuration } from '../lib/utils';
 import { toast } from 'sonner';
-import { Plus, Trash2, Loader2, MessageSquare, Send, FileText, RefreshCw, Check } from 'lucide-react';
-import axios from 'axios';
+import { Plus, Trash2, Loader2, MessageSquare, Send, FileText, RefreshCw, Check, Search, X, Edit, Phone, MapPin } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
-// Simple checkbox component to avoid import issues
+// Simple checkbox
 function SimpleCheckbox({ checked, onChange, testId }) {
   return (
     <button
@@ -23,7 +22,7 @@ function SimpleCheckbox({ checked, onChange, testId }) {
       onClick={() => onChange(!checked)}
       data-testid={testId}
       className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-        checked ? 'bg-primary border-primary' : 'bg-white border-gray-300'
+        checked ? 'bg-primary border-primary' : 'bg-white border-gray-300 dark:border-gray-600'
       }`}
     >
       {checked && <Check size={12} className="text-white" />}
@@ -31,7 +30,7 @@ function SimpleCheckbox({ checked, onChange, testId }) {
   );
 }
 
-// Simple toggle component to avoid Switch issues
+// Simple toggle
 function SimpleToggle({ checked, onChange, testId }) {
   return (
     <button
@@ -39,17 +38,19 @@ function SimpleToggle({ checked, onChange, testId }) {
       onClick={() => onChange(!checked)}
       data-testid={testId}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-        checked ? 'bg-primary' : 'bg-gray-300'
+        checked ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'
       }`}
     >
-      <span
-        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
-          checked ? 'translate-x-5' : 'translate-x-0.5'
-        }`}
-      />
+      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${checked ? 'translate-x-5' : 'translate-x-0.5'}`} />
     </button>
   );
 }
+
+// Open native SMS
+const openNativeSMS = (phone, message = '') => {
+  const cleanPhone = phone.replace(/\D/g, '');
+  window.location.href = `sms:${cleanPhone}${message ? `?body=${encodeURIComponent(message)}` : ''}`;
+};
 
 export function AppointmentModal({ 
   open, 
@@ -61,9 +62,10 @@ export function AppointmentModal({
   services = [] 
 }) {
   const [loading, setLoading] = useState(false);
-  const [smsLoading, setSmsLoading] = useState(false);
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [clientId, setClientId] = useState('');
+  const [clientSearch, setClientSearch] = useState('');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [clientPets, setClientPets] = useState([]);
   const [dateTime, setDateTime] = useState('');
   const [notes, setNotes] = useState('');
@@ -72,79 +74,79 @@ export function AppointmentModal({
   
   // Recurring state
   const [isRecurring, setIsRecurring] = useState(false);
-  const [recurringValue, setRecurringValue] = useState(1);
+  const [recurringValue, setRecurringValue] = useState('');
   const [recurringUnit, setRecurringUnit] = useState('week');
   
-  // SMS prompt state
+  // SMS prompt
   const [showSmsPrompt, setShowSmsPrompt] = useState(false);
   const [smsMessageType, setSmsMessageType] = useState('');
   const [pendingAction, setPendingAction] = useState(null);
   
-  // For editing recurring - show dialog
+  // Recurring dialog
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
   const [recurringAction, setRecurringAction] = useState('single');
 
   const isEditing = !!appointment;
+  
+  // Get selected client
+  const selectedClient = useMemo(() => {
+    return clients.find(c => c.id === clientId);
+  }, [clients, clientId]);
 
-  // Get client info for SMS
-  const getClientInfo = () => {
-    const client = clients.find(c => c.id === clientId);
-    return client;
-  };
+  // Filter clients by search
+  const filteredClients = useMemo(() => {
+    if (!clientSearch) return clients;
+    const search = clientSearch.toLowerCase();
+    return clients.filter(c => 
+      c.name?.toLowerCase().includes(search) || 
+      c.phone?.includes(search) ||
+      c.email?.toLowerCase().includes(search)
+    );
+  }, [clients, clientSearch]);
 
-  // Open native SMS app
-  const openNativeSMS = async (phone, message) => {
-    // Format phone for SMS URI
-    const cleanPhone = phone.replace(/\D/g, '');
-    const smsUri = `sms:${cleanPhone}?body=${encodeURIComponent(message)}`;
-    window.location.href = smsUri;
-  };
-
-  const handleSendSMS = async (messageType, skipPrompt = false) => {
-    const clientInfo = appointment ? clients.find(c => c.id === appointment.client_id) : getClientInfo();
-    if (!clientInfo?.phone) {
+  const handleSendSMS = (messageType) => {
+    if (!selectedClient?.phone) {
       toast.error('Client phone number not available');
       return;
     }
     
-    setSmsLoading(true);
-    try {
-      const token = localStorage.getItem('maya_token');
-      const res = await axios.post(`${API_URL}/sms/send`, {
-        client_id: appointment?.client_id || clientId,
-        message_type: messageType,
-        appointment_id: appointment?.id
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      if (res.data.status === 'sent') {
-        toast.success('SMS sent successfully');
-      } else if (res.data.status === 'pending') {
-        // Manual mode - open native SMS app
-        openNativeSMS(res.data.phone, res.data.message);
-        toast.success('Opening messaging app...');
-      } else {
-        toast.error('Failed to send SMS: ' + (res.data.error || 'Unknown error'));
-      }
-    } catch (error) {
-      toast.error('Failed to send SMS');
-    } finally {
-      setSmsLoading(false);
+    let message = '';
+    const apptDate = dateTime ? new Date(dateTime) : new Date();
+    
+    switch (messageType) {
+      case 'appointment_booked':
+        message = `Hi ${selectedClient.name}, your appointment has been booked for ${format(apptDate, 'EEEE, MMMM d')} at ${format(apptDate, 'HH:mm')}.`;
+        break;
+      case 'appointment_rescheduled':
+        message = `Hi ${selectedClient.name}, your appointment has been rescheduled to ${format(apptDate, 'EEEE, MMMM d')} at ${format(apptDate, 'HH:mm')}.`;
+        break;
+      case 'appointment_cancelled':
+        message = `Hi ${selectedClient.name}, your appointment has been cancelled. Please contact us to reschedule.`;
+        break;
+      case 'no_show':
+        message = `Hi ${selectedClient.name}, we missed you at your appointment today. Please contact us to reschedule.`;
+        break;
+      case 'confirmation_request':
+        message = `Hi ${selectedClient.name}, please confirm your appointment on ${format(apptDate, 'EEEE, MMMM d')} at ${format(apptDate, 'HH:mm')}. Reply YES to confirm.`;
+        break;
+      default:
+        message = `Hi ${selectedClient.name}, this is a reminder about your appointment.`;
     }
+    
+    openNativeSMS(selectedClient.phone, message);
+    toast.success('Opening messaging app...');
   };
 
-  // Prompt to send SMS after action
   const promptSmsAfterAction = (messageType, callback) => {
     setSmsMessageType(messageType);
     setPendingAction(() => callback);
     setShowSmsPrompt(true);
   };
 
-  const handleSmsPromptResponse = async (sendSms) => {
+  const handleSmsPromptResponse = (sendSms) => {
     setShowSmsPrompt(false);
     if (sendSms) {
-      await handleSendSMS(smsMessageType);
+      handleSendSMS(smsMessageType);
     }
     if (pendingAction) {
       pendingAction();
@@ -158,11 +160,13 @@ export function AppointmentModal({
     setInvoiceLoading(true);
     try {
       const token = localStorage.getItem('maya_token');
-      const res = await axios.post(`${API_URL}/invoices/from-appointment/${appointment.id}`, {}, {
+      const res = await fetch(`${API_URL}/invoices/from-appointment/${appointment.id}`, {
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
+      const data = await res.json();
       
-      toast.success(`Invoice ${res.data.invoice_number} created!`);
+      toast.success(`Invoice ${data.invoice_number} created!`);
       window.location.href = '/invoices';
     } catch (error) {
       toast.error('Failed to generate invoice');
@@ -175,6 +179,7 @@ export function AppointmentModal({
     if (open) {
       if (appointment) {
         setClientId(appointment.client_id);
+        setClientSearch(appointment.client_name || '');
         setDateTime(format(new Date(appointment.date_time), "yyyy-MM-dd'T'HH:mm"));
         setNotes(appointment.notes || '');
         setStatus(appointment.status);
@@ -184,10 +189,8 @@ export function AppointmentModal({
           items: p.items || []
         })) || []);
         setIsRecurring(appointment.is_recurring || false);
-        if (appointment.recurring_value) {
-          setRecurringValue(appointment.recurring_value);
-          setRecurringUnit(appointment.recurring_unit || 'week');
-        }
+        setRecurringValue(appointment.recurring_value?.toString() || '');
+        setRecurringUnit(appointment.recurring_unit || 'week');
         fetchClientPets(appointment.client_id);
       } else {
         resetForm();
@@ -200,13 +203,14 @@ export function AppointmentModal({
 
   const resetForm = () => {
     setClientId('');
+    setClientSearch('');
     setClientPets([]);
     setDateTime(format(new Date(), "yyyy-MM-dd'T'HH:mm"));
     setNotes('');
     setStatus('scheduled');
     setAppointmentPets([]);
     setIsRecurring(false);
-    setRecurringValue(1);
+    setRecurringValue('');
     setRecurringUnit('week');
   };
 
@@ -223,10 +227,19 @@ export function AppointmentModal({
     }
   };
 
-  const handleClientChange = (cId) => {
-    setClientId(cId);
+  const handleClientSelect = (client) => {
+    setClientId(client.id);
+    setClientSearch(client.name);
+    setShowClientDropdown(false);
     setAppointmentPets([]);
-    fetchClientPets(cId);
+    fetchClientPets(client.id);
+  };
+
+  const clearClient = () => {
+    setClientId('');
+    setClientSearch('');
+    setClientPets([]);
+    setAppointmentPets([]);
   };
 
   const addPetToAppointment = () => {
@@ -244,11 +257,7 @@ export function AppointmentModal({
     const updated = [...appointmentPets];
     if (field === 'pet_id') {
       const pet = clientPets.find(p => p.id === value);
-      updated[index] = {
-        ...updated[index],
-        pet_id: value,
-        pet_name: pet?.name || ''
-      };
+      updated[index] = { ...updated[index], pet_id: value, pet_name: pet?.name || '' };
     } else if (field === 'pet_name') {
       updated[index] = { ...updated[index], pet_name: value };
     } else if (field === 'services') {
@@ -271,7 +280,6 @@ export function AppointmentModal({
   const calculateTotals = () => {
     let totalDuration = 0;
     let totalPrice = 0;
-
     appointmentPets.forEach(pet => {
       (pet.services || []).forEach(serviceId => {
         const service = (services || []).find(s => s.id === serviceId);
@@ -281,7 +289,6 @@ export function AppointmentModal({
         }
       });
     });
-
     return { totalDuration, totalPrice };
   };
 
@@ -298,7 +305,6 @@ export function AppointmentModal({
       return;
     }
 
-    // If editing recurring appointment, show dialog
     if (isEditing && appointment?.is_recurring && !showRecurringDialog) {
       setShowRecurringDialog(true);
       return;
@@ -306,12 +312,13 @@ export function AppointmentModal({
 
     setLoading(true);
     try {
+      const recValue = parseInt(recurringValue) || 1;
       const data = {
         client_id: clientId,
         date_time: new Date(dateTime).toISOString(),
         notes,
         is_recurring: isRecurring,
-        recurring_value: isRecurring ? recurringValue : null,
+        recurring_value: isRecurring ? recValue : null,
         recurring_unit: isRecurring ? recurringUnit : null,
         pets: appointmentPets.filter(p => p.pet_name).map(p => ({
           pet_name: p.pet_name,
@@ -322,14 +329,8 @@ export function AppointmentModal({
       };
 
       if (isEditing) {
-        await appointmentsAPI.update(appointment.id, { 
-          ...data, 
-          status,
-          update_series: recurringAction === 'series'
-        });
+        await appointmentsAPI.update(appointment.id, { ...data, status, update_series: recurringAction === 'series' });
         toast.success('Appointment updated');
-        
-        // Prompt to send SMS for reschedule
         promptSmsAfterAction('appointment_rescheduled', () => {
           setShowRecurringDialog(false);
           onSave();
@@ -337,8 +338,6 @@ export function AppointmentModal({
       } else {
         await appointmentsAPI.create(data);
         toast.success('Appointment created');
-        
-        // Prompt to send SMS for booking
         promptSmsAfterAction('appointment_booked', () => {
           setShowRecurringDialog(false);
           onSave();
@@ -354,13 +353,11 @@ export function AppointmentModal({
   const handleStatusChange = async (newStatus) => {
     setStatus(newStatus);
     
-    // If marking as cancelled or no_show, update immediately and prompt SMS
     if (isEditing && (newStatus === 'cancelled' || newStatus === 'no_show')) {
       setLoading(true);
       try {
         await appointmentsAPI.update(appointment.id, { status: newStatus });
         toast.success(`Marked as ${newStatus === 'no_show' ? 'No Show' : 'Cancelled'}`);
-        
         const messageType = newStatus === 'cancelled' ? 'appointment_cancelled' : 'no_show';
         promptSmsAfterAction(messageType, () => onSave());
       } catch (error) {
@@ -373,23 +370,14 @@ export function AppointmentModal({
 
   const handleDelete = async () => {
     if (!appointment) return;
-    
-    if (!window.confirm('Are you sure you want to delete this appointment?')) {
-      return;
-    }
+    if (!window.confirm('Are you sure you want to delete this appointment?')) return;
 
     setLoading(true);
     try {
-      const deleteUrl = appointment.is_recurring 
-        ? `${appointment.id}?delete_series=${window.confirm('Delete entire series?')}`
-        : appointment.id;
-      await appointmentsAPI.delete(deleteUrl);
+      await appointmentsAPI.delete(appointment.id);
       toast.success('Appointment deleted');
-      
-      // Prompt to send cancellation SMS
       promptSmsAfterAction('appointment_cancelled', () => onSave());
     } catch (error) {
-      console.error('Error deleting appointment:', error);
       toast.error('Failed to delete appointment');
       setLoading(false);
     }
@@ -414,21 +402,74 @@ export function AppointmentModal({
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Client Selection */}
+            {/* Client Search */}
             <div className="space-y-2">
               <Label>Client *</Label>
-              <Select value={clientId} onValueChange={handleClientChange}>
-                <SelectTrigger data-testid="select-client">
-                  <SelectValue placeholder="Select a client" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(clients || []).map((client) => (
-                    <SelectItem key={client.id} value={client.id}>
-                      {client.name} {client.phone && `- ${client.phone}`}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="relative">
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Input
+                      type="text"
+                      placeholder="Search client by name or phone..."
+                      value={clientSearch}
+                      onChange={(e) => {
+                        setClientSearch(e.target.value);
+                        setShowClientDropdown(true);
+                        if (!e.target.value) setClientId('');
+                      }}
+                      onFocus={() => setShowClientDropdown(true)}
+                      className="pl-9"
+                      data-testid="client-search"
+                    />
+                  </div>
+                  {clientId && (
+                    <Button type="button" variant="ghost" size="icon" onClick={clearClient}>
+                      <X size={16} />
+                    </Button>
+                  )}
+                </div>
+                
+                {showClientDropdown && filteredClients.length > 0 && !clientId && (
+                  <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    {filteredClients.slice(0, 10).map((client) => (
+                      <button
+                        key={client.id}
+                        type="button"
+                        onClick={() => handleClientSelect(client)}
+                        className="w-full px-4 py-2 text-left hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center justify-between"
+                      >
+                        <div>
+                          <div className="font-medium">{client.name}</div>
+                          <div className="text-xs text-gray-500">{client.phone}</div>
+                        </div>
+                        {client.address && <MapPin size={14} className="text-gray-400" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Selected client info */}
+              {selectedClient && (
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-sm">
+                  <div className="font-medium">{selectedClient.name}</div>
+                  {selectedClient.phone && (
+                    <button 
+                      type="button"
+                      onClick={() => openNativeSMS(selectedClient.phone)}
+                      className="flex items-center gap-1 text-blue-600 hover:underline"
+                    >
+                      <Phone size={12} /> {selectedClient.phone}
+                    </button>
+                  )}
+                  {selectedClient.address && (
+                    <div className="flex items-center gap-1 text-gray-500 mt-1">
+                      <MapPin size={12} /> {selectedClient.address}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Date & Time */}
@@ -443,7 +484,7 @@ export function AppointmentModal({
               />
             </div>
 
-            {/* Status (only for editing) */}
+            {/* Status */}
             {isEditing && (
               <div className="space-y-2">
                 <Label>Status</Label>
@@ -453,6 +494,7 @@ export function AppointmentModal({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="confirmed">Confirmed</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                     <SelectItem value="no_show">No Show</SelectItem>
@@ -461,18 +503,14 @@ export function AppointmentModal({
               </div>
             )}
 
-            {/* Recurring Options */}
-            <div className="space-y-3 p-4 bg-maya-cream rounded-lg">
+            {/* Recurring */}
+            <div className="space-y-3 p-4 bg-maya-cream dark:bg-gray-800 rounded-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <Label>Recurring Appointment</Label>
-                  <p className="text-sm text-maya-text-muted">Repeat this appointment automatically</p>
+                  <p className="text-sm text-maya-text-muted">Repeat automatically</p>
                 </div>
-                <SimpleToggle
-                  checked={isRecurring}
-                  onChange={setIsRecurring}
-                  testId="recurring-toggle"
-                />
+                <SimpleToggle checked={isRecurring} onChange={setIsRecurring} testId="recurring-toggle" />
               </div>
               
               {isRecurring && (
@@ -483,7 +521,8 @@ export function AppointmentModal({
                     min="1"
                     max="365"
                     value={recurringValue}
-                    onChange={(e) => setRecurringValue(parseInt(e.target.value) || 1)}
+                    onChange={(e) => setRecurringValue(e.target.value)}
+                    placeholder="1"
                     className="w-20"
                     data-testid="recurring-value"
                   />
@@ -506,20 +545,13 @@ export function AppointmentModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Pets & Services</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addPetToAppointment}
-                  data-testid="add-pet-btn"
-                >
-                  <Plus size={16} className="mr-1" />
-                  Add Pet
+                <Button type="button" variant="outline" size="sm" onClick={addPetToAppointment} data-testid="add-pet-btn">
+                  <Plus size={16} className="mr-1" /> Add Pet
                 </Button>
               </div>
 
               {appointmentPets.map((pet, index) => (
-                <div key={pet.id} className="p-4 border border-maya-border rounded-lg space-y-3">
+                <div key={pet.id} className="p-4 border border-maya-border dark:border-gray-700 rounded-lg space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex-1 mr-4">
                       {clientPets.length > 0 ? (
@@ -563,27 +595,17 @@ export function AppointmentModal({
                         />
                       )}
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removePetFromAppointment(index)}
-                      className="text-maya-error hover:bg-red-50"
-                    >
+                    <Button type="button" variant="ghost" size="icon" onClick={() => removePetFromAppointment(index)} className="text-maya-error hover:bg-red-50">
                       <Trash2 size={18} />
                     </Button>
                   </div>
 
-                  {/* Services for this pet */}
                   {safeServices.length > 0 && (
                     <div className="space-y-2">
                       <Label className="text-sm text-maya-text-muted">Services</Label>
                       <div className="grid grid-cols-2 gap-2">
                         {safeServices.map((service) => (
-                          <label
-                            key={service.id}
-                            className="flex items-center gap-2 p-2 rounded-lg border border-maya-border hover:bg-maya-cream cursor-pointer"
-                          >
+                          <label key={service.id} className="flex items-center gap-2 p-2 rounded-lg border border-maya-border dark:border-gray-700 hover:bg-maya-cream dark:hover:bg-gray-800 cursor-pointer">
                             <SimpleCheckbox
                               checked={(pet.services || []).includes(service.id)}
                               onChange={() => toggleService(index, service.id)}
@@ -600,18 +622,12 @@ export function AppointmentModal({
                       </div>
                     </div>
                   )}
-                  
-                  {safeServices.length === 0 && (
-                    <p className="text-sm text-maya-text-muted italic">
-                      No services available. Add services in Settings first.
-                    </p>
-                  )}
                 </div>
               ))}
 
               {appointmentPets.length === 0 && (
-                <div className="text-center py-4 text-maya-text-muted border border-dashed border-maya-border rounded-lg">
-                  Click "Add Pet" to add pets to this appointment
+                <div className="text-center py-4 text-maya-text-muted border border-dashed border-maya-border dark:border-gray-700 rounded-lg">
+                  Click "Add Pet" to add pets
                 </div>
               )}
             </div>
@@ -619,17 +635,11 @@ export function AppointmentModal({
             {/* Notes */}
             <div className="space-y-2">
               <Label>Notes</Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any special instructions or notes..."
-                data-testid="appointment-notes"
-                rows={3}
-              />
+              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Any special instructions..." data-testid="appointment-notes" rows={3} />
             </div>
 
             {/* Totals */}
-            <div className="bg-maya-cream rounded-lg p-4">
+            <div className="bg-maya-cream dark:bg-gray-800 rounded-lg p-4">
               <div className="flex justify-between items-center">
                 <span className="text-maya-text-muted">Total Duration:</span>
                 <span className="font-medium">{formatDuration(totalDuration || 60)}</span>
@@ -643,29 +653,19 @@ export function AppointmentModal({
             <DialogFooter className="gap-2 flex-wrap">
               {isEditing && (
                 <>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleGenerateInvoice}
-                    disabled={invoiceLoading}
-                    data-testid="generate-invoice-btn"
-                  >
+                  <Button type="button" variant="outline" onClick={handleGenerateInvoice} disabled={invoiceLoading}>
                     {invoiceLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <FileText size={16} className="mr-2" />}
                     Invoice
                   </Button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button type="button" variant="outline" disabled={smsLoading} data-testid="sms-dropdown-btn">
-                        {smsLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <MessageSquare size={16} className="mr-2" />}
-                        SMS
+                      <Button type="button" variant="outline">
+                        <MessageSquare size={16} className="mr-2" /> SMS
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
                       <DropdownMenuItem onClick={() => handleSendSMS('confirmation_request')}>
                         <Send size={14} className="mr-2" /> Confirmation Request
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleSendSMS('reminder_24h')}>
-                        <Send size={14} className="mr-2" /> Reminder
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleSendSMS('appointment_rescheduled')}>
                         <Send size={14} className="mr-2" /> Rescheduled Notice
@@ -675,13 +675,7 @@ export function AppointmentModal({
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={handleDelete}
-                    disabled={loading}
-                    data-testid="delete-appointment-btn"
-                  >
+                  <Button type="button" variant="destructive" onClick={handleDelete} disabled={loading}>
                     Delete
                   </Button>
                 </>
@@ -698,7 +692,7 @@ export function AppointmentModal({
         </DialogContent>
       </Dialog>
 
-      {/* SMS Prompt Dialog */}
+      {/* SMS Prompt */}
       <Dialog open={showSmsPrompt} onOpenChange={setShowSmsPrompt}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -707,30 +701,23 @@ export function AppointmentModal({
               Send SMS to Customer?
             </DialogTitle>
           </DialogHeader>
-          <p className="text-maya-text-muted text-sm">
-            Would you like to notify the customer about this change?
-          </p>
+          <p className="text-maya-text-muted text-sm">Notify the customer about this change?</p>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => handleSmsPromptResponse(false)}>
-              No, Skip
-            </Button>
+            <Button variant="outline" onClick={() => handleSmsPromptResponse(false)}>No, Skip</Button>
             <Button className="btn-maya-primary" onClick={() => handleSmsPromptResponse(true)}>
-              <Send size={16} className="mr-2" />
-              Yes, Send SMS
+              <Send size={16} className="mr-2" /> Yes, Send SMS
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Recurring Update Dialog */}
+      {/* Recurring Dialog */}
       <Dialog open={showRecurringDialog} onOpenChange={setShowRecurringDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Update Recurring Appointment</DialogTitle>
           </DialogHeader>
-          <p className="text-maya-text-muted">
-            This is a recurring appointment. Would you like to update only this occurrence or the entire series?
-          </p>
+          <p className="text-maya-text-muted">Update only this occurrence or the entire series?</p>
           <div className="space-y-3 mt-4">
             <Button
               className="w-full justify-start"
@@ -749,9 +736,7 @@ export function AppointmentModal({
           </div>
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setShowRecurringDialog(false)}>Cancel</Button>
-            <Button className="btn-maya-primary" onClick={handleSubmit}>
-              Continue
-            </Button>
+            <Button className="btn-maya-primary" onClick={handleSubmit}>Continue</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
