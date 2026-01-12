@@ -72,6 +72,26 @@ export function AppointmentModal({
     }
   };
 
+  const handleGenerateInvoice = async () => {
+    if (!appointment) return;
+    
+    setInvoiceLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      const res = await axios.post(`${API_URL}/invoices/from-appointment/${appointment.id}`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      toast.success(`Invoice ${res.data.invoice_number} created!`);
+      // Open invoices page
+      window.location.href = '/invoices';
+    } catch (error) {
+      toast.error('Failed to generate invoice');
+    } finally {
+      setInvoiceLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (open) {
       if (appointment) {
