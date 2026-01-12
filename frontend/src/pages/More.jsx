@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Layout, PageHeader } from '../components/Layout';
-import { Scissors, Package, Clock, Settings, ArrowRight } from 'lucide-react';
+import { Scissors, Package, Clock, Settings, ArrowRight, FileText } from 'lucide-react';
 
 const menuItems = [
   { 
@@ -15,6 +15,12 @@ const menuItems = [
     icon: Package, 
     label: 'Items', 
     description: 'Retail products' 
+  },
+  { 
+    path: '/invoices', 
+    icon: FileText, 
+    label: 'Invoices', 
+    description: 'Billing & invoices' 
   },
   { 
     path: '/waitlist', 
