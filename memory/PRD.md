@@ -42,6 +42,7 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 - [x] **SMS Notifications System**:
   - Manual mode (copy message to send from own phone)
   - Automated mode (via Twilio)
+  - **Flexible timing**: Number + Unit selector (hours/days/weeks/months)
   - 7 customizable templates:
     - Appointment Booked
     - Appointment Changed
@@ -49,11 +50,21 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
     - Appointment Cancelled
     - No Show
     - Confirmation Request
-    - 24-Hour Reminder
+    - Appointment Reminder
   - Template variables: {client_name}, {pet_names}, {business_name}, {business_phone}, {date}, {time}
   - Auto-send options with configurable timing
   - Message preview functionality
   - SMS button in appointment modal for manual sending
+- [x] **Invoice System**:
+  - Create invoices manually or from appointments
+  - Line items with quantity, unit price, total
+  - Quick-add services and items
+  - GST calculation (configurable)
+  - Status tracking: draft, sent, paid, overdue, cancelled
+  - Invoice numbering (INV-YYYYMM-XXXX)
+  - Print-friendly invoice view
+  - Payment details display (PayID, Bank details)
+  - Due date tracking
 
 ## Tech Stack
 - **Frontend**: React 19, Tailwind CSS, Shadcn/UI
