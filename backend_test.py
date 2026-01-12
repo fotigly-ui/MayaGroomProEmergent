@@ -20,6 +20,7 @@ class MayaGroomProAPITester:
         self.test_service_id = None
         self.test_item_id = None
         self.test_appointment_id = None
+        self.test_invoice_id = None
 
     def log_test(self, name, success, details=""):
         """Log test result"""
