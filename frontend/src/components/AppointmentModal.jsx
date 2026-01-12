@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { appointmentsAPI, petsAPI } from '../lib/api';
 import { formatCurrency, formatDuration } from '../lib/utils';
 import { toast } from 'sonner';
-import { Plus, Trash2, Loader2, MessageSquare, Copy, Send } from 'lucide-react';
+import { Plus, Trash2, Loader2, MessageSquare, Copy, Send, FileText } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
@@ -27,6 +27,7 @@ export function AppointmentModal({
 }) {
   const [loading, setLoading] = useState(false);
   const [smsLoading, setSmsLoading] = useState(false);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [clientId, setClientId] = useState('');
   const [clientPets, setClientPets] = useState([]);
   const [dateTime, setDateTime] = useState('');
