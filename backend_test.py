@@ -112,16 +112,36 @@ class MayaGroomProAPITester:
         return success
 
     def test_settings_update(self):
-        """Test update settings"""
+        """Test update settings including SMS timing"""
         data = {
             "business_name": "Updated Test Business",
             "phone": "+61 400 123 456",
-            "email": "test@business.com"
+            "email": "test@business.com",
+            "gst_enabled": True,
+            "gst_rate": 10.0,
+            # Test SMS timing settings
+            "sms_enabled": True,
+            "confirmation_request_value": 3,
+            "confirmation_request_unit": "days",
+            "reminder_value": 2,
+            "reminder_unit": "hours"
         }
         
         success, response, status = self.make_request('PUT', 'settings', data, 200)
-        self.log_test("Update Settings", success, f"Status: {status}" if not success else "")
-        return success
+        if success:
+            # Verify SMS timing fields are saved correctly
+            if (response.get('confirmation_request_value') == 3 and 
+                response.get('confirmation_request_unit') == 'days' and
+                response.get('reminder_value') == 2 and
+                response.get('reminder_unit') == 'hours'):
+                self.log_test("Update Settings (with SMS timing)", True)
+                return True
+            else:
+                self.log_test("Update Settings (with SMS timing)", False, "SMS timing fields not saved correctly")
+                return False
+        else:
+            self.log_test("Update Settings (with SMS timing)", False, f"Status: {status}")
+            return False
 
     def test_clients_create(self):
         """Test create client"""
