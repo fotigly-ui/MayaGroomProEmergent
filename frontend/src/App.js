@@ -15,6 +15,7 @@ import Waitlist from "./pages/Waitlist";
 import Settings from "./pages/Settings";
 import More from "./pages/More";
 import Checkout from "./pages/Checkout";
+import Invoices from "./pages/Invoices";
 
 // Protected Route wrapper
 function ProtectedRoute({ children }) {
@@ -114,6 +115,11 @@ function AppRoutes() {
       <Route path="/checkout" element={
         <ProtectedRoute>
           <Checkout />
+        </ProtectedRoute>
+      } />
+      <Route path="/invoices" element={
+        <ProtectedRoute>
+          <Invoices />
         </ProtectedRoute>
       } />
       
