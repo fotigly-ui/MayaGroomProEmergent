@@ -302,6 +302,8 @@ class AppointmentUpdate(BaseModel):
 # Waitlist Model
 class WaitlistCreate(BaseModel):
     client_id: str
+    preferred_date: str = ""
+    preferred_timeframe: str = ""  # 8-12, 12-5, any
     preferred_pets: List[str] = Field(default_factory=list)
     preferred_services: List[str] = Field(default_factory=list)
     notes: str = ""
@@ -311,12 +313,16 @@ class Waitlist(BaseModel):
     user_id: str
     client_id: str
     client_name: str = ""
+    preferred_date: str = ""
+    preferred_timeframe: str = ""
     preferred_pets: List[str] = Field(default_factory=list)
     preferred_services: List[str] = Field(default_factory=list)
     notes: str = ""
     date_added: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class WaitlistUpdate(BaseModel):
+    preferred_date: Optional[str] = None
+    preferred_timeframe: Optional[str] = None
     preferred_pets: Optional[List[str]] = None
     preferred_services: Optional[List[str]] = None
     notes: Optional[str] = None
