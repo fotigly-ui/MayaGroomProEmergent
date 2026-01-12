@@ -28,7 +28,7 @@ const navItems = [
 
 const mobileNavItems = [
   { path: '/', icon: Calendar, label: 'Calendar' },
-  { path: '/checkout', icon: ShoppingBag, label: 'Checkout' },
+  { path: '/invoices', icon: FileText, label: 'Invoices' },
   { path: '/customers', icon: Users, label: 'Customers' },
   { path: '/more', icon: Menu, label: 'More' },
 ];
