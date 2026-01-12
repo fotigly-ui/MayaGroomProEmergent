@@ -584,10 +584,10 @@ export function AppointmentModal({
                             key={service.id}
                             className="flex items-center gap-2 p-2 rounded-lg border border-maya-border hover:bg-maya-cream cursor-pointer"
                           >
-                            <Checkbox
+                            <SimpleCheckbox
                               checked={(pet.services || []).includes(service.id)}
-                              onCheckedChange={() => toggleService(index, service.id)}
-                              data-testid={`service-${service.id}-pet-${index}`}
+                              onChange={() => toggleService(index, service.id)}
+                              testId={`service-${service.id}-pet-${index}`}
                             />
                             <div className="flex-1">
                               <div className="text-sm font-medium">{service.name}</div>
