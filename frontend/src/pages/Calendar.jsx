@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, List, Grid3X3, Calendar as CalendarIcon } from 'lucide-react';
-import { Layout, PageHeader } from '../components/Layout';
+import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { appointmentsAPI, clientsAPI, servicesAPI } from '../lib/api';
 import { cn, getTimeSlots, isToday, formatTime, formatCurrency } from '../lib/utils';
@@ -10,6 +10,7 @@ import { AppointmentModal } from '../components/AppointmentModal';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { toast } from 'sonner';
 
+// Full day coverage: 00:00 to 23:00
 const timeSlots = getTimeSlots(0, 23);
 
 export default function CalendarPage() {
@@ -122,9 +123,9 @@ export default function CalendarPage() {
 
   return (
     <Layout>
-      <div className="p-4 md:p-6">
+      <div className="p-4 md:p-6 h-full flex flex-col">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 flex-shrink-0">
           <div className="flex items-center gap-4">
             {/* Month/Year with Popover */}
             <Popover>
@@ -270,8 +271,8 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Calendar View */}
-        <div className="card-maya p-0 overflow-hidden">
+        {/* Calendar View - Takes remaining height */}
+        <div className="card-maya p-0 overflow-hidden flex-1 min-h-0">
           {viewMode === 'week' && (
             <WeekView
               dates={weekDates}
@@ -332,48 +333,53 @@ function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentCl
     return () => clearInterval(timer);
   }, []);
 
+  // Scroll to current time on mount
+  useEffect(() => {
+    if (gridRef.current) {
+      const now = new Date();
+      const hour = now.getHours();
+      const slotHeight = 48; // Height of each time slot
+      const scrollPosition = hour * slotHeight - 100;
+      gridRef.current.scrollTop = Math.max(0, scrollPosition);
+    }
+  }, []);
+
   // Calculate current time position
   const getCurrentTimePosition = () => {
     const now = currentTime;
     const hour = now.getHours();
     const minutes = now.getMinutes();
-    const startHour = timeSlots[0]?.hour || 7;
-    const endHour = timeSlots[timeSlots.length - 1]?.hour || 19;
-    
-    if (hour < startHour || hour > endHour) return null;
-    
-    const slotHeight = 60;
-    const position = (hour - startHour) * slotHeight + (minutes / 60) * slotHeight;
+    const slotHeight = 48;
+    const position = hour * slotHeight + (minutes / 60) * slotHeight;
     return position;
   };
 
-  // Get today's column index
-  const getTodayColumnIndex = () => {
-    return dates.findIndex(date => isToday(date));
-  };
-
+  // Check if today is in the current week view
+  const isTodayInWeek = dates.some(date => isToday(date));
   const currentTimePosition = getCurrentTimePosition();
-  const todayColumnIndex = getTodayColumnIndex();
 
   return (
-    <div className="overflow-x-auto" ref={gridRef}>
-      {/* Week Header */}
-      <div className="week-header">
-        <div className="p-3 border-r border-maya-border" style={{ minWidth: '60px' }} />
+    <div className="h-full flex flex-col">
+      {/* Week Header - Sticky */}
+      <div className="flex border-b border-maya-border bg-white flex-shrink-0 sticky top-0 z-20">
+        <div className="w-12 md:w-16 flex-shrink-0 border-r border-maya-border" />
         {dates.map((date, i) => (
           <div 
             key={i} 
             className={cn(
-              "week-header-cell border-r border-maya-border last:border-r-0",
-              isToday(date) && "text-primary"
+              "flex-1 min-w-0 py-2 px-1 text-center border-r border-maya-border last:border-r-0",
+              isToday(date) && "bg-primary/10"
             )}
           >
-            <div className="text-xs text-maya-text-muted uppercase tracking-wide">
+            <div className={cn(
+              "text-xs uppercase tracking-wide",
+              isToday(date) ? "text-primary font-semibold" : "text-maya-text-muted"
+            )}>
               {format(date, 'EEE')}
             </div>
             <div className={cn(
-              "day-number mt-1 text-lg font-semibold",
-              isToday(date) && "today"
+              "text-sm md:text-lg font-semibold mt-0.5",
+              isToday(date) && "text-primary"
             )}>
               {format(date, 'd')}
             </div>
@@ -381,44 +387,34 @@ function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentCl
         ))}
       </div>
 
-      {/* Time Grid */}
-      <div className="relative">
-        {/* Current Time Indicator */}
-        {currentTimePosition !== null && todayColumnIndex >= 0 && (
+      {/* Time Grid - Scrollable */}
+      <div className="flex-1 overflow-auto relative" ref={gridRef}>
+        {/* Current Time Indicator - Spans full width */}
+        {isTodayInWeek && (
           <div 
-            className="absolute z-10 pointer-events-none"
-            style={{
-              top: `${currentTimePosition}px`,
-              left: '60px',
-              right: 0,
-            }}
+            className="absolute z-10 pointer-events-none left-0 right-0 flex items-center"
+            style={{ top: `${currentTimePosition}px` }}
           >
-            <div className="relative flex items-center">
-              {/* Red line for today's column */}
-              <div 
-                className="absolute h-[2px] bg-red-500"
-                style={{
-                  left: `calc(${(100 / 7) * todayColumnIndex}%)`,
-                  width: `calc(${100 / 7}%)`,
-                }}
-              />
-              {/* Flashing dot */}
-              <div 
-                className="absolute w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg"
-                style={{
-                  left: `calc(${(100 / 7) * todayColumnIndex}% - 6px)`,
-                  top: '-5px',
-                }}
-              />
+            {/* Time label on the left */}
+            <div className="w-12 md:w-16 flex-shrink-0 flex justify-end pr-1">
+              <span className="text-[10px] font-bold text-red-500 bg-white px-1 rounded">
+                {format(currentTime, 'HH:mm')}
+              </span>
+            </div>
+            {/* Red line across the entire week */}
+            <div className="flex-1 h-[2px] bg-red-500 relative">
+              {/* Flashing dot at the start */}
+              <div className="absolute w-2 h-2 bg-red-500 rounded-full animate-pulse left-0 -top-[3px]" />
             </div>
           </div>
         )}
 
+        {/* Time Rows */}
         {timeSlots.map((slot) => (
-          <div key={slot.hour} className="calendar-grid">
+          <div key={slot.hour} className="flex border-b border-maya-border/50" style={{ height: '48px' }}>
             {/* Time Label */}
-            <div className="p-2 border-r border-b border-maya-border flex items-start justify-end" style={{ minWidth: '60px' }}>
-              <span className="time-label">{slot.label}</span>
+            <div className="w-12 md:w-16 flex-shrink-0 border-r border-maya-border flex items-start justify-end pr-2 pt-1 bg-gray-50/50">
+              <span className="text-[10px] md:text-xs text-maya-text-muted">{slot.label}</span>
             </div>
             
             {/* Day Columns */}
@@ -432,8 +428,8 @@ function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentCl
                 <div
                   key={dayIndex}
                   className={cn(
-                    "time-slot border-r border-b border-maya-border last:border-r-0 relative cursor-pointer hover:bg-maya-primary-light/30 transition-colors",
-                    isToday(date) && "bg-maya-primary-light/10"
+                    "flex-1 min-w-0 border-r border-maya-border/50 last:border-r-0 relative cursor-pointer hover:bg-maya-primary-light/20 transition-colors",
+                    isToday(date) && "bg-primary/5"
                   )}
                   onClick={() => onSlotClick(date, slot.hour)}
                   data-testid={`slot-${format(date, 'yyyy-MM-dd')}-${slot.hour}`}
@@ -441,20 +437,26 @@ function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentCl
                   {slotAppointments.map((appt) => (
                     <div
                       key={appt.id}
-                      className="appointment-block"
+                      className="absolute inset-x-0.5 bg-primary text-white rounded-sm px-1 py-0.5 overflow-hidden cursor-pointer hover:bg-primary-hover z-10 shadow-sm"
                       onClick={(e) => onAppointmentClick(appt, e)}
                       data-testid={`appointment-${appt.id}`}
                       style={{
-                        height: `${Math.max(appt.total_duration, 30)}px`,
-                        minHeight: '24px'
+                        top: '2px',
+                        minHeight: '40px',
+                        height: `${Math.max((appt.total_duration / 60) * 48, 40)}px`
                       }}
                     >
-                      <div className="font-medium truncate">{appt.client_name}</div>
+                      <div className="text-[10px] md:text-xs font-medium truncate leading-tight">
+                        {appt.client_name}
+                      </div>
                       {appt.pets?.length > 0 && (
-                        <div className="text-white/80 truncate text-[10px]">
+                        <div className="text-[9px] md:text-[10px] text-white/80 truncate leading-tight">
                           {appt.pets.map(p => p.pet_name).join(', ')}
                         </div>
                       )}
+                      <div className="text-[9px] text-white/70 truncate hidden md:block">
+                        {formatCurrency(appt.total_price)}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -469,7 +471,7 @@ function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentCl
 
 function MonthView({ currentDate, dates, appointments, onDayClick, onAppointmentClick }) {
   return (
-    <div className="p-4">
+    <div className="p-4 h-full overflow-auto">
       {/* Day Headers */}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => (
@@ -491,7 +493,7 @@ function MonthView({ currentDate, dates, appointments, onDayClick, onAppointment
               key={i}
               onClick={() => onDayClick(date)}
               className={cn(
-                "min-h-[100px] p-2 rounded-lg border cursor-pointer transition-all hover:border-primary",
+                "min-h-[80px] md:min-h-[100px] p-1 md:p-2 rounded-lg border cursor-pointer transition-all hover:border-primary",
                 !isSameMonth(date, currentDate) && "bg-gray-50 opacity-50",
                 isToday(date) && "border-primary border-2"
               )}
@@ -502,19 +504,19 @@ function MonthView({ currentDate, dates, appointments, onDayClick, onAppointment
               )}>
                 {format(date, 'd')}
               </div>
-              <div className="space-y-1">
-                {dayAppointments.slice(0, 3).map((appt) => (
+              <div className="space-y-0.5">
+                {dayAppointments.slice(0, 2).map((appt) => (
                   <div
                     key={appt.id}
                     onClick={(e) => onAppointmentClick(appt, e)}
-                    className="text-xs bg-primary text-white rounded px-1 py-0.5 truncate cursor-pointer hover:bg-primary-hover"
+                    className="text-[10px] md:text-xs bg-primary text-white rounded px-1 py-0.5 truncate cursor-pointer hover:bg-primary-hover"
                   >
                     {appt.client_name}
                   </div>
                 ))}
-                {dayAppointments.length > 3 && (
-                  <div className="text-xs text-maya-text-muted">
-                    +{dayAppointments.length - 3} more
+                {dayAppointments.length > 2 && (
+                  <div className="text-[10px] text-maya-text-muted">
+                    +{dayAppointments.length - 2} more
                   </div>
                 )}
               </div>
@@ -533,16 +535,16 @@ function ListView({ appointments, onAppointmentClick, use24Hour }) {
 
   if (sortedAppointments.length === 0) {
     return (
-      <div className="empty-state">
-        <CalendarIcon className="empty-state-icon mx-auto" />
-        <p className="text-lg font-medium">No appointments this week</p>
-        <p className="text-sm mt-1">Click "New Appointment" to schedule one</p>
+      <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+        <CalendarIcon className="w-12 h-12 text-maya-text-muted mb-4" />
+        <p className="text-lg font-medium text-maya-text">No appointments this week</p>
+        <p className="text-sm text-maya-text-muted mt-1">Click "New" to schedule one</p>
       </div>
     );
   }
 
   return (
-    <div className="divide-y divide-maya-border">
+    <div className="divide-y divide-maya-border overflow-auto h-full">
       {sortedAppointments.map((appt) => (
         <div
           key={appt.id}
@@ -551,18 +553,18 @@ function ListView({ appointments, onAppointmentClick, use24Hour }) {
           data-testid={`list-appointment-${appt.id}`}
         >
           <div className="flex items-center justify-between">
-            <div>
-              <div className="font-semibold text-maya-text">{appt.client_name}</div>
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold text-maya-text truncate">{appt.client_name}</div>
               <div className="text-sm text-maya-text-muted">
                 {format(new Date(appt.date_time), 'EEE, MMM d')} at {formatTime(appt.date_time, use24Hour)}
               </div>
               {appt.pets?.length > 0 && (
-                <div className="text-sm text-maya-text-muted mt-1">
-                  Pets: {appt.pets.map(p => p.pet_name).join(', ')}
+                <div className="text-sm text-maya-text-muted mt-1 truncate">
+                  {appt.pets.map(p => p.pet_name).join(', ')}
                 </div>
               )}
             </div>
-            <div className="text-right">
+            <div className="text-right ml-4 flex-shrink-0">
               <div className="font-semibold text-primary">{formatCurrency(appt.total_price)}</div>
               <div className={cn(
                 "text-xs px-2 py-1 rounded-full inline-block mt-1",
