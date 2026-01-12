@@ -871,6 +871,9 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
     
     sms_type = None
     
+    # Determine if updating single or series
+    update_series = update.update_series and original_appt.get("is_recurring") and original_appt.get("recurring_id")
+    
     if update.date_time:
         update_data["date_time"] = update.date_time.isoformat()
         # Recalculate end time
@@ -935,10 +938,27 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
     if not update_data:
         raise HTTPException(status_code=400, detail="No update data provided")
     
-    result = await db.appointments.update_one(
-        {"id": appointment_id, "user_id": user_id},
-        {"$set": update_data}
-    )
+    # Update single or series
+    if update_series:
+        # Update all appointments with the same recurring_id and future dates
+        recurring_id = original_appt.get("recurring_id")
+        current_date = datetime.now(timezone.utc).isoformat()
+        
+        result = await db.appointments.update_many(
+            {
+                "user_id": user_id,
+                "recurring_id": recurring_id,
+                "date_time": {"$gte": current_date}
+            },
+            {"$set": update_data}
+        )
+    else:
+        # Update single appointment
+        result = await db.appointments.update_one(
+            {"id": appointment_id, "user_id": user_id},
+            {"$set": update_data}
+        )
+    
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Appointment not found")
     
@@ -951,11 +971,28 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
     return parse_datetime_fields(appt, ["date_time", "end_time", "created_at"])
 
 @api_router.delete("/appointments/{appointment_id}")
-async def delete_appointment(appointment_id: str, user_id: str = Depends(get_current_user)):
-    result = await db.appointments.delete_one({"id": appointment_id, "user_id": user_id})
-    if result.deleted_count == 0:
+async def delete_appointment(appointment_id: str, delete_series: bool = False, user_id: str = Depends(get_current_user)):
+    appt = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
+    
+    if not appt:
         raise HTTPException(status_code=404, detail="Appointment not found")
-    return {"message": "Appointment deleted"}
+    
+    # Delete series or single
+    if delete_series and appt.get("is_recurring") and appt.get("recurring_id"):
+        recurring_id = appt.get("recurring_id")
+        current_date = datetime.now(timezone.utc).isoformat()
+        
+        result = await db.appointments.delete_many({
+            "user_id": user_id,
+            "recurring_id": recurring_id,
+            "date_time": {"$gte": current_date}
+        })
+        return {"message": f"Deleted {result.deleted_count} appointments in series"}
+    else:
+        result = await db.appointments.delete_one({"id": appointment_id, "user_id": user_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Appointment not found")
+        return {"message": "Appointment deleted"}
 
 # ==================== WAITLIST ROUTES ====================
 
