@@ -744,33 +744,86 @@ async def create_appointment(appt: AppointmentCreate, background_tasks: Backgrou
     if total_duration == 0:
         total_duration = 60
     
-    end_time = appt.date_time + timedelta(minutes=total_duration)
+    # Generate recurring appointments (up to 1 year)
+    appointments_to_create = []
+    recurring_id = str(uuid.uuid4()) if appt.is_recurring else None
     
-    new_appointment = Appointment(
-        user_id=user_id,
-        client_id=appt.client_id,
-        client_name=client["name"],
-        date_time=appt.date_time,
-        end_time=end_time,
-        notes=appt.notes,
-        is_recurring=appt.is_recurring,
-        recurring_value=appt.recurring_value,
-        recurring_unit=appt.recurring_unit,
-        recurring_id=appt.recurring_id if appt.recurring_id else (str(uuid.uuid4()) if appt.is_recurring else None),
-        pets=[p.model_dump() for p in appointment_pets],
-        total_duration=total_duration,
-        total_price=total_price
-    )
+    if appt.is_recurring and appt.recurring_value and appt.recurring_unit:
+        # Calculate time delta based on unit
+        delta_map = {
+            "day": timedelta(days=appt.recurring_value),
+            "week": timedelta(weeks=appt.recurring_value),
+            "month": timedelta(days=appt.recurring_value * 30),  # Approximate
+            "year": timedelta(days=appt.recurring_value * 365)
+        }
+        delta = delta_map.get(appt.recurring_unit, timedelta(weeks=1))
+        
+        # Generate appointments for 1 year
+        current_date = appt.date_time
+        end_date = current_date + timedelta(days=365)
+        
+        while current_date < end_date:
+            end_time = current_date + timedelta(minutes=total_duration)
+            appointments_to_create.append({
+                "id": str(uuid.uuid4()),
+                "user_id": user_id,
+                "client_id": appt.client_id,
+                "client_name": client["name"],
+                "date_time": current_date.isoformat(),
+                "end_time": end_time.isoformat(),
+                "notes": appt.notes,
+                "status": "scheduled",
+                "is_recurring": True,
+                "recurring_value": appt.recurring_value,
+                "recurring_unit": appt.recurring_unit,
+                "recurring_id": recurring_id,
+                "pets": [p.model_dump() for p in appointment_pets],
+                "total_duration": total_duration,
+                "total_price": total_price,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            })
+            current_date += delta
+    else:
+        # Single appointment
+        end_time = appt.date_time + timedelta(minutes=total_duration)
+        new_appointment = Appointment(
+            user_id=user_id,
+            client_id=appt.client_id,
+            client_name=client["name"],
+            date_time=appt.date_time,
+            end_time=end_time,
+            notes=appt.notes,
+            is_recurring=False,
+            recurring_value=None,
+            recurring_unit=None,
+            recurring_id=None,
+            pets=[p.model_dump() for p in appointment_pets],
+            total_duration=total_duration,
+            total_price=total_price
+        )
+        appt_doc = prepare_doc_for_mongo(new_appointment.model_dump())
+        appt_doc["pets"] = [prepare_doc_for_mongo(p) if isinstance(p, dict) else p for p in appt_doc.get("pets", [])]
+        appointments_to_create.append(appt_doc)
     
-    appt_doc = prepare_doc_for_mongo(new_appointment.model_dump())
-    # Serialize nested pets
-    appt_doc["pets"] = [prepare_doc_for_mongo(p) if isinstance(p, dict) else p for p in appt_doc.get("pets", [])]
+    # Insert all appointments
+    if appointments_to_create:
+        # Prepare all docs for mongo
+        prepared_docs = []
+        for doc in appointments_to_create:
+            prepared_doc = prepare_doc_for_mongo(doc)
+            prepared_doc["pets"] = [prepare_doc_for_mongo(p) if isinstance(p, dict) else p for p in prepared_doc.get("pets", [])]
+            prepared_docs.append(prepared_doc)
+        
+        await db.appointments.insert_many(prepared_docs)
+        
+        # Trigger backup
+        background_tasks.add_task(backup_collection_to_supabase, "appointments", user_id)
+        # Send SMS notification if automated (only for first appointment)
+        background_tasks.add_task(send_appointment_sms, user_id, prepared_docs[0], "appointment_booked")
+        
+        # Return the first appointment
+        return parse_datetime_fields(prepared_docs[0], ["date_time", "end_time", "created_at"])
     
-    await db.appointments.insert_one(appt_doc)
-    # Trigger backup
-    background_tasks.add_task(backup_collection_to_supabase, "appointments", user_id)
-    # Send SMS notification if automated
-    background_tasks.add_task(send_appointment_sms, user_id, appt_doc, "appointment_booked")
     return new_appointment
 
 @api_router.get("/appointments", response_model=List[Appointment])
