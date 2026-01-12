@@ -247,6 +247,10 @@ export default function Settings() {
               <Clock size={16} />
               <span className="hidden sm:inline">Preferences</span>
             </TabsTrigger>
+            <TabsTrigger value="backup" className="flex items-center gap-2">
+              <Database size={16} />
+              <span className="hidden sm:inline">Backup</span>
+            </TabsTrigger>
           </TabsList>
 
           <form onSubmit={handleSave}>
