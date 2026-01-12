@@ -10,7 +10,7 @@ import { AppointmentModal } from '../components/AppointmentModal';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { toast } from 'sonner';
 
-const timeSlots = getTimeSlots(7, 19);
+const timeSlots = getTimeSlots(0, 23);
 
 export default function CalendarPage() {
   const { settings } = useAuth();
