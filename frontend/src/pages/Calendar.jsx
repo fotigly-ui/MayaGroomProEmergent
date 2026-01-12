@@ -14,8 +14,9 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
-// Business hours: 6am to 10pm
+// Business hours: 6am to 10pm (each hour = 60px height)
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6);
+const HOUR_HEIGHT = 60; // pixels per hour
 
 export default function CalendarPage() {
   const { settings } = useAuth();
@@ -91,8 +92,7 @@ export default function CalendarPage() {
     if (scrollRef.current) {
       const now = new Date();
       const hour = now.getHours();
-      const rowHeight = 60;
-      const scrollPosition = (hour - 6) * rowHeight - 100;
+      const scrollPosition = (hour - 6) * HOUR_HEIGHT - 100;
       scrollRef.current.scrollTop = Math.max(0, scrollPosition);
     }
   }, []);
@@ -142,10 +142,6 @@ export default function CalendarPage() {
     }
   };
 
-  const handleDragLeave = () => {
-    // Don't clear immediately to prevent flickering
-  };
-
   const handleDrop = async (e, date, hour) => {
     e.preventDefault();
     if (!draggedAppointment) return;
@@ -180,8 +176,6 @@ export default function CalendarPage() {
       toast.success('Appointment rescheduled');
       fetchData();
       setShowConfirmDialog(false);
-      
-      // Show SMS prompt
       setShowSmsPrompt(true);
     } catch (error) {
       toast.error('Failed to reschedule');
@@ -204,7 +198,6 @@ export default function CalendarPage() {
       if (res.data.status === 'sent') {
         toast.success('SMS sent');
       } else if (res.data.status === 'pending') {
-        // Open native SMS app
         const cleanPhone = res.data.phone.replace(/\D/g, '');
         window.location.href = `sms:${cleanPhone}?body=${encodeURIComponent(res.data.message)}`;
         toast.success('Opening messaging app...');
@@ -240,11 +233,28 @@ export default function CalendarPage() {
     const hour = currentTime.getHours();
     const minutes = currentTime.getMinutes();
     if (hour < 6 || hour > 22) return null;
-    return ((hour - 6) * 60 + minutes);
+    return ((hour - 6) * HOUR_HEIGHT + (minutes / 60) * HOUR_HEIGHT);
   };
 
   const currentTimePos = getCurrentTimePosition();
   const isTodayInWeek = weekDates.some(d => isToday(d));
+
+  // Calculate appointment position and height
+  const getAppointmentStyle = (appt) => {
+    const apptDate = new Date(appt.date_time);
+    const hour = apptDate.getHours();
+    const minutes = apptDate.getMinutes();
+    const duration = appt.total_duration || 60;
+    
+    const top = (hour - 6) * HOUR_HEIGHT + (minutes / 60) * HOUR_HEIGHT;
+    const height = (duration / 60) * HOUR_HEIGHT;
+    
+    return {
+      top: `${top}px`,
+      height: `${Math.max(height, 30)}px`,
+      minHeight: '30px'
+    };
+  };
 
   return (
     <Layout>
@@ -337,7 +347,7 @@ export default function CalendarPage() {
           {/* Current Time Indicator */}
           {currentTimePos !== null && isTodayInWeek && (
             <div
-              className="absolute left-0 right-0 z-20 pointer-events-none flex items-center"
+              className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
               style={{ top: `${currentTimePos}px` }}
             >
               <div className="w-12 flex justify-end pr-1">
@@ -356,113 +366,102 @@ export default function CalendarPage() {
           {dragPreview && draggedAppointment && (
             <div
               className="fixed z-50 bg-primary text-white px-3 py-2 rounded-lg shadow-lg pointer-events-none text-sm font-medium"
-              style={{
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)'
-              }}
+              style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
             >
               Moving to: {format(dragPreview.date, 'EEE d')} at {String(dragPreview.hour).padStart(2, '0')}:00
             </div>
           )}
 
-          {/* Time Rows */}
-          <div className="relative">
-            {HOURS.map((hour) => (
-              <div key={hour} className="flex" style={{ height: '60px' }}>
-                {/* Time Label */}
-                <div className="w-12 flex-shrink-0 pr-2 pt-0 text-right">
+          {/* Time Grid Background */}
+          <div className="relative" style={{ height: `${HOURS.length * HOUR_HEIGHT}px` }}>
+            {/* Hour lines */}
+            {HOURS.map((hour, i) => (
+              <div
+                key={hour}
+                className="absolute left-0 right-0 flex"
+                style={{ top: `${i * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
+              >
+                <div className="w-12 flex-shrink-0 pr-2 text-right">
                   <span className="text-[10px] text-gray-400">
                     {hour.toString().padStart(2, '0')}
                   </span>
                 </div>
-                {/* Day Columns */}
-                {weekDates.map((date, dayIndex) => {
-                  const isDropTarget = dragPreview && 
-                    isSameDay(dragPreview.date, date) && 
-                    dragPreview.hour === hour;
-                  
-                  return (
-                    <div
-                      key={dayIndex}
-                      className={cn(
-                        "flex-1 border-l border-t border-gray-100 relative cursor-pointer hover:bg-blue-50/30",
-                        isToday(date) && "bg-gray-50/50",
-                        isDropTarget && "bg-primary/20 ring-2 ring-primary ring-inset"
-                      )}
-                      onClick={() => handleSlotClick(date, hour)}
-                      onDragOver={(e) => handleDragOver(e, date, hour)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, date, hour)}
-                      data-testid={`slot-${format(date, 'yyyy-MM-dd')}-${hour}`}
-                    >
-                      {/* Drop target time indicator */}
-                      {isDropTarget && (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-bold text-primary">
-                            {String(hour).padStart(2, '0')}:00
-                          </span>
-                        </div>
-                      )}
-                      
-                      {/* Appointments for this hour */}
-                      {getAppointmentsForDay(date)
-                        .filter(appt => new Date(appt.date_time).getHours() === hour)
-                        .map((appt) => {
-                          const duration = appt.total_duration || 60;
-                          const heightPx = (duration / 60) * 60;
-                          const minutes = new Date(appt.date_time).getMinutes();
-                          const topOffset = (minutes / 60) * 60;
-                          
-                          return (
-                            <div
-                              key={appt.id}
-                              draggable
-                              onDragStart={(e) => handleDragStart(e, appt)}
-                              onDragEnd={handleDragEnd}
-                              onClick={(e) => handleAppointmentClick(appt, e)}
-                              className={cn(
-                                "absolute left-0.5 right-0.5 bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing z-10 hover:bg-blue-200 transition-colors",
-                                draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
-                              )}
-                              style={{
-                                top: `${topOffset}px`,
-                                height: `${Math.max(heightPx - 2, 28)}px`,
-                                minHeight: '28px'
-                              }}
-                              data-testid={`appointment-${appt.id}`}
-                            >
-                              <div className="absolute top-1 right-1 w-4 h-4 rounded border border-gray-300 bg-white" />
-                              
-                              <div className="text-xs font-semibold text-gray-900 truncate pr-5">
-                                {appt.client_name}
-                                {appt.pets?.length > 0 && (
-                                  <span className="font-normal text-gray-600">
-                                    {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-[10px] text-gray-600 truncate">
-                                {format(new Date(appt.date_time), 'HH:mm')}
-                              </div>
-                              {heightPx > 40 && (
-                                <div className="text-[10px] text-gray-500 truncate mt-0.5">
-                                  {appt.pets?.map(p => 
-                                    services
-                                      .filter(s => p.services?.includes(s.id))
-                                      .map(s => s.name)
-                                      .join(', ')
-                                  ).filter(Boolean).join(', ')}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
-                    </div>
-                  );
-                })}
+                <div className="flex-1 flex border-t border-gray-100">
+                  {weekDates.map((date, dayIndex) => {
+                    const isDropTarget = dragPreview && 
+                      isSameDay(dragPreview.date, date) && 
+                      dragPreview.hour === hour;
+                    
+                    return (
+                      <div
+                        key={dayIndex}
+                        className={cn(
+                          "flex-1 border-l border-gray-100 first:border-l-0 cursor-pointer hover:bg-blue-50/30",
+                          isToday(date) && "bg-gray-50/50",
+                          isDropTarget && "bg-primary/20"
+                        )}
+                        onClick={() => handleSlotClick(date, hour)}
+                        onDragOver={(e) => handleDragOver(e, date, hour)}
+                        onDrop={(e) => handleDrop(e, date, hour)}
+                        data-testid={`slot-${format(date, 'yyyy-MM-dd')}-${hour}`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
             ))}
+
+            {/* Appointments - positioned absolutely to span their duration */}
+            <div className="absolute top-0 left-12 right-0 flex pointer-events-none">
+              {weekDates.map((date, dayIndex) => (
+                <div key={dayIndex} className="flex-1 relative">
+                  {getAppointmentsForDay(date).map((appt) => {
+                    const style = getAppointmentStyle(appt);
+                    
+                    return (
+                      <div
+                        key={appt.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, appt)}
+                        onDragEnd={handleDragEnd}
+                        onClick={(e) => handleAppointmentClick(appt, e)}
+                        className={cn(
+                          "absolute left-1 right-1 bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing pointer-events-auto hover:bg-blue-200 transition-colors shadow-sm",
+                          draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
+                        )}
+                        style={style}
+                        data-testid={`appointment-${appt.id}`}
+                      >
+                        {/* Checkbox indicator */}
+                        <div className="absolute top-1 right-1 w-4 h-4 rounded border border-gray-300 bg-white" />
+                        
+                        <div className="text-xs font-semibold text-gray-900 truncate pr-5">
+                          {appt.client_name}
+                          {appt.pets?.length > 0 && (
+                            <span className="font-normal text-gray-600">
+                              {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[10px] text-gray-600">
+                          {format(new Date(appt.date_time), 'HH:mm')}
+                        </div>
+                        {/* Show services if there's enough height */}
+                        {parseInt(style.height) > 50 && (
+                          <div className="text-[10px] text-gray-500 mt-0.5 line-clamp-2">
+                            {appt.pets?.flatMap(p => 
+                              services
+                                .filter(s => p.services?.includes(s.id))
+                                .map(s => s.name)
+                            ).filter(Boolean).join(', ') || 'No services'}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
