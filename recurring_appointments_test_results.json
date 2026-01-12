@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-01-12T13:01:43.282597",
+  "total_tests": 7,
+  "passed_tests": 6,
+  "success_rate": 0.8571428571428571,
+  "results": [
+    {
+      "test": "Recurring Appointments Creation",
+      "success": true,
+      "details": "Created 26 appointments with correct 2-week intervals"
+    },
+    {
+      "test": "Series Update",
+      "success": true,
+      "details": "Successfully updated 26 future appointments"
+    },
+    {
+      "test": "Series Delete",
+      "success": true,
+      "details": "Deleted 26 future appointments, 0 past appointments remain"
+    },
+    {
+      "test": "Create Single Appointment",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Update Single Appointment",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Verify Single Appointment Deleted",
+      "success": false,
+      "details": "Appointment still exists"
+    },
+    {
+      "test": "Appointment Listing with Date Filters",
+      "success": true,
+      "details": "Found 0 appointments in range, 0 recurring"
+    }
+  ],
+  "test_data": {
+    "recurring_id": "fceebe88-6352-46ad-92dc-5da2b120648a",
+    "client_id": "13d75bed-b997-4dd0-8a34-5341c56e454e",
+    "service_id": "e89baeae-a0f5-419e-964d-3935cd3cfc75"
+  }
+}
