@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-01-11T22:51:19.151461",
-  "total_tests": 23,
-  "passed_tests": 22,
-  "success_rate": 0.9565217391304348,
+  "timestamp": "2026-01-12T00:15:14.395252",
+  "total_tests": 29,
+  "passed_tests": 29,
+  "success_rate": 1.0,
   "results": [
     {
       "test": "User Login",
@@ -20,7 +20,7 @@
       "details": ""
     },
     {
-      "test": "Update Settings",
+      "test": "Update Settings (with SMS timing)",
       "success": true,
       "details": ""
     },
@@ -111,11 +111,41 @@
     },
     {
       "test": "SMS Send",
-      "success": false,
-      "details": "Status: 400, Response: {\"detail\":\"SMS is not enabled\"}"
+      "success": true,
+      "details": "SMS Status: pending"
     },
     {
       "test": "List SMS Messages",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Create Invoice (with GST calculation)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Invoices",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Get Invoice",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Create Invoice from Appointment",
+      "success": true,
+      "details": "Invoice: INV-202601-0002"
+    },
+    {
+      "test": "Update Invoice Status",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Filter Invoices by Status",
       "success": true,
       "details": ""
     }
