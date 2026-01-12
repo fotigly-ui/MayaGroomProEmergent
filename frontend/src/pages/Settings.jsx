@@ -627,6 +627,72 @@ export default function Settings() {
               </div>
             </TabsContent>
 
+            <TabsContent value="backup">
+              <div className="card-maya space-y-6">
+                <h2 className="text-lg font-semibold text-maya-text">Data Backup</h2>
+                <p className="text-sm text-maya-text-muted">
+                  Your data is automatically backed up to Supabase when you create or modify records.
+                  You can also trigger a manual backup of all your data.
+                </p>
+                
+                {/* Backup Status */}
+                <div className="bg-maya-cream rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      {backupStatus?.status === 'active' ? (
+                        <CheckCircle className="text-maya-success" size={24} />
+                      ) : (
+                        <Database className="text-maya-text-muted" size={24} />
+                      )}
+                      <div>
+                        <p className="font-medium text-maya-text">
+                          {backupStatus?.status === 'active' ? 'Backup Active' : 
+                           backupStatus?.status === 'not_configured' ? 'Not Configured' : 
+                           'No Backups Yet'}
+                        </p>
+                        {backupStatus?.last_backup && (
+                          <p className="text-sm text-maya-text-muted">
+                            Last backup: {new Date(backupStatus.last_backup).toLocaleString('en-AU')}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={triggerBackup}
+                      disabled={backupLoading}
+                      className="btn-maya-primary"
+                      data-testid="backup-now-btn"
+                    >
+                      {backupLoading ? (
+                        <Loader2 className="animate-spin mr-2" size={16} />
+                      ) : (
+                        <Database size={16} className="mr-2" />
+                      )}
+                      Backup Now
+                    </Button>
+                  </div>
+                </div>
+
+                {/* What's backed up */}
+                <div>
+                  <h3 className="font-medium text-maya-text mb-3">What's backed up:</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {['Clients', 'Pets', 'Services', 'Items', 'Appointments', 'Waitlist', 'Settings', 'Invoices'].map((item) => (
+                      <div key={item} className="flex items-center gap-2 text-sm text-maya-text-muted">
+                        <CheckCircle size={14} className="text-maya-success" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <p className="text-xs text-maya-text-muted">
+                  Backups are stored securely in Supabase and can be restored if needed.
+                </p>
+              </div>
+            </TabsContent>
+
             <div className="mt-6 flex justify-end">
               <Button 
                 type="submit" 
