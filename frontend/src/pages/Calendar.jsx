@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, MoreVertical, Send, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Send, MessageSquare } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { appointmentsAPI, clientsAPI, servicesAPI } from '../lib/api';
-import { cn, isToday, formatCurrency } from '../lib/utils';
+import { cn, isToday } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { AppointmentModal } from '../components/AppointmentModal';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
@@ -16,11 +16,11 @@ const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
 // Business hours: 6am to 10pm (each hour = 60px height)
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 6);
-const HOUR_HEIGHT = 60; // pixels per hour
+const HOUR_HEIGHT = 60;
 
 export default function CalendarPage() {
   const { settings } = useAuth();
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -43,8 +43,9 @@ export default function CalendarPage() {
   
   const scrollRef = useRef(null);
 
+  // Week dates for the header (Mon-Sun)
   const weekDates = Array.from({ length: 7 }, (_, i) => {
-    const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
     return addDays(weekStart, i);
   });
 
@@ -56,7 +57,7 @@ export default function CalendarPage() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
+      const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
       const weekEnd = addDays(weekStart, 7);
       
       const [apptRes, clientsRes, servicesRes] = await Promise.all([
@@ -77,15 +78,15 @@ export default function CalendarPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentDate]);
+  }, [selectedDate]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   useEffect(() => {
-    setPopoverMonth(currentDate);
-  }, [currentDate]);
+    setPopoverMonth(selectedDate);
+  }, [selectedDate]);
 
   // Scroll to current time on mount
   useEffect(() => {
@@ -97,12 +98,11 @@ export default function CalendarPage() {
     }
   }, []);
 
-  const navigatePrev = () => setCurrentDate(subWeeks(currentDate, 1));
-  const navigateNext = () => setCurrentDate(addWeeks(currentDate, 1));
-  const goToToday = () => setCurrentDate(new Date());
+  const navigatePrev = () => setSelectedDate(subWeeks(selectedDate, 1));
+  const navigateNext = () => setSelectedDate(addWeeks(selectedDate, 1));
 
-  const handleSlotClick = (date, hour) => {
-    const slotDate = new Date(date);
+  const handleSlotClick = (hour) => {
+    const slotDate = new Date(selectedDate);
     slotDate.setHours(hour, 0, 0, 0);
     setSelectedSlot(slotDate);
     setSelectedAppointment(null);
@@ -134,22 +134,21 @@ export default function CalendarPage() {
     e.dataTransfer.setData('text/plain', appointment.id);
   };
 
-  const handleDragOver = (e, date, hour) => {
+  const handleDragOver = (e, hour) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
     if (draggedAppointment) {
-      setDragPreview({ date, hour });
+      setDragPreview({ hour });
     }
   };
 
-  const handleDrop = async (e, date, hour) => {
+  const handleDrop = async (e, hour) => {
     e.preventDefault();
     if (!draggedAppointment) return;
     
-    const newDateTime = new Date(date);
+    const newDateTime = new Date(selectedDate);
     newDateTime.setHours(hour, 0, 0, 0);
     
-    // Show confirmation dialog
     setPendingReschedule({
       appointment: draggedAppointment,
       newDateTime,
@@ -215,12 +214,10 @@ export default function CalendarPage() {
     setPendingReschedule(null);
   };
 
-  // Get appointments for a specific day
-  const getAppointmentsForDay = (date) => {
-    return appointments.filter(appt => 
-      isSameDay(new Date(appt.date_time), date)
-    );
-  };
+  // Get appointments for the SELECTED day only
+  const selectedDayAppointments = appointments.filter(appt => 
+    isSameDay(new Date(appt.date_time), selectedDate)
+  );
 
   // Current time indicator
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -237,7 +234,7 @@ export default function CalendarPage() {
   };
 
   const currentTimePos = getCurrentTimePosition();
-  const isTodayInWeek = weekDates.some(d => isToday(d));
+  const isSelectedDateToday = isToday(selectedDate);
 
   // Calculate appointment position and height
   const getAppointmentStyle = (appt) => {
@@ -251,8 +248,8 @@ export default function CalendarPage() {
     
     return {
       top: `${top}px`,
-      height: `${Math.max(height, 30)}px`,
-      minHeight: '30px'
+      height: `${Math.max(height, 40)}px`,
+      minHeight: '40px'
     };
   };
 
@@ -262,13 +259,10 @@ export default function CalendarPage() {
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-gray-100 rounded-lg">
-              <MoreVertical size={20} className="text-gray-600" />
-            </button>
             <Popover>
               <PopoverTrigger asChild>
                 <button className="text-lg font-semibold text-gray-900 hover:text-primary flex items-center gap-1">
-                  {format(currentDate, 'MMMM yyyy')}
+                  {format(selectedDate, 'MMMM yyyy')}
                   <ChevronRight size={16} className="rotate-90" />
                 </button>
               </PopoverTrigger>
@@ -290,12 +284,12 @@ export default function CalendarPage() {
                     {popoverMonthDates.map((date, i) => (
                       <button
                         key={i}
-                        onClick={() => { setCurrentDate(date); }}
+                        onClick={() => { setSelectedDate(date); }}
                         className={cn(
                           "p-2 rounded-full hover:bg-gray-100 transition-colors",
                           !isSameMonth(date, popoverMonth) && "text-gray-300",
                           isToday(date) && "bg-primary text-white hover:bg-primary",
-                          isSameDay(date, currentDate) && !isToday(date) && "ring-2 ring-primary"
+                          isSameDay(date, selectedDate) && !isToday(date) && "ring-2 ring-primary"
                         )}
                       >
                         {format(date, 'd')}
@@ -315,42 +309,55 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        {/* Week Header */}
+        {/* Week Day Selector */}
         <div className="flex border-b border-gray-200 flex-shrink-0">
-          <div className="w-12 flex-shrink-0" />
+          <button 
+            onClick={navigatePrev}
+            className="px-2 flex items-center text-gray-400 hover:text-primary"
+          >
+            <ChevronLeft size={20} />
+          </button>
           {weekDates.map((date, i) => (
-            <div
+            <button
               key={i}
+              onClick={() => setSelectedDate(date)}
               className={cn(
-                "flex-1 py-2 text-center border-l border-gray-100 first:border-l-0",
-                isToday(date) && "bg-gray-50"
+                "flex-1 py-3 text-center transition-colors",
+                isSameDay(date, selectedDate) && "bg-gray-50"
               )}
             >
               <div className={cn(
                 "text-xs font-medium uppercase",
-                isToday(date) ? "text-primary" : "text-gray-500"
+                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-500"
               )}>
                 {format(date, 'EEE').charAt(0)}
               </div>
               <div className={cn(
-                "text-sm font-semibold mt-0.5 w-7 h-7 mx-auto flex items-center justify-center rounded-full",
-                isToday(date) && "bg-gray-800 text-white"
+                "text-sm font-semibold mt-1 w-8 h-8 mx-auto flex items-center justify-center rounded-full",
+                isSameDay(date, selectedDate) && "bg-gray-800 text-white",
+                isToday(date) && !isSameDay(date, selectedDate) && "text-primary"
               )}>
                 {format(date, 'd')}
               </div>
-            </div>
+            </button>
           ))}
+          <button 
+            onClick={navigateNext}
+            className="px-2 flex items-center text-gray-400 hover:text-primary"
+          >
+            <ChevronRight size={20} />
+          </button>
         </div>
 
-        {/* Calendar Grid */}
+        {/* Day Schedule - Shows ONLY selected day's appointments */}
         <div className="flex-1 overflow-auto relative" ref={scrollRef}>
-          {/* Current Time Indicator */}
-          {currentTimePos !== null && isTodayInWeek && (
+          {/* Current Time Indicator - Only show if selected date is today */}
+          {currentTimePos !== null && isSelectedDateToday && (
             <div
               className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
               style={{ top: `${currentTimePos}px` }}
             >
-              <div className="w-12 flex justify-end pr-1">
+              <div className="w-14 flex justify-end pr-1">
                 <span className="text-[10px] font-bold text-red-500 bg-white px-1">
                   {format(currentTime, 'HH:mm')}
                 </span>
@@ -368,100 +375,84 @@ export default function CalendarPage() {
               className="fixed z-50 bg-primary text-white px-3 py-2 rounded-lg shadow-lg pointer-events-none text-sm font-medium"
               style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}
             >
-              Moving to: {format(dragPreview.date, 'EEE d')} at {String(dragPreview.hour).padStart(2, '0')}:00
+              Moving to {String(dragPreview.hour).padStart(2, '0')}:00
             </div>
           )}
 
-          {/* Time Grid Background */}
+          {/* Time Grid */}
           <div className="relative" style={{ height: `${HOURS.length * HOUR_HEIGHT}px` }}>
             {/* Hour lines */}
-            {HOURS.map((hour, i) => (
-              <div
-                key={hour}
-                className="absolute left-0 right-0 flex"
-                style={{ top: `${i * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
-              >
-                <div className="w-12 flex-shrink-0 pr-2 text-right">
-                  <span className="text-[10px] text-gray-400">
-                    {hour.toString().padStart(2, '0')}
-                  </span>
+            {HOURS.map((hour, i) => {
+              const isDropTarget = dragPreview && dragPreview.hour === hour;
+              
+              return (
+                <div
+                  key={hour}
+                  className={cn(
+                    "absolute left-0 right-0 flex border-t border-gray-100 cursor-pointer hover:bg-blue-50/30",
+                    isDropTarget && "bg-primary/20"
+                  )}
+                  style={{ top: `${i * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
+                  onClick={() => handleSlotClick(hour)}
+                  onDragOver={(e) => handleDragOver(e, hour)}
+                  onDrop={(e) => handleDrop(e, hour)}
+                  data-testid={`slot-${format(selectedDate, 'yyyy-MM-dd')}-${hour}`}
+                >
+                  <div className="w-14 flex-shrink-0 pr-2 pt-0 text-right">
+                    <span className="text-xs text-gray-400">
+                      {hour.toString().padStart(2, '0')}:00
+                    </span>
+                  </div>
+                  <div className="flex-1" />
                 </div>
-                <div className="flex-1 flex border-t border-gray-100">
-                  {weekDates.map((date, dayIndex) => {
-                    const isDropTarget = dragPreview && 
-                      isSameDay(dragPreview.date, date) && 
-                      dragPreview.hour === hour;
-                    
-                    return (
-                      <div
-                        key={dayIndex}
-                        className={cn(
-                          "flex-1 border-l border-gray-100 first:border-l-0 cursor-pointer hover:bg-blue-50/30",
-                          isToday(date) && "bg-gray-50/50",
-                          isDropTarget && "bg-primary/20"
-                        )}
-                        onClick={() => handleSlotClick(date, hour)}
-                        onDragOver={(e) => handleDragOver(e, date, hour)}
-                        onDrop={(e) => handleDrop(e, date, hour)}
-                        data-testid={`slot-${format(date, 'yyyy-MM-dd')}-${hour}`}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
-            {/* Appointments - positioned absolutely to span their duration */}
-            <div className="absolute top-0 left-12 right-0 flex pointer-events-none">
-              {weekDates.map((date, dayIndex) => (
-                <div key={dayIndex} className="flex-1 relative">
-                  {getAppointmentsForDay(date).map((appt) => {
-                    const style = getAppointmentStyle(appt);
-                    
-                    return (
-                      <div
-                        key={appt.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, appt)}
-                        onDragEnd={handleDragEnd}
-                        onClick={(e) => handleAppointmentClick(appt, e)}
-                        className={cn(
-                          "absolute left-1 right-1 bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing pointer-events-auto hover:bg-blue-200 transition-colors shadow-sm",
-                          draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
-                        )}
-                        style={style}
-                        data-testid={`appointment-${appt.id}`}
-                      >
-                        {/* Checkbox indicator */}
-                        <div className="absolute top-1 right-1 w-4 h-4 rounded border border-gray-300 bg-white" />
-                        
-                        <div className="text-xs font-semibold text-gray-900 truncate pr-5">
-                          {appt.client_name}
-                          {appt.pets?.length > 0 && (
-                            <span className="font-normal text-gray-600">
-                              {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[10px] text-gray-600">
-                          {format(new Date(appt.date_time), 'HH:mm')}
-                        </div>
-                        {/* Show services if there's enough height */}
-                        {parseInt(style.height) > 50 && (
-                          <div className="text-[10px] text-gray-500 mt-0.5 line-clamp-2">
-                            {appt.pets?.flatMap(p => 
-                              services
-                                .filter(s => p.services?.includes(s.id))
-                                .map(s => s.name)
-                            ).filter(Boolean).join(', ') || 'No services'}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+            {/* Appointments for SELECTED day only */}
+            {selectedDayAppointments.map((appt) => {
+              const style = getAppointmentStyle(appt);
+              
+              return (
+                <div
+                  key={appt.id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, appt)}
+                  onDragEnd={handleDragEnd}
+                  onClick={(e) => handleAppointmentClick(appt, e)}
+                  className={cn(
+                    "absolute left-14 right-2 bg-blue-100 border-l-4 border-blue-500 rounded-r-md px-3 py-2 overflow-hidden cursor-grab active:cursor-grabbing hover:bg-blue-200 transition-colors shadow-sm",
+                    draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
+                  )}
+                  style={style}
+                  data-testid={`appointment-${appt.id}`}
+                >
+                  {/* Checkbox indicator */}
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded border border-gray-300 bg-white" />
+                  
+                  <div className="text-sm font-semibold text-gray-900 truncate pr-6">
+                    {appt.client_name}
+                    {appt.pets?.length > 0 && (
+                      <span className="font-normal text-gray-600">
+                        {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-600 mt-0.5">
+                    {format(new Date(appt.date_time), 'HH:mm')}
+                  </div>
+                  {/* Show services if there's enough height */}
+                  {parseInt(style.height) > 60 && (
+                    <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                      {appt.pets?.flatMap(p => 
+                        services
+                          .filter(s => p.services?.includes(s.id))
+                          .map(s => s.name)
+                      ).filter(Boolean).join(', ') || 'No services'}
+                    </div>
+                  )}
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -492,13 +483,13 @@ export default function CalendarPage() {
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-gray-500">From:</span>
                   <span className="font-medium">
-                    {format(pendingReschedule.oldDateTime, 'EEE, MMM d')} at {format(pendingReschedule.oldDateTime, 'HH:mm')}
+                    {format(pendingReschedule.oldDateTime, 'HH:mm')}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <span className="text-gray-500">To:</span>
                   <span className="font-medium text-primary">
-                    {format(pendingReschedule.newDateTime, 'EEE, MMM d')} at {format(pendingReschedule.newDateTime, 'HH:mm')}
+                    {format(pendingReschedule.newDateTime, 'HH:mm')}
                   </span>
                 </div>
               </div>
