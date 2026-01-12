@@ -43,9 +43,10 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 
 ### Calendar Features (January 12, 2026)
 - [x] **Week view**: Monday to Sunday display
-- [x] **Current time indicator**: Red line with flashing dot (visible when time is within 7am-7pm)
+- [x] **Time slots**: 00:00 to 23:00 (midnight to 11pm) - full day coverage
+- [x] **Current time indicator**: Red line with flashing dot (visible on today's column)
 - [x] **Month navigation**: Popover with forward/backward month arrows
-- [x] **Today highlight**: Monday 12 highlighted with orange circle
+- [x] **Today highlight**: Orange circle on today's date
 
 ### SMS Notifications System
 - [x] Manual mode (copy message to send from own phone)
