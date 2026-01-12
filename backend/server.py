@@ -1023,6 +1023,236 @@ async def get_dashboard_stats(user_id: str = Depends(get_current_user)):
         "waitlist_count": waitlist_count
     }
 
+# ==================== INVOICE ROUTES ====================
+
+async def generate_invoice_number(user_id: str) -> str:
+    """Generate unique invoice number"""
+    # Get count of invoices for this user
+    count = await db.invoices.count_documents({"user_id": user_id})
+    # Format: INV-YYYYMM-XXXX
+    now = datetime.now(timezone.utc)
+    return f"INV-{now.strftime('%Y%m')}-{str(count + 1).zfill(4)}"
+
+@api_router.post("/invoices", response_model=Invoice)
+async def create_invoice(invoice_data: InvoiceCreate, user_id: str = Depends(get_current_user)):
+    """Create a new invoice"""
+    # Get client info
+    client = await db.clients.find_one({"id": invoice_data.client_id, "user_id": user_id}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Get user settings for GST
+    settings = await db.settings.find_one({"user_id": user_id}, {"_id": 0})
+    gst_enabled = settings.get("gst_enabled", False) if settings else False
+    gst_rate = settings.get("gst_rate", 10) if settings else 10
+    
+    # Calculate totals
+    subtotal = sum(item.total for item in invoice_data.items)
+    gst_amount = (subtotal * gst_rate / 100) if gst_enabled else 0
+    total = subtotal + gst_amount
+    
+    # Generate invoice number
+    invoice_number = await generate_invoice_number(user_id)
+    
+    new_invoice = Invoice(
+        invoice_number=invoice_number,
+        user_id=user_id,
+        appointment_id=invoice_data.appointment_id,
+        client_id=invoice_data.client_id,
+        client_name=client.get("name", ""),
+        client_email=client.get("email", ""),
+        client_phone=client.get("phone", ""),
+        client_address=client.get("address", ""),
+        items=[item.model_dump() for item in invoice_data.items],
+        subtotal=subtotal,
+        gst_amount=gst_amount,
+        total=total,
+        notes=invoice_data.notes,
+        due_date=invoice_data.due_date.isoformat() if invoice_data.due_date else None
+    )
+    
+    invoice_doc = prepare_doc_for_mongo(new_invoice.model_dump())
+    await db.invoices.insert_one(invoice_doc)
+    
+    return new_invoice
+
+@api_router.post("/invoices/from-appointment/{appointment_id}", response_model=Invoice)
+async def create_invoice_from_appointment(appointment_id: str, user_id: str = Depends(get_current_user)):
+    """Create invoice from an appointment"""
+    # Get appointment
+    appointment = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Get client
+    client = await db.clients.find_one({"id": appointment["client_id"]}, {"_id": 0})
+    if not client:
+        raise HTTPException(status_code=404, detail="Client not found")
+    
+    # Get settings
+    settings = await db.settings.find_one({"user_id": user_id}, {"_id": 0})
+    gst_enabled = settings.get("gst_enabled", False) if settings else False
+    gst_rate = settings.get("gst_rate", 10) if settings else 10
+    
+    # Build items from appointment services/items
+    items = []
+    for pet in appointment.get("pets", []):
+        pet_name = pet.get("pet_name", "Pet")
+        
+        # Add services
+        for service_id in pet.get("services", []):
+            service = await db.services.find_one({"id": service_id}, {"_id": 0})
+            if service:
+                items.append({
+                    "name": f"{service['name']} - {pet_name}",
+                    "quantity": 1,
+                    "unit_price": service.get("price", 0),
+                    "total": service.get("price", 0)
+                })
+        
+        # Add items
+        for item_id in pet.get("items", []):
+            item = await db.items.find_one({"id": item_id}, {"_id": 0})
+            if item:
+                items.append({
+                    "name": item["name"],
+                    "quantity": 1,
+                    "unit_price": item.get("price", 0),
+                    "total": item.get("price", 0)
+                })
+    
+    # Calculate totals
+    subtotal = sum(item["total"] for item in items)
+    gst_amount = (subtotal * gst_rate / 100) if gst_enabled else 0
+    total = subtotal + gst_amount
+    
+    # Generate invoice number
+    invoice_number = await generate_invoice_number(user_id)
+    
+    new_invoice = Invoice(
+        invoice_number=invoice_number,
+        user_id=user_id,
+        appointment_id=appointment_id,
+        client_id=appointment["client_id"],
+        client_name=client.get("name", ""),
+        client_email=client.get("email", ""),
+        client_phone=client.get("phone", ""),
+        client_address=client.get("address", ""),
+        items=items,
+        subtotal=subtotal,
+        gst_amount=gst_amount,
+        total=total
+    )
+    
+    invoice_doc = prepare_doc_for_mongo(new_invoice.model_dump())
+    await db.invoices.insert_one(invoice_doc)
+    
+    return new_invoice
+
+@api_router.get("/invoices", response_model=List[Invoice])
+async def get_invoices(
+    client_id: str = "",
+    status: str = "",
+    limit: int = 100,
+    user_id: str = Depends(get_current_user)
+):
+    """Get all invoices"""
+    query = {"user_id": user_id}
+    if client_id:
+        query["client_id"] = client_id
+    if status:
+        query["status"] = status
+    
+    invoices = await db.invoices.find(query, {"_id": 0}).sort("created_at", -1).limit(limit).to_list(limit)
+    return [parse_datetime_fields(inv, ["created_at"]) for inv in invoices]
+
+@api_router.get("/invoices/{invoice_id}", response_model=Invoice)
+async def get_invoice(invoice_id: str, user_id: str = Depends(get_current_user)):
+    """Get a single invoice"""
+    invoice = await db.invoices.find_one({"id": invoice_id, "user_id": user_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return parse_datetime_fields(invoice, ["created_at"])
+
+@api_router.get("/invoices/by-number/{invoice_number}")
+async def get_invoice_by_number(invoice_number: str, user_id: str = Depends(get_current_user)):
+    """Get invoice by invoice number"""
+    invoice = await db.invoices.find_one({"invoice_number": invoice_number, "user_id": user_id}, {"_id": 0})
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    # Get business settings for invoice display
+    settings = await db.settings.find_one({"user_id": user_id}, {"_id": 0})
+    
+    return {
+        "invoice": parse_datetime_fields(invoice, ["created_at"]),
+        "business": {
+            "name": settings.get("business_name", "") if settings else "",
+            "abn": settings.get("abn", "") if settings else "",
+            "phone": settings.get("phone", "") if settings else "",
+            "email": settings.get("email", "") if settings else "",
+            "address": settings.get("address", "") if settings else "",
+            "pay_id": settings.get("pay_id", "") if settings else "",
+            "bank_name": settings.get("bank_name", "") if settings else "",
+            "bsb": settings.get("bsb", "") if settings else "",
+            "account_number": settings.get("account_number", "") if settings else "",
+            "account_name": settings.get("account_name", "") if settings else "",
+            "gst_enabled": settings.get("gst_enabled", False) if settings else False
+        }
+    }
+
+@api_router.put("/invoices/{invoice_id}", response_model=Invoice)
+async def update_invoice(invoice_id: str, update: InvoiceUpdate, user_id: str = Depends(get_current_user)):
+    """Update an invoice"""
+    update_data = {}
+    
+    if update.items is not None:
+        # Recalculate totals
+        settings = await db.settings.find_one({"user_id": user_id}, {"_id": 0})
+        gst_enabled = settings.get("gst_enabled", False) if settings else False
+        gst_rate = settings.get("gst_rate", 10) if settings else 10
+        
+        items = [item.model_dump() for item in update.items]
+        subtotal = sum(item["total"] for item in items)
+        gst_amount = (subtotal * gst_rate / 100) if gst_enabled else 0
+        total = subtotal + gst_amount
+        
+        update_data["items"] = items
+        update_data["subtotal"] = subtotal
+        update_data["gst_amount"] = gst_amount
+        update_data["total"] = total
+    
+    if update.notes is not None:
+        update_data["notes"] = update.notes
+    if update.status is not None:
+        update_data["status"] = update.status
+    if update.due_date is not None:
+        update_data["due_date"] = update.due_date.isoformat()
+    if update.paid_date is not None:
+        update_data["paid_date"] = update.paid_date.isoformat()
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
+    
+    result = await db.invoices.update_one(
+        {"id": invoice_id, "user_id": user_id},
+        {"$set": update_data}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    
+    invoice = await db.invoices.find_one({"id": invoice_id}, {"_id": 0})
+    return parse_datetime_fields(invoice, ["created_at"])
+
+@api_router.delete("/invoices/{invoice_id}")
+async def delete_invoice(invoice_id: str, user_id: str = Depends(get_current_user)):
+    """Delete an invoice"""
+    result = await db.invoices.delete_one({"id": invoice_id, "user_id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+    return {"message": "Invoice deleted"}
+
 # ==================== SMS FUNCTIONS ====================
 
 async def get_user_settings(user_id: str) -> dict:
