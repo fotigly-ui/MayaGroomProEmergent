@@ -131,8 +131,11 @@ class Settings(BaseModel):
     sms_templates: dict = Field(default_factory=lambda: DEFAULT_SMS_TEMPLATES.copy())
     # Reminder settings
     send_confirmation_request: bool = True
-    confirmation_request_days: int = 2  # Days before appointment
+    confirmation_request_value: int = 2  # Number value
+    confirmation_request_unit: str = "days"  # days, weeks, months
     send_24h_reminder: bool = True
+    reminder_value: int = 24  # Number value
+    reminder_unit: str = "hours"  # hours, days
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -160,8 +163,11 @@ class SettingsUpdate(BaseModel):
     twilio_phone_number: Optional[str] = None
     sms_templates: Optional[dict] = None
     send_confirmation_request: Optional[bool] = None
-    confirmation_request_days: Optional[int] = None
+    confirmation_request_value: Optional[int] = None
+    confirmation_request_unit: Optional[str] = None
     send_24h_reminder: Optional[bool] = None
+    reminder_value: Optional[int] = None
+    reminder_unit: Optional[str] = None
 
 # Client Model
 class ClientCreate(BaseModel):
