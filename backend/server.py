@@ -274,6 +274,8 @@ class AppointmentCreate(BaseModel):
     date_time: datetime
     notes: str = ""
     is_recurring: bool = False
+    recurring_value: Optional[int] = None
+    recurring_unit: Optional[str] = None  # day, week, month, year
     recurring_id: Optional[str] = None
     pets: List[AppointmentPetCreate] = Field(default_factory=list)
 
@@ -287,6 +289,8 @@ class Appointment(BaseModel):
     status: str = "scheduled"  # scheduled, completed, cancelled, no_show
     notes: str = ""
     is_recurring: bool = False
+    recurring_value: Optional[int] = None
+    recurring_unit: Optional[str] = None
     recurring_id: Optional[str] = None
     pets: List[AppointmentPet] = Field(default_factory=list)
     total_duration: int = 0
@@ -297,7 +301,11 @@ class AppointmentUpdate(BaseModel):
     date_time: Optional[datetime] = None
     status: Optional[str] = None
     notes: Optional[str] = None
+    is_recurring: Optional[bool] = None
+    recurring_value: Optional[int] = None
+    recurring_unit: Optional[str] = None
     pets: Optional[List[AppointmentPetCreate]] = None
+    update_series: Optional[bool] = False
 
 # Waitlist Model
 class WaitlistCreate(BaseModel):
