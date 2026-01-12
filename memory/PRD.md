@@ -42,13 +42,13 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 - [x] Warm terracotta theme
 
 ### Calendar Features (January 12, 2026)
-- [x] **Week view**: Monday to Sunday display (Square Appointments style)
+- [x] **Day view with week header**: Shows week header (M-S) for navigation, but displays appointments for SELECTED day only
 - [x] **Time slots**: 06:00 to 22:00 (business hours)
-- [x] **Current time indicator**: Red line with flashing dot spanning full week
+- [x] **Current time indicator**: Red line with time label (only shown when viewing today)
 - [x] **Month navigation**: Popover with forward/backward month arrows
-- [x] **Today highlight**: Dark circle on today's date
+- [x] **Day selection**: Click any day in week header to view that day
 - [x] **Drag and drop**: Appointments can be dragged to reschedule
-- [x] **Appointment display**: Shows client name, pet names, time, and services
+- [x] **Appointment display**: Shows client name, pet names, time, and services (spans duration)
 
 ### SMS Notifications System
 - [x] Manual mode (copy message to send from own phone)
