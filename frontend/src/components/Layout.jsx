@@ -10,7 +10,7 @@ import {
   Package,
   Clock,
   LogOut,
-  LayoutDashboard
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
@@ -22,6 +22,7 @@ const navItems = [
   { path: '/customers', icon: Users, label: 'Customers' },
   { path: '/services', icon: Scissors, label: 'Services' },
   { path: '/items', icon: Package, label: 'Items' },
+  { path: '/invoices', icon: FileText, label: 'Invoices' },
   { path: '/waitlist', icon: Clock, label: 'Waitlist' },
 ];
 
