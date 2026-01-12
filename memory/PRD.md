@@ -73,8 +73,10 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 ## Bug Fixes (January 12, 2026)
 - [x] **Fixed "Script error"** when adding pets to appointment modal
 - [x] **Fixed "Script error"** when toggling recurring appointment
-- [x] **Fixed calendar layout** - now fills the page properly on mobile and desktop
-- [x] Simplified Calendar.jsx to remove complex zoom/drag features that caused errors
+- [x] **Fixed calendar layout** - now shows full week (all 7 days visible)
+- [x] **Fixed current time indicator** - red line now spans across entire week
+- [x] **Fixed appointment display** - shows client name, pet names, and price
+- [x] **Verified ABN on invoices** - displays when ABN is set in settings
 
 ## Tech Stack
 - **Frontend**: React 19, Tailwind CSS, Shadcn/UI
