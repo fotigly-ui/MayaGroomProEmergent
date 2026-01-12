@@ -3,14 +3,14 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
   Users, 
-  ShoppingBag, 
   Menu, 
   Settings,
   Scissors,
   Package,
   Clock,
   LogOut,
-  FileText
+  FileText,
+  ShoppingBag
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
