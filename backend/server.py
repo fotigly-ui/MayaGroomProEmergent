@@ -754,7 +754,9 @@ async def create_appointment(appt: AppointmentCreate, background_tasks: Backgrou
         end_time=end_time,
         notes=appt.notes,
         is_recurring=appt.is_recurring,
-        recurring_id=appt.recurring_id,
+        recurring_value=appt.recurring_value,
+        recurring_unit=appt.recurring_unit,
+        recurring_id=appt.recurring_id if appt.recurring_id else (str(uuid.uuid4()) if appt.is_recurring else None),
         pets=[p.model_dump() for p in appointment_pets],
         total_duration=total_duration,
         total_price=total_price
