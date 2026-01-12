@@ -7,7 +7,6 @@ import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Checkbox } from './ui/checkbox';
-import { Switch } from './ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from './ui/dropdown-menu';
 import { appointmentsAPI, petsAPI } from '../lib/api';
 import { formatCurrency, formatDuration } from '../lib/utils';
@@ -16,6 +15,26 @@ import { Plus, Trash2, Loader2, MessageSquare, Send, FileText, RefreshCw } from 
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
+
+// Simple toggle component to avoid Switch issues
+function SimpleToggle({ checked, onChange, testId }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      data-testid={testId}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+        checked ? 'bg-primary' : 'bg-gray-300'
+      }`}
+    >
+      <span
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+          checked ? 'translate-x-5' : 'translate-x-0.5'
+        }`}
+      />
+    </button>
+  );
+}
 
 export function AppointmentModal({ 
   open, 
@@ -41,22 +60,45 @@ export function AppointmentModal({
   const [recurringValue, setRecurringValue] = useState(1);
   const [recurringUnit, setRecurringUnit] = useState('week');
   
+  // SMS prompt state
+  const [showSmsPrompt, setShowSmsPrompt] = useState(false);
+  const [smsMessageType, setSmsMessageType] = useState('');
+  const [pendingAction, setPendingAction] = useState(null);
+  
   // For editing recurring - show dialog
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
-  const [recurringAction, setRecurringAction] = useState('single'); // single or series
+  const [recurringAction, setRecurringAction] = useState('single');
 
   const isEditing = !!appointment;
 
-  const handleSendSMS = async (messageType) => {
-    if (!appointment) return;
+  // Get client info for SMS
+  const getClientInfo = () => {
+    const client = clients.find(c => c.id === clientId);
+    return client;
+  };
+
+  // Open native SMS app
+  const openNativeSMS = async (phone, message) => {
+    // Format phone for SMS URI
+    const cleanPhone = phone.replace(/\D/g, '');
+    const smsUri = `sms:${cleanPhone}?body=${encodeURIComponent(message)}`;
+    window.location.href = smsUri;
+  };
+
+  const handleSendSMS = async (messageType, skipPrompt = false) => {
+    const clientInfo = appointment ? clients.find(c => c.id === appointment.client_id) : getClientInfo();
+    if (!clientInfo?.phone) {
+      toast.error('Client phone number not available');
+      return;
+    }
     
     setSmsLoading(true);
     try {
       const token = localStorage.getItem('maya_token');
       const res = await axios.post(`${API_URL}/sms/send`, {
-        client_id: appointment.client_id,
+        client_id: appointment?.client_id || clientId,
         message_type: messageType,
-        appointment_id: appointment.id
+        appointment_id: appointment?.id
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -64,13 +106,9 @@ export function AppointmentModal({
       if (res.data.status === 'sent') {
         toast.success('SMS sent successfully');
       } else if (res.data.status === 'pending') {
-        await navigator.clipboard.writeText(res.data.message);
-        toast.success(
-          <div>
-            <p className="font-medium">Message copied to clipboard!</p>
-            <p className="text-sm mt-1">Send to: {res.data.phone}</p>
-          </div>
-        );
+        // Manual mode - open native SMS app
+        openNativeSMS(res.data.phone, res.data.message);
+        toast.success('Opening messaging app...');
       } else {
         toast.error('Failed to send SMS: ' + (res.data.error || 'Unknown error'));
       }
@@ -78,6 +116,24 @@ export function AppointmentModal({
       toast.error('Failed to send SMS');
     } finally {
       setSmsLoading(false);
+    }
+  };
+
+  // Prompt to send SMS after action
+  const promptSmsAfterAction = (messageType, callback) => {
+    setSmsMessageType(messageType);
+    setPendingAction(() => callback);
+    setShowSmsPrompt(true);
+  };
+
+  const handleSmsPromptResponse = async (sendSms) => {
+    setShowSmsPrompt(false);
+    if (sendSms) {
+      await handleSendSMS(smsMessageType);
+    }
+    if (pendingAction) {
+      pendingAction();
+      setPendingAction(null);
     }
   };
 
@@ -257,42 +313,51 @@ export function AppointmentModal({
           update_series: recurringAction === 'series'
         });
         toast.success('Appointment updated');
+        
+        // Prompt to send SMS for reschedule
+        promptSmsAfterAction('appointment_rescheduled', () => {
+          setShowRecurringDialog(false);
+          onSave();
+        });
       } else {
         await appointmentsAPI.create(data);
         toast.success('Appointment created');
+        
+        // Prompt to send SMS for booking
+        promptSmsAfterAction('appointment_booked', () => {
+          setShowRecurringDialog(false);
+          onSave();
+        });
       }
-      
-      setShowRecurringDialog(false);
-      onSave();
     } catch (error) {
       console.error('Error saving appointment:', error);
       toast.error(error.response?.data?.detail || 'Failed to save appointment');
-    } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    setStatus(newStatus);
+    
+    // If marking as cancelled or no_show, update immediately and prompt SMS
+    if (isEditing && (newStatus === 'cancelled' || newStatus === 'no_show')) {
+      setLoading(true);
+      try {
+        await appointmentsAPI.update(appointment.id, { status: newStatus });
+        toast.success(`Marked as ${newStatus === 'no_show' ? 'No Show' : 'Cancelled'}`);
+        
+        const messageType = newStatus === 'cancelled' ? 'appointment_cancelled' : 'no_show';
+        promptSmsAfterAction(messageType, () => onSave());
+      } catch (error) {
+        toast.error('Failed to update status');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
   const handleDelete = async () => {
     if (!appointment) return;
-    
-    // If recurring, show dialog
-    if (appointment.is_recurring) {
-      const action = window.confirm('Delete entire series? Click OK for series, Cancel for just this appointment.');
-      if (action) {
-        // Delete series
-        try {
-          setLoading(true);
-          await appointmentsAPI.delete(appointment.id + '?delete_series=true');
-          toast.success('Series deleted');
-          onSave();
-        } catch (error) {
-          toast.error('Failed to delete series');
-        } finally {
-          setLoading(false);
-        }
-        return;
-      }
-    }
     
     if (!window.confirm('Are you sure you want to delete this appointment?')) {
       return;
@@ -300,20 +365,22 @@ export function AppointmentModal({
 
     setLoading(true);
     try {
-      await appointmentsAPI.delete(appointment.id);
+      const deleteUrl = appointment.is_recurring 
+        ? `${appointment.id}?delete_series=${window.confirm('Delete entire series?')}`
+        : appointment.id;
+      await appointmentsAPI.delete(deleteUrl);
       toast.success('Appointment deleted');
-      onSave();
+      
+      // Prompt to send cancellation SMS
+      promptSmsAfterAction('appointment_cancelled', () => onSave());
     } catch (error) {
       console.error('Error deleting appointment:', error);
       toast.error('Failed to delete appointment');
-    } finally {
       setLoading(false);
     }
   };
 
   const { totalDuration, totalPrice } = calculateTotals();
-
-  // Safe services array
   const safeServices = services || [];
 
   return (
@@ -365,7 +432,7 @@ export function AppointmentModal({
             {isEditing && (
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select value={status} onValueChange={setStatus}>
+                <Select value={status} onValueChange={handleStatusChange}>
                   <SelectTrigger data-testid="select-status">
                     <SelectValue />
                   </SelectTrigger>
@@ -386,10 +453,10 @@ export function AppointmentModal({
                   <Label>Recurring Appointment</Label>
                   <p className="text-sm text-maya-text-muted">Repeat this appointment automatically</p>
                 </div>
-                <Switch
+                <SimpleToggle
                   checked={isRecurring}
-                  onCheckedChange={setIsRecurring}
-                  data-testid="recurring-toggle"
+                  onChange={setIsRecurring}
+                  testId="recurring-toggle"
                 />
               </div>
               
@@ -561,7 +628,6 @@ export function AppointmentModal({
             <DialogFooter className="gap-2 flex-wrap">
               {isEditing && (
                 <>
-                  {/* Generate Invoice Button */}
                   <Button
                     type="button"
                     variant="outline"
@@ -572,15 +638,9 @@ export function AppointmentModal({
                     {invoiceLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <FileText size={16} className="mr-2" />}
                     Invoice
                   </Button>
-                  {/* SMS Dropdown */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        disabled={smsLoading}
-                        data-testid="sms-dropdown-btn"
-                      >
+                      <Button type="button" variant="outline" disabled={smsLoading} data-testid="sms-dropdown-btn">
                         {smsLoading ? <Loader2 className="animate-spin mr-2" size={16} /> : <MessageSquare size={16} className="mr-2" />}
                         SMS
                       </Button>
@@ -611,25 +671,39 @@ export function AppointmentModal({
                   </Button>
                 </>
               )}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={loading}
-              >
+              <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                className="btn-maya-primary"
-                disabled={loading}
-                data-testid="save-appointment-btn"
-              >
+              <Button type="submit" className="btn-maya-primary" disabled={loading} data-testid="save-appointment-btn">
                 {loading && <Loader2 className="animate-spin mr-2" size={18} />}
                 {isEditing ? 'Update' : 'Create'} Appointment
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* SMS Prompt Dialog */}
+      <Dialog open={showSmsPrompt} onOpenChange={setShowSmsPrompt}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare size={20} className="text-primary" />
+              Send SMS to Customer?
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-maya-text-muted text-sm">
+            Would you like to notify the customer about this change?
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => handleSmsPromptResponse(false)}>
+              No, Skip
+            </Button>
+            <Button className="btn-maya-primary" onClick={() => handleSmsPromptResponse(true)}>
+              <Send size={16} className="mr-2" />
+              Yes, Send SMS
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
