@@ -362,6 +362,47 @@ class SendSMSRequest(BaseModel):
     appointment_id: Optional[str] = None
     custom_message: Optional[str] = None
 
+# Invoice Models
+class InvoiceItem(BaseModel):
+    name: str
+    quantity: int = 1
+    unit_price: float
+    total: float
+
+class InvoiceCreate(BaseModel):
+    appointment_id: Optional[str] = None
+    client_id: str
+    items: List[InvoiceItem] = Field(default_factory=list)
+    notes: str = ""
+    due_date: Optional[datetime] = None
+
+class Invoice(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    invoice_number: str = ""
+    user_id: str
+    appointment_id: Optional[str] = None
+    client_id: str
+    client_name: str = ""
+    client_email: str = ""
+    client_phone: str = ""
+    client_address: str = ""
+    items: List[InvoiceItem] = Field(default_factory=list)
+    subtotal: float = 0.0
+    gst_amount: float = 0.0
+    total: float = 0.0
+    notes: str = ""
+    status: str = "draft"  # draft, sent, paid, overdue, cancelled
+    due_date: Optional[str] = None
+    paid_date: Optional[str] = None
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+class InvoiceUpdate(BaseModel):
+    items: Optional[List[InvoiceItem]] = None
+    notes: Optional[str] = None
+    status: Optional[str] = None
+    due_date: Optional[datetime] = None
+    paid_date: Optional[datetime] = None
+
 # ==================== AUTH HELPERS ====================
 
 def hash_password(password: str) -> str:
