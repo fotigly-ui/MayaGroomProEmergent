@@ -457,16 +457,37 @@ export function AppointmentModal({
                   {selectedClient.phone && (
                     <button 
                       type="button"
-                      onClick={() => openNativeSMS(selectedClient.phone)}
-                      className="flex items-center gap-1 text-blue-600 hover:underline"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const phone = selectedClient.phone;
+                        if (window.confirm(`Call ${phone}?\n\n• Call\n• Send SMS\n• Copy`)) {
+                          window.location.href = `tel:${phone.replace(/\D/g, '')}`;
+                        }
+                      }}
+                      className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline"
                     >
                       <Phone size={12} /> {selectedClient.phone}
                     </button>
                   )}
                   {selectedClient.address && (
-                    <div className="flex items-center gap-1 text-gray-500 mt-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const address = selectedClient.address;
+                        const encodedAddress = encodeURIComponent(address);
+                        if (window.confirm(`Navigate to:\n${address}\n\nThis will open your maps app.`)) {
+                          // Try Apple Maps first (iOS), fallback to Google Maps
+                          window.location.href = `maps://?q=${encodedAddress}`;
+                          setTimeout(() => {
+                            window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+                          }, 500);
+                        }
+                      }}
+                      className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline mt-1"
+                    >
                       <MapPin size={12} /> {selectedClient.address}
-                    </div>
+                    </button>
                   )}
                 </div>
               )}

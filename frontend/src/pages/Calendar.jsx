@@ -649,19 +649,27 @@ export default function CalendarPage() {
               </p>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2">
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500">From:</span>
+                  <span className="text-gray-500 dark:text-gray-400">From:</span>
                   <span className="font-medium">{format(pendingReschedule.oldDateTime, 'HH:mm')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500">To:</span>
+                  <span className="text-gray-500 dark:text-gray-400">To:</span>
                   <span className="font-medium text-primary">{format(pendingReschedule.newDateTime, 'HH:mm')}</span>
                 </div>
               </div>
             </div>
           )}
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setShowConfirmDialog(false); setPendingReschedule(null); }}>Cancel</Button>
-            <Button className="btn-maya-primary" onClick={confirmReschedule}>Confirm</Button>
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button variant="outline" onClick={() => { setShowConfirmDialog(false); setPendingReschedule(null); }} className="w-full sm:w-auto">Cancel</Button>
+            <Button variant="outline" onClick={() => {
+              setShowConfirmDialog(false);
+              setSelectedAppointment(pendingReschedule.appointment);
+              setShowModal(true);
+              setPendingReschedule(null);
+            }} className="w-full sm:w-auto">
+              <Edit size={16} className="mr-2" /> Edit Details
+            </Button>
+            <Button className="btn-maya-primary w-full sm:w-auto" onClick={confirmReschedule}>Confirm</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

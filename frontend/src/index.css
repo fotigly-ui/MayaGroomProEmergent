@@ -32,6 +32,28 @@
         --chart-4: 215 35% 47%;
         --chart-5: 0 60% 57%;
     }
+
+    .dark {
+        --background: 222 47% 11%;
+        --foreground: 210 40% 98%;
+        --card: 222 47% 11%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222 47% 15%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 18 66% 47%;
+        --primary-foreground: 0 0% 100%;
+        --secondary: 217 33% 17%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217 33% 17%;
+        --muted-foreground: 215 20% 65%;
+        --accent: 217 33% 17%;
+        --accent-foreground: 210 40% 98%;
+        --destructive: 0 63% 31%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 217 33% 17%;
+        --input: 217 33% 17%;
+        --ring: 18 66% 47%;
+    }
 }
 
 @layer base {
@@ -39,8 +61,11 @@
         @apply border-border;
     }
     body {
-        @apply bg-[#F5EBE0] text-[#2D2A26] font-body antialiased;
+        @apply bg-[#F5EBE0] dark:bg-gray-900 text-[#2D2A26] dark:text-gray-100 font-body antialiased;
         background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+    }
+    .dark body {
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
     }
     h1, h2, h3, h4, h5, h6 {
         @apply font-heading;
@@ -89,9 +114,17 @@
     background: #F5EBE0;
 }
 
+.dark ::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
 ::-webkit-scrollbar-thumb {
     background: #E6D5C3;
     border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    background: #374151;
 }
 
 ::-webkit-scrollbar-thumb:hover {
