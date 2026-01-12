@@ -445,34 +445,71 @@ export default function Settings() {
                             />
                           </div>
                           {formData.send_confirmation_request && (
-                            <div className="ml-4 space-y-2">
-                              <Label>Days before appointment</Label>
+                            <div className="ml-4 flex items-center gap-2">
+                              <Label className="whitespace-nowrap">Send</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="365"
+                                value={formData.confirmation_request_value}
+                                onChange={(e) => updateField('confirmation_request_value', parseInt(e.target.value) || 1)}
+                                className="w-20"
+                              />
                               <Select 
-                                value={String(formData.confirmation_request_days)} 
-                                onValueChange={(v) => updateField('confirmation_request_days', parseInt(v))}
+                                value={formData.confirmation_request_unit} 
+                                onValueChange={(v) => updateField('confirmation_request_unit', v)}
                               >
-                                <SelectTrigger className="w-32">
+                                <SelectTrigger className="w-28">
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="1">1 day</SelectItem>
-                                  <SelectItem value="2">2 days</SelectItem>
-                                  <SelectItem value="3">3 days</SelectItem>
-                                  <SelectItem value="7">1 week</SelectItem>
+                                  <SelectItem value="hours">Hours</SelectItem>
+                                  <SelectItem value="days">Days</SelectItem>
+                                  <SelectItem value="weeks">Weeks</SelectItem>
+                                  <SelectItem value="months">Months</SelectItem>
                                 </SelectContent>
                               </Select>
+                              <span className="text-sm text-maya-text-muted">before</span>
                             </div>
                           )}
                           <div className="flex items-center justify-between">
                             <div>
-                              <Label>24-Hour Reminder</Label>
-                              <p className="text-sm text-maya-text-muted">Send reminder 24 hours before</p>
+                              <Label>Appointment Reminder</Label>
+                              <p className="text-sm text-maya-text-muted">Send reminder before appointment</p>
                             </div>
                             <Switch
                               checked={formData.send_24h_reminder}
                               onCheckedChange={(v) => updateField('send_24h_reminder', v)}
                             />
                           </div>
+                          {formData.send_24h_reminder && (
+                            <div className="ml-4 flex items-center gap-2">
+                              <Label className="whitespace-nowrap">Send</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                max="365"
+                                value={formData.reminder_value}
+                                onChange={(e) => updateField('reminder_value', parseInt(e.target.value) || 1)}
+                                className="w-20"
+                              />
+                              <Select 
+                                value={formData.reminder_unit} 
+                                onValueChange={(v) => updateField('reminder_unit', v)}
+                              >
+                                <SelectTrigger className="w-28">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="hours">Hours</SelectItem>
+                                  <SelectItem value="days">Days</SelectItem>
+                                  <SelectItem value="weeks">Weeks</SelectItem>
+                                  <SelectItem value="months">Months</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <span className="text-sm text-maya-text-muted">before</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </>
