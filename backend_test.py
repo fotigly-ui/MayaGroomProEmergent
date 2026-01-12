@@ -530,6 +530,7 @@ class MayaGroomProAPITester:
         self.test_invoices_get()
         self.test_invoices_from_appointment()
         self.test_invoices_update_status()
+        self.test_invoices_filter_by_status()
 
         # Print summary
         print("\n" + "=" * 50)
