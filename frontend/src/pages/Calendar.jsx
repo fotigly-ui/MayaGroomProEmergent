@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { format, addDays, subDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, List, Grid3X3, Calendar as CalendarIcon } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { format, addDays, subDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
+import { ChevronLeft, ChevronRight, Plus, List, Grid3X3, Calendar as CalendarIcon, ZoomIn, ZoomOut } from 'lucide-react';
 import { Layout, PageHeader } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { appointmentsAPI, clientsAPI, petsAPI, servicesAPI } from '../lib/api';
@@ -23,11 +23,18 @@ export default function CalendarPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [clients, setClients] = useState([]);
   const [services, setServices] = useState([]);
+  const [popoverMonth, setPopoverMonth] = useState(new Date());
+  const [zoomLevel, setZoomLevel] = useState(1); // 1 = normal, 0.5-2 range
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 });
     return addDays(weekStart, i);
   });
+
+  const popoverMonthDates = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(popoverMonth), { weekStartsOn: 1 }),
+    end: addDays(startOfWeek(endOfMonth(popoverMonth), { weekStartsOn: 1 }), 41)
+  }).slice(0, 42);
 
   const monthDates = eachDayOfInterval({
     start: startOfWeek(startOfMonth(currentDate), { weekStartsOn: 1 }),
@@ -64,6 +71,11 @@ export default function CalendarPage() {
     fetchData();
   }, [fetchData]);
 
+  // Sync popover month with current date when it changes
+  useEffect(() => {
+    setPopoverMonth(currentDate);
+  }, [currentDate]);
+
   const navigatePrev = () => {
     if (viewMode === 'week') {
       setCurrentDate(subWeeks(currentDate, 1));
@@ -84,9 +96,9 @@ export default function CalendarPage() {
     setCurrentDate(new Date());
   };
 
-  const handleSlotClick = (date, hour) => {
+  const handleSlotClick = (date, hour, minutes = 0) => {
     const slotDate = new Date(date);
-    slotDate.setHours(hour, 0, 0, 0);
+    slotDate.setHours(hour, minutes, 0, 0);
     setSelectedSlot(slotDate);
     setSelectedAppointment(null);
     setShowModal(true);
@@ -110,22 +122,32 @@ export default function CalendarPage() {
     handleModalClose();
   };
 
-  const getAppointmentsForSlot = (date, hour) => {
-    return appointments.filter(appt => {
-      const apptDate = new Date(appt.date_time);
-      return isSameDay(apptDate, date) && apptDate.getHours() === hour;
-    });
+  const handleReschedule = async (appointmentId, newDateTime) => {
+    try {
+      await appointmentsAPI.update(appointmentId, {
+        date_time: newDateTime.toISOString()
+      });
+      toast.success('Appointment rescheduled');
+      fetchData();
+    } catch (error) {
+      console.error('Error rescheduling:', error);
+      toast.error('Failed to reschedule appointment');
+    }
   };
 
-  const getAppointmentsForDay = (date) => {
-    return appointments.filter(appt => isSameDay(new Date(appt.date_time), date));
+  const handleZoomIn = () => {
+    setZoomLevel(prev => Math.min(prev + 0.25, 2));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(prev => Math.max(prev - 0.25, 0.5));
   };
 
   return (
     <Layout>
-      <div className="p-4 md:p-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+      <div className="p-4 md:p-6 flex flex-col h-full">
+        {/* Header - Fixed, does not zoom */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
           <div className="flex items-center gap-4">
             {/* Month/Year with Popover */}
             <Popover>
@@ -139,11 +161,33 @@ export default function CalendarPage() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <div className="p-4">
+                  {/* Month Navigation in Popover */}
+                  <div className="flex items-center justify-between mb-4">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setPopoverMonth(subMonths(popoverMonth, 1))}
+                      data-testid="popover-prev-month"
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+                    <span className="font-semibold text-maya-text">
+                      {format(popoverMonth, 'MMMM yyyy')}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setPopoverMonth(addMonths(popoverMonth, 1))}
+                      data-testid="popover-next-month"
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-7 gap-1 text-center text-sm">
                     {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, i) => (
                       <div key={i} className="p-2 text-maya-text-muted font-medium">{day}</div>
                     ))}
-                    {monthDates.map((date, i) => (
+                    {popoverMonthDates.map((date, i) => (
                       <button
                         key={i}
                         onClick={() => {
@@ -152,7 +196,7 @@ export default function CalendarPage() {
                         }}
                         className={cn(
                           "p-2 rounded-lg hover:bg-maya-primary-light transition-colors",
-                          !isSameMonth(date, currentDate) && "text-maya-text-muted/50",
+                          !isSameMonth(date, popoverMonth) && "text-maya-text-muted/50",
                           isToday(date) && "bg-primary text-white hover:bg-primary-hover",
                           isSameDay(date, currentDate) && !isToday(date) && "ring-2 ring-primary"
                         )}
@@ -198,6 +242,37 @@ export default function CalendarPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Zoom Controls - only show in week view */}
+            {viewMode === 'week' && (
+              <div className="flex items-center bg-white rounded-lg border border-maya-border p-1 mr-2">
+                <button
+                  onClick={handleZoomOut}
+                  data-testid="zoom-out"
+                  disabled={zoomLevel <= 0.5}
+                  className={cn(
+                    "p-2 rounded-md transition-colors",
+                    zoomLevel <= 0.5 ? "text-maya-text-muted/40 cursor-not-allowed" : "text-maya-text-muted hover:text-primary"
+                  )}
+                >
+                  <ZoomOut size={16} />
+                </button>
+                <span className="text-xs text-maya-text-muted px-2 min-w-[40px] text-center">
+                  {Math.round(zoomLevel * 100)}%
+                </span>
+                <button
+                  onClick={handleZoomIn}
+                  data-testid="zoom-in"
+                  disabled={zoomLevel >= 2}
+                  className={cn(
+                    "p-2 rounded-md transition-colors",
+                    zoomLevel >= 2 ? "text-maya-text-muted/40 cursor-not-allowed" : "text-maya-text-muted hover:text-primary"
+                  )}
+                >
+                  <ZoomIn size={16} />
+                </button>
+              </div>
+            )}
+
             {/* View Toggle */}
             <div className="flex items-center bg-white rounded-lg border border-maya-border p-1">
               <button
@@ -249,8 +324,8 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* Calendar View */}
-        <div className="card-maya p-0 overflow-hidden">
+        {/* Calendar View - This is where zoom applies */}
+        <div className="card-maya p-0 overflow-hidden flex-1">
           {viewMode === 'week' && (
             <WeekView
               dates={weekDates}
@@ -258,7 +333,10 @@ export default function CalendarPage() {
               appointments={appointments}
               onSlotClick={handleSlotClick}
               onAppointmentClick={handleAppointmentClick}
+              onReschedule={handleReschedule}
               use24Hour={settings?.use_24_hour_clock ?? true}
+              zoomLevel={zoomLevel}
+              onZoomChange={setZoomLevel}
             />
           )}
 
@@ -299,12 +377,191 @@ export default function CalendarPage() {
   );
 }
 
-function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentClick, use24Hour }) {
+function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentClick, onReschedule, use24Hour, zoomLevel, onZoomChange }) {
+  const gridRef = useRef(null);
+  const [draggedAppointment, setDraggedAppointment] = useState(null);
+  const [dragOverSlot, setDragOverSlot] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [touchStartY, setTouchStartY] = useState(null);
+  const [initialDistance, setInitialDistance] = useState(null);
+
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Scroll to current time on mount
+  useEffect(() => {
+    if (gridRef.current) {
+      const now = new Date();
+      const hour = now.getHours();
+      const startHour = timeSlots[0]?.hour || 7;
+      const slotHeight = 60 * zoomLevel;
+      const scrollPosition = (hour - startHour) * slotHeight - 100;
+      gridRef.current.scrollTop = Math.max(0, scrollPosition);
+    }
+  }, [zoomLevel, timeSlots]);
+
+  // Calculate current time position
+  const getCurrentTimePosition = () => {
+    const now = currentTime;
+    const hour = now.getHours();
+    const minutes = now.getMinutes();
+    const startHour = timeSlots[0]?.hour || 7;
+    const endHour = timeSlots[timeSlots.length - 1]?.hour || 19;
+    
+    if (hour < startHour || hour > endHour) return null;
+    
+    const slotHeight = 60 * zoomLevel;
+    const position = (hour - startHour) * slotHeight + (minutes / 60) * slotHeight;
+    return position;
+  };
+
+  // Get today's column index
+  const getTodayColumnIndex = () => {
+    return dates.findIndex(date => isToday(date));
+  };
+
+  // Handle pinch-to-zoom for mobile
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      const distance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      setInitialDistance(distance);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2 && initialDistance) {
+      const currentDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const scale = currentDistance / initialDistance;
+      
+      if (scale > 1.1) {
+        onZoomChange(prev => Math.min(prev + 0.1, 2));
+        setInitialDistance(currentDistance);
+        // Haptic feedback if available
+        if (navigator.vibrate) navigator.vibrate(10);
+      } else if (scale < 0.9) {
+        onZoomChange(prev => Math.max(prev - 0.1, 0.5));
+        setInitialDistance(currentDistance);
+        if (navigator.vibrate) navigator.vibrate(10);
+      }
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setInitialDistance(null);
+  };
+
+  // Drag & Drop handlers
+  const handleDragStart = (e, appointment) => {
+    setDraggedAppointment(appointment);
+    e.dataTransfer.effectAllowed = 'move';
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(50);
+  };
+
+  const handleDragOver = (e, date, hour, quarter = 0) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const minutes = quarter * 15;
+    setDragOverSlot({ date, hour, minutes });
+  };
+
+  const handleDragLeave = () => {
+    setDragOverSlot(null);
+  };
+
+  const handleDrop = async (e, date, hour, quarter = 0) => {
+    e.preventDefault();
+    if (!draggedAppointment) return;
+    
+    const minutes = quarter * 15;
+    const newDateTime = new Date(date);
+    newDateTime.setHours(hour, minutes, 0, 0);
+    
+    // Haptic feedback on drop
+    if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+    
+    await onReschedule(draggedAppointment.id, newDateTime);
+    setDraggedAppointment(null);
+    setDragOverSlot(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedAppointment(null);
+    setDragOverSlot(null);
+  };
+
+  // Touch-based drag for mobile
+  const handleAppointmentTouchStart = (e, appointment) => {
+    setDraggedAppointment(appointment);
+    setTouchStartY(e.touches[0].clientY);
+    // Haptic feedback
+    if (navigator.vibrate) navigator.vibrate(50);
+  };
+
+  const handleAppointmentTouchMove = (e) => {
+    if (!draggedAppointment || !gridRef.current) return;
+    
+    const touch = e.touches[0];
+    const gridRect = gridRef.current.getBoundingClientRect();
+    
+    // Find which slot we're over
+    const relativeY = touch.clientY - gridRect.top + gridRef.current.scrollTop;
+    const relativeX = touch.clientX - gridRect.left;
+    
+    const slotHeight = 60 * zoomLevel;
+    const columnWidth = (gridRect.width - 60) / 7; // 60px for time label
+    
+    const hourIndex = Math.floor(relativeY / slotHeight);
+    const dayIndex = Math.floor((relativeX - 60) / columnWidth);
+    const quarterIndex = Math.floor((relativeY % slotHeight) / (slotHeight / 4));
+    
+    if (dayIndex >= 0 && dayIndex < 7 && hourIndex >= 0 && hourIndex < timeSlots.length) {
+      const hour = timeSlots[hourIndex].hour;
+      const date = dates[dayIndex];
+      setDragOverSlot({ date, hour, minutes: quarterIndex * 15 });
+    }
+  };
+
+  const handleAppointmentTouchEnd = async (e) => {
+    if (draggedAppointment && dragOverSlot) {
+      const newDateTime = new Date(dragOverSlot.date);
+      newDateTime.setHours(dragOverSlot.hour, dragOverSlot.minutes, 0, 0);
+      
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate([50, 30, 50]);
+      
+      await onReschedule(draggedAppointment.id, newDateTime);
+    }
+    setDraggedAppointment(null);
+    setDragOverSlot(null);
+    setTouchStartY(null);
+  };
+
+  const currentTimePosition = getCurrentTimePosition();
+  const todayColumnIndex = getTodayColumnIndex();
+
   return (
-    <div className="overflow-x-auto">
-      {/* Week Header */}
-      <div className="week-header">
-        <div className="p-3 border-r border-maya-border" />
+    <div 
+      className="overflow-auto h-full"
+      ref={gridRef}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Week Header - Sticky */}
+      <div className="week-header sticky top-0 z-20 bg-white">
+        <div className="p-3 border-r border-maya-border" style={{ minWidth: '60px' }} />
         {dates.map((date, i) => (
           <div 
             key={i} 
@@ -328,10 +585,48 @@ function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentCl
 
       {/* Time Grid */}
       <div className="relative">
+        {/* Current Time Indicator */}
+        {currentTimePosition !== null && todayColumnIndex >= 0 && (
+          <div 
+            className="absolute z-10 pointer-events-none"
+            style={{
+              top: `${currentTimePosition}px`,
+              left: '60px',
+              right: 0,
+            }}
+          >
+            <div className="relative flex items-center">
+              {/* Line spans all columns but highlight today */}
+              <div 
+                className="absolute h-[2px] bg-red-500"
+                style={{
+                  left: `${(100 / 7) * todayColumnIndex}%`,
+                  width: `${100 / 7}%`,
+                }}
+              />
+              {/* Flashing dot */}
+              <div 
+                className="absolute w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg"
+                style={{
+                  left: `calc(${(100 / 7) * todayColumnIndex}% - 6px)`,
+                  top: '-5px',
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {timeSlots.map((slot) => (
-          <div key={slot.hour} className="calendar-grid">
+          <div 
+            key={slot.hour} 
+            className="calendar-grid"
+            style={{ height: `${60 * zoomLevel}px` }}
+          >
             {/* Time Label */}
-            <div className="p-2 border-r border-b border-maya-border flex items-start justify-end">
+            <div 
+              className="p-2 border-r border-b border-maya-border flex items-start justify-end bg-white"
+              style={{ minWidth: '60px', height: `${60 * zoomLevel}px` }}
+            >
               <span className="time-label">{slot.label}</span>
             </div>
             
@@ -342,32 +637,89 @@ function WeekView({ dates, timeSlots, appointments, onSlotClick, onAppointmentCl
                 return isSameDay(apptDate, date) && apptDate.getHours() === slot.hour;
               });
 
+              const isDropTarget = dragOverSlot && 
+                isSameDay(dragOverSlot.date, date) && 
+                dragOverSlot.hour === slot.hour;
+
               return (
                 <div
                   key={dayIndex}
-                  className="time-slot border-r border-b border-maya-border last:border-r-0 relative cursor-pointer hover:bg-maya-primary-light/30 transition-colors"
+                  className={cn(
+                    "time-slot border-r border-b border-maya-border last:border-r-0 relative cursor-pointer transition-colors",
+                    isToday(date) && "bg-maya-primary-light/10",
+                    isDropTarget && "bg-primary/20"
+                  )}
+                  style={{ height: `${60 * zoomLevel}px` }}
                   onClick={() => onSlotClick(date, slot.hour)}
+                  onDragOver={(e) => handleDragOver(e, date, slot.hour)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, date, slot.hour)}
                   data-testid={`slot-${format(date, 'yyyy-MM-dd')}-${slot.hour}`}
                 >
-                  {slotAppointments.map((appt) => (
-                    <div
-                      key={appt.id}
-                      className="appointment-block"
-                      onClick={(e) => onAppointmentClick(appt, e)}
-                      data-testid={`appointment-${appt.id}`}
-                      style={{
-                        height: `${Math.max(appt.total_duration, 30)}px`,
-                        minHeight: '24px'
-                      }}
-                    >
-                      <div className="font-medium truncate">{appt.client_name}</div>
-                      {appt.pets?.length > 0 && (
-                        <div className="text-white/80 truncate text-[10px]">
-                          {appt.pets.map(p => p.pet_name).join(', ')}
+                  {/* 15-minute interval guides for drag & drop */}
+                  <div className="absolute inset-0 flex flex-col pointer-events-none">
+                    {[0, 1, 2, 3].map((q) => (
+                      <div 
+                        key={q}
+                        className={cn(
+                          "flex-1 border-b border-dashed border-transparent",
+                          q < 3 && "border-maya-border/30",
+                          isDropTarget && dragOverSlot.minutes === q * 15 && "bg-primary/30"
+                        )}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Drop zones for 15-min intervals */}
+                  <div className="absolute inset-0 flex flex-col">
+                    {[0, 1, 2, 3].map((q) => (
+                      <div 
+                        key={q}
+                        className="flex-1"
+                        onDragOver={(e) => handleDragOver(e, date, slot.hour, q)}
+                        onDrop={(e) => handleDrop(e, date, slot.hour, q)}
+                      />
+                    ))}
+                  </div>
+
+                  {slotAppointments.map((appt) => {
+                    const apptDate = new Date(appt.date_time);
+                    const minuteOffset = apptDate.getMinutes();
+                    const topOffset = (minuteOffset / 60) * 60 * zoomLevel;
+                    
+                    return (
+                      <div
+                        key={appt.id}
+                        className={cn(
+                          "appointment-block absolute left-0 right-0 mx-1",
+                          draggedAppointment?.id === appt.id && "opacity-50"
+                        )}
+                        style={{
+                          top: `${topOffset}px`,
+                          height: `${Math.max(appt.total_duration * zoomLevel, 30 * zoomLevel)}px`,
+                          minHeight: `${24 * zoomLevel}px`,
+                          cursor: 'grab',
+                        }}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, appt)}
+                        onDragEnd={handleDragEnd}
+                        onTouchStart={(e) => handleAppointmentTouchStart(e, appt)}
+                        onTouchMove={handleAppointmentTouchMove}
+                        onTouchEnd={handleAppointmentTouchEnd}
+                        onClick={(e) => onAppointmentClick(appt, e)}
+                        data-testid={`appointment-${appt.id}`}
+                      >
+                        <div className="font-medium truncate" style={{ fontSize: `${12 * zoomLevel}px` }}>
+                          {appt.client_name}
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        {appt.pets?.length > 0 && zoomLevel >= 0.75 && (
+                          <div className="text-white/80 truncate" style={{ fontSize: `${10 * zoomLevel}px` }}>
+                            {appt.pets.map(p => p.pet_name).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               );
             })}
