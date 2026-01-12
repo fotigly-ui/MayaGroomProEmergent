@@ -74,10 +74,10 @@ Build a pet grooming appointment app called "Maya Groom Pro" with database struc
 
 ## Bug Fixes (January 12, 2026)
 - [x] **Fixed recurring toggle error** - Replaced Radix UI Switch with simple toggle button
-- [x] **Fixed calendar layout** - Now shows full week (all 7 days visible)
+- [x] **Fixed service selection error** - Fixed Checkbox component import path
+- [x] **Fixed calendar layout** - Now shows full week with appointments spanning their duration
 - [x] **Fixed current time indicator** - Red line now spans across entire week
-- [x] **Fixed appointment display** - Shows client name, pet names, time, and services
-- [x] **Added drag & drop confirmation** - Shows dialog before rescheduling
+- [x] **Added drag & drop confirmation** - Shows dialog before rescheduling with time preview
 - [x] **Added SMS prompt** - Asks user to send SMS after booking/reschedule/cancel/no-show
 - [x] **Added native SMS app** - Opens device messaging app in manual mode
 - [x] **Verified ABN on invoices** - Displays when ABN is set in settings
