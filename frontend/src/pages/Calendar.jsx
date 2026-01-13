@@ -393,7 +393,7 @@ export default function CalendarPage() {
     <Layout>
       <div className="h-full flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
         {/* FIXED Header - Month */}
-        <div className="flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 flex-shrink-0">
+        <div className="sticky top-0 flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-30 flex-shrink-0">
           <Popover>
             <PopoverTrigger asChild>
               <button className="text-lg font-semibold text-gray-900 dark:text-white hover:text-primary flex items-center gap-1">
@@ -456,7 +456,7 @@ export default function CalendarPage() {
         </div>
 
         {/* FIXED Week Day Selector */}
-        <div className="flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 flex-shrink-0">
+        <div className="sticky top-[57px] flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 flex-shrink-0">
           <button onClick={navigatePrev} className="px-2 flex items-center text-gray-400 hover:text-primary">
             <ChevronLeft size={20} />
           </button>
@@ -566,19 +566,19 @@ export default function CalendarPage() {
                     onDragEnd={handleDragEnd}
                     onClick={(e) => handleAppointmentClick(appt, e)}
                     className={cn(
-                      "absolute border-l-4 rounded-r-md px-2 py-1 overflow-hidden cursor-grab active:cursor-grabbing hover:opacity-90 transition-colors shadow-sm",
+                      "absolute border-l-4 rounded-r-md px-2 py-1.5 overflow-visible cursor-grab active:cursor-grabbing hover:opacity-90 transition-colors shadow-md z-10",
                       colors.bg, colors.border, colors.text,
                       draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
                     )}
                     style={{
                       ...style,
                       left: `calc(56px + ${style.left})`,
-                      width: `calc(${style.width} - 60px)`,
-                      right: '8px'
+                      width: group.length > 1 ? `calc(${style.width} - 4px)` : 'calc(100% - 64px)',
+                      minWidth: '140px'
                     }}
                     data-testid={`appointment-${appt.id}`}
                   >
-                    <div className="text-xs font-semibold truncate">
+                    <div className="text-xs font-semibold leading-tight mb-0.5">
                       {appt.client_name}
                       {appt.pets?.length > 0 && (
                         <span className="font-normal opacity-80">
@@ -586,36 +586,19 @@ export default function CalendarPage() {
                         </span>
                       )}
                     </div>
-                    <div className="text-[10px] opacity-80">
+                    <div className="text-[11px] opacity-90 leading-tight">
                       {format(new Date(appt.date_time), 'HH:mm')}
                     </div>
-                    {/* Services */}
-                    {parseInt(style.height) > 50 && (
-                      <div className="text-[10px] opacity-70 mt-0.5 line-clamp-1">
-                        {appt.pets?.flatMap(p => 
-                          services.filter(s => p.services?.includes(s.id)).map(s => s.name)
-                        ).filter(Boolean).join(', ') || 'No services'}
-                      </div>
-                    )}
-                    {/* Address & Phone */}
-                    {parseInt(style.height) > 70 && client && (
-                      <div className="flex gap-2 mt-1 flex-wrap">
-                        {client.phone && (
-                          <button
-                            onClick={(e) => handlePhoneClick(client.phone, e)}
-                            className="text-[10px] flex items-center gap-0.5 hover:underline opacity-80"
-                          >
-                            <Phone size={10} />
-                          </button>
-                        )}
-                        {client.address && (
-                          <button
-                            onClick={(e) => handleAddressClick(client.address, e)}
-                            className="text-[10px] flex items-center gap-0.5 hover:underline opacity-80"
-                          >
-                            <MapPin size={10} />
-                          </button>
-                        )}
+                    {/* Services - ALWAYS show */}
+                    <div className="text-[11px] font-medium opacity-80 mt-1 leading-tight">
+                      {appt.pets?.flatMap(p => 
+                        services.filter(s => p.services?.includes(s.id)).map(s => s.name)
+                      ).filter(Boolean).join(', ') || 'No service'}
+                    </div>
+                    {/* Price */}
+                    {appt.total_price > 0 && (
+                      <div className="text-[10px] opacity-70 mt-0.5">
+                        ${appt.total_price.toFixed(2)}
                       </div>
                     )}
                   </div>
