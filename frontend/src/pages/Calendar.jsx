@@ -626,18 +626,28 @@ export default function CalendarPage() {
             <DialogTitle>Confirm Reschedule</DialogTitle>
           </DialogHeader>
           {pendingReschedule && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Move <span className="font-semibold">{pendingReschedule.appointment.client_name}</span>'s appointment?
               </p>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-3">
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">From:</span>
+                  <span className="text-gray-500 dark:text-gray-400 w-16">From:</span>
                   <span className="font-medium">{format(pendingReschedule.oldDateTime, 'HH:mm')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="text-gray-500 dark:text-gray-400">To:</span>
-                  <span className="font-medium text-primary">{format(pendingReschedule.newDateTime, 'HH:mm')}</span>
+                  <span className="text-gray-500 dark:text-gray-400 w-16">To:</span>
+                  <input
+                    type="time"
+                    value={format(pendingReschedule.newDateTime, 'HH:mm')}
+                    onChange={(e) => {
+                      const [hours, minutes] = e.target.value.split(':');
+                      const newDT = new Date(pendingReschedule.newDateTime);
+                      newDT.setHours(parseInt(hours), parseInt(minutes));
+                      setPendingReschedule({...pendingReschedule, newDateTime: newDT});
+                    }}
+                    className="flex-1 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-sm font-medium text-primary"
+                  />
                 </div>
               </div>
             </div>
