@@ -474,7 +474,6 @@ export function AppointmentModal({
                     ))}
                   </div>
                 )}
-              </div>
               
               {/* Selected client info */}
               {selectedClient && (
