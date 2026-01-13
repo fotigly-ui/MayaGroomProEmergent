@@ -467,9 +467,9 @@ export function AppointmentModal({
                     >
                       <div>
                         <div className="font-medium">{client.name}</div>
-                          <div className="text-xs text-gray-500">{client.phone}</div>
-                        </div>
-                        {client.address && <MapPin size={14} className="text-gray-400" />}
+                        <div className="text-xs text-gray-500">{client.phone}</div>
+                      </div>
+                      {client.address && <MapPin size={14} className="text-gray-400" />}
                       </button>
                     ))}
                   </div>
