@@ -71,6 +71,7 @@ export function AppointmentModal({
   const [notes, setNotes] = useState('');
   const [status, setStatus] = useState('scheduled');
   const [appointmentPets, setAppointmentPets] = useState([]);
+  const [customPrices, setCustomPrices] = useState({}); // Store custom prices: {petIndex-serviceId: price}
   
   // Recurring state
   const [isRecurring, setIsRecurring] = useState(false);
@@ -649,22 +650,40 @@ export function AppointmentModal({
                   {safeServices.length > 0 && (
                     <div className="space-y-2">
                       <Label className="text-sm text-maya-text-muted">Services</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        {safeServices.map((service) => (
-                          <label key={service.id} className="flex items-center gap-2 p-2 rounded-lg border border-maya-border dark:border-gray-700 hover:bg-maya-cream dark:hover:bg-gray-800 cursor-pointer">
-                            <SimpleCheckbox
-                              checked={(pet.services || []).includes(service.id)}
-                              onChange={() => toggleService(index, service.id)}
-                              testId={`service-${service.id}-pet-${index}`}
-                            />
-                            <div className="flex-1">
-                              <div className="text-sm font-medium">{service.name}</div>
-                              <div className="text-xs text-maya-text-muted">
-                                {formatDuration(service.duration)} - {formatCurrency(service.price)}
+                      <div className="space-y-2">
+                        {safeServices.map((service) => {
+                          const isSelected = (pet.services || []).includes(service.id);
+                          const priceKey = `${index}-${service.id}`;
+                          const currentPrice = customPrices[priceKey] !== undefined ? customPrices[priceKey] : service.price;
+                          
+                          return (
+                            <div key={service.id} className="flex items-start gap-2 p-2 rounded-lg border border-maya-border dark:border-gray-700 hover:bg-maya-cream dark:hover:bg-gray-800">
+                              <SimpleCheckbox
+                                checked={isSelected}
+                                onChange={() => toggleService(index, service.id)}
+                                testId={`service-${service.id}-pet-${index}`}
+                              />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium">{service.name}</div>
+                                <div className="text-xs text-maya-text-muted">{formatDuration(service.duration)}</div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-xs text-gray-500">$</span>
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  value={currentPrice}
+                                  onChange={(e) => {
+                                    setCustomPrices(prev => ({...prev, [priceKey]: parseFloat(e.target.value) || 0}));
+                                  }}
+                                  className="w-20 h-8 text-sm"
+                                  disabled={!isSelected}
+                                />
                               </div>
                             </div>
-                          </label>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
