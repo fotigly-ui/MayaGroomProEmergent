@@ -26,10 +26,7 @@ export function formatDateTime(date, use24Hour = true) {
 }
 
 export function formatCurrency(amount) {
-  return new Intl.NumberFormat('en-AU', {
-    style: 'currency',
-    currency: 'AUD'
-  }).format(amount);
+  return `$${parseFloat(amount).toFixed(2)}`;
 }
 
 export function formatDuration(minutes) {
