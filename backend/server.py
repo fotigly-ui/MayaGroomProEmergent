@@ -1229,11 +1229,28 @@ async def get_dashboard_stats(user_id: str = Depends(get_current_user)):
 
 async def generate_invoice_number(user_id: str) -> str:
     """Generate unique invoice number"""
-    # Get count of invoices for this user
-    count = await db.invoices.count_documents({"user_id": user_id})
-    # Format: INV-YYYYMM-XXXX
+    # Get the highest invoice number for this user this month
     now = datetime.now(timezone.utc)
-    return f"INV-{now.strftime('%Y%m')}-{str(count + 1).zfill(4)}"
+    month_prefix = f"INV-{now.strftime('%Y%m')}-"
+    
+    # Find the highest number for this month
+    latest = await db.invoices.find_one(
+        {"user_id": user_id, "invoice_number": {"$regex": f"^{month_prefix}"}},
+        {"invoice_number": 1, "_id": 0},
+        sort=[("invoice_number", -1)]
+    )
+    
+    if latest:
+        # Extract the number part and increment
+        try:
+            last_num = int(latest["invoice_number"].split("-")[-1])
+            next_num = last_num + 1
+        except (ValueError, IndexError):
+            next_num = 1
+    else:
+        next_num = 1
+    
+    return f"{month_prefix}{str(next_num).zfill(4)}"
 
 @api_router.post("/invoices", response_model=Invoice)
 async def create_invoice(invoice_data: InvoiceCreate, user_id: str = Depends(get_current_user)):
