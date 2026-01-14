@@ -768,6 +768,80 @@ export function AppointmentModal({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Customer Selection Modal */}
+      <Dialog open={showClientSelectionModal} onOpenChange={setShowClientSelectionModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Select Customer</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Search */}
+            <div className="relative">
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="Search customers..."
+                value={clientSearch}
+                onChange={(e) => setClientSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            
+            {/* Customer List */}
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {filteredClients.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No customers found</p>
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={() => {
+                      setShowClientSelectionModal(false);
+                      window.location.href = '/customers';
+                    }}
+                    className="mt-2"
+                  >
+                    Create New Customer
+                  </Button>
+                </div>
+              ) : (
+                filteredClients.map((client) => (
+                  <button
+                    key={client.id}
+                    type="button"
+                    onClick={() => {
+                      handleClientSelect(client);
+                      setShowClientSelectionModal(false);
+                      setClientSearch('');
+                    }}
+                    className="w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-base">{client.name}</div>
+                        {client.phone && (
+                          <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                            <Phone size={12} /> {client.phone}
+                          </div>
+                        )}
+                        {client.email && (
+                          <div className="text-sm text-gray-500 flex items-center gap-1">
+                            <Mail size={12} /> {client.email}
+                          </div>
+                        )}
+                      </div>
+                      {client.address && (
+                        <MapPin size={16} className="text-gray-400" />
+                      )}
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
