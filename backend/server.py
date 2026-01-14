@@ -994,6 +994,7 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
                     prepared_doc["pets"] = [prepare_doc_for_mongo(p) if isinstance(p, dict) else p for p in prepared_doc.get("pets", [])]
                     prepared_docs.append(prepared_doc)
                 await db.appointments.insert_many(prepared_docs)
+                logger.info(f"Created {len(prepared_docs)} future recurring appointments for appointment {appointment_id}")
     
     # Update single or series
     if update_series:
@@ -1010,16 +1011,27 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
             {"$set": update_data}
         )
     else:
-        # Update single appointment
+        # Update single appointment - with existence check
+        # Re-verify appointment exists before update
+        check_exists = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
+        if not check_exists:
+            logger.error(f"Appointment {appointment_id} not found during update operation")
+            raise HTTPException(status_code=404, detail="Appointment not found")
+        
         result = await db.appointments.update_one(
             {"id": appointment_id, "user_id": user_id},
             {"$set": update_data}
         )
+        logger.info(f"Updated appointment {appointment_id} with data: {update_data}")
     
     if result.matched_count == 0:
+        logger.error(f"No appointments matched for update. ID: {appointment_id}, update_series: {update_series}")
         raise HTTPException(status_code=404, detail="Appointment not found")
     
     appt = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
+    if not appt:
+        logger.error(f"Appointment {appointment_id} not found after update")
+        raise HTTPException(status_code=404, detail="Appointment not found after update")
     
     # Send SMS if status changed to something notable
     if sms_type:
