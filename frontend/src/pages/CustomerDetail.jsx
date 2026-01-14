@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Mail, MapPin, Plus, Edit2, Trash2, Calendar, Dog } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Plus, Edit2, Trash2, Calendar, Dog, MessageSquare, Copy, Navigation } from 'lucide-react';
 import { Layout, PageHeader } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -20,6 +20,7 @@ export default function CustomerDetail() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPetModal, setShowPetModal] = useState(false);
+  const [showClientModal, setShowClientModal] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
   const [petForm, setPetForm] = useState({
     name: '',
@@ -27,6 +28,16 @@ export default function CustomerDetail() {
     age: '',
     notes: ''
   });
+  const [clientForm, setClientForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    address: ''
+  });
+  
+  // Contact action popups
+  const [showPhoneOptions, setShowPhoneOptions] = useState(false);
+  const [showAddressOptions, setShowAddressOptions] = useState(false);
 
   useEffect(() => {
     fetchData();
