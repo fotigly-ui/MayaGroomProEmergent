@@ -67,17 +67,19 @@ Build a grooming appointment app with:
 ## Known Issues (In Progress)
 
 ### P0 - Critical
-- [ ] ~~Delete recurring series only deletes one~~ **FIXED 2025-01-14**
+- [x] ~~Delete recurring series only deletes one~~ **FIXED 2025-01-14**
 - [ ] Edit recurring frequency creates appointments on same day
 
 ### P1 - Important  
-- [ ] "Today" button doesn't scroll to current time
+- [x] ~~"Today" button doesn't scroll to current time~~ **FIXED 2025-01-14**
 - [ ] Calendar header not fully pinned when scrolling
 
 ### P2 - Minor
-- [ ] Search icon overlaps search bar (Customers page)
-- [ ] Invoice shows duplicate number
-- [ ] GST not added to invoice total
+- [x] ~~Search icon overlaps search bar (Customers page)~~ **FIXED 2025-01-14**
+- [x] ~~Invoice shows duplicate number~~ **FIXED 2025-01-14**
+- [x] ~~X close button too small on modals~~ **FIXED 2025-01-14**
+- [x] ~~Invoice X overlaps print button~~ **FIXED 2025-01-14**
+- [ ] GST not added to invoice total (code exists, needs settings enabled)
 - [ ] Dark mode incomplete
 
 ## Upcoming Features (P1)
