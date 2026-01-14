@@ -472,54 +472,7 @@ export function AppointmentModal({
               )}
                         <div className="text-xs text-gray-500">{client.phone}</div>
                       </div>
-                      {client.address && <MapPin size={14} className="text-gray-400" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              
-              {/* Selected client info */}
-              {selectedClient && (
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 text-sm">
-                  <div className="font-medium">{selectedClient.name}</div>
-                  {selectedClient.phone && (
-                    <button 
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const phone = selectedClient.phone;
-                        if (window.confirm(`Call ${phone}?\n\n• Call\n• Send SMS\n• Copy`)) {
-                          window.location.href = `tel:${phone.replace(/\D/g, '')}`;
-                        }
-                      }}
-                      className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline"
-                    >
-                      <Phone size={12} /> {selectedClient.phone}
-                    </button>
-                  )}
-                  {selectedClient.address && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const address = selectedClient.address;
-                        const encodedAddress = encodeURIComponent(address);
-                        if (window.confirm(`Navigate to:\n${address}\n\nThis will open your maps app.`)) {
-                          // Try Apple Maps first (iOS), fallback to Google Maps
-                          window.location.href = `maps://?q=${encodedAddress}`;
-                          setTimeout(() => {
-                            window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-                          }, 500);
-                        }
-                      }}
-                      className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline mt-1"
-                    >
-                      <MapPin size={12} /> {selectedClient.address}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+                    </div>
 
             {/* Date & Time */}
             <div className="space-y-2">
