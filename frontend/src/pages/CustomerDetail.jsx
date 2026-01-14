@@ -114,6 +114,66 @@ export default function CustomerDetail() {
     }
   };
 
+  // Open edit client modal
+  const openClientModal = () => {
+    setClientForm({
+      name: client.name,
+      phone: client.phone || '',
+      email: client.email || '',
+      address: client.address || ''
+    });
+    setShowClientModal(true);
+  };
+
+  // Handle client update
+  const handleClientSubmit = async (e) => {
+    e.preventDefault();
+    if (!clientForm.name.trim()) {
+      toast.error('Name is required');
+      return;
+    }
+    try {
+      await clientsAPI.update(id, clientForm);
+      toast.success('Customer updated');
+      setShowClientModal(false);
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to update customer');
+    }
+  };
+
+  // Handle delete client
+  const handleDeleteClient = async () => {
+    if (!window.confirm('Delete this customer and all their pets?')) return;
+    try {
+      await clientsAPI.delete(id);
+      toast.success('Customer deleted');
+      navigate('/customers');
+    } catch (error) {
+      toast.error('Failed to delete customer');
+    }
+  };
+
+  // Phone click handler
+  const handlePhoneClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowPhoneOptions(true);
+  };
+
+  // Address click handler
+  const handleAddressClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAddressOptions(true);
+  };
+
+  // Copy to clipboard
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    toast.success('Copied to clipboard');
+  };
+
   if (loading || !client) {
     return (
       <Layout>
