@@ -1074,13 +1074,13 @@ async def delete_appointment(appointment_id: str, delete_series: bool = False, u
     # Delete series or single
     if delete_series and appt.get("is_recurring") and appt.get("recurring_id"):
         recurring_id = appt.get("recurring_id")
-        current_date = datetime.now(timezone.utc).isoformat()
         
+        # Delete ALL appointments with the same recurring_id (entire series)
         result = await db.appointments.delete_many({
             "user_id": user_id,
-            "recurring_id": recurring_id,
-            "date_time": {"$gte": current_date}
+            "recurring_id": recurring_id
         })
+        logger.info(f"Deleted {result.deleted_count} appointments with recurring_id {recurring_id}")
         return {"message": f"Deleted {result.deleted_count} appointments in series"}
     else:
         result = await db.appointments.delete_one({"id": appointment_id, "user_id": user_id})
