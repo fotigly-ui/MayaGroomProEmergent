@@ -330,7 +330,14 @@ export function AppointmentModal({
       };
 
       if (isEditing) {
-        await appointmentsAPI.update(appointment.id, { ...data, status, update_series: recurringAction === 'series' });
+        await appointmentsAPI.update(appointment.id, { 
+          ...data, 
+          status, 
+          update_series: recurringAction === 'series',
+          is_recurring: isRecurring,
+          recurring_value: isRecurring ? recValue : null,
+          recurring_unit: isRecurring ? recurringUnit : null
+        });
         toast.success('Appointment updated');
         setLoading(false); // Reset loading state
         promptSmsAfterAction('appointment_rescheduled', () => {
