@@ -938,6 +938,63 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
     if not update_data:
         raise HTTPException(status_code=400, detail="No update data provided")
     
+    # Special case: Converting non-recurring to recurring
+    if hasattr(update, 'is_recurring') and update.is_recurring and not original_appt.get("is_recurring"):
+        # This appointment is being converted to recurring
+        # Generate future occurrences
+        if hasattr(update, 'recurring_value') and hasattr(update, 'recurring_unit'):
+            recurring_id = str(uuid.uuid4())
+            delta_map = {
+                "day": timedelta(days=update.recurring_value),
+                "week": timedelta(weeks=update.recurring_value),
+                "month": timedelta(days=update.recurring_value * 30),
+                "year": timedelta(days=update.recurring_value * 365)
+            }
+            delta = delta_map.get(update.recurring_unit, timedelta(weeks=1))
+            
+            # Update current appointment
+            update_data["is_recurring"] = True
+            update_data["recurring_value"] = update.recurring_value
+            update_data["recurring_unit"] = update.recurring_unit
+            update_data["recurring_id"] = recurring_id
+            
+            # Generate future occurrences
+            base_date = datetime.fromisoformat(original_appt["date_time"].replace('Z', '+00:00')) if isinstance(original_appt["date_time"], str) else original_appt["date_time"]
+            current_date = base_date + delta  # Start from next occurrence
+            end_date = base_date + timedelta(days=365)
+            
+            future_appointments = []
+            while current_date < end_date:
+                end_time = current_date + timedelta(minutes=original_appt.get("total_duration", 60))
+                future_appointments.append({
+                    "id": str(uuid.uuid4()),
+                    "user_id": user_id,
+                    "client_id": original_appt["client_id"],
+                    "client_name": original_appt["client_name"],
+                    "date_time": current_date.isoformat(),
+                    "end_time": end_time.isoformat(),
+                    "notes": original_appt.get("notes", ""),
+                    "status": "scheduled",
+                    "is_recurring": True,
+                    "recurring_value": update.recurring_value,
+                    "recurring_unit": update.recurring_unit,
+                    "recurring_id": recurring_id,
+                    "pets": original_appt.get("pets", []),
+                    "total_duration": original_appt.get("total_duration", 60),
+                    "total_price": original_appt.get("total_price", 0),
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                })
+                current_date += delta
+            
+            # Insert future appointments
+            if future_appointments:
+                prepared_docs = []
+                for doc in future_appointments:
+                    prepared_doc = prepare_doc_for_mongo(doc)
+                    prepared_doc["pets"] = [prepare_doc_for_mongo(p) if isinstance(p, dict) else p for p in prepared_doc.get("pets", [])]
+                    prepared_docs.append(prepared_doc)
+                await db.appointments.insert_many(prepared_docs)
+    
     # Update single or series
     if update_series:
         # Update all appointments with the same recurring_id and future dates
