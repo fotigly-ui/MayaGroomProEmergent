@@ -332,6 +332,7 @@ export function AppointmentModal({
       if (isEditing) {
         await appointmentsAPI.update(appointment.id, { ...data, status, update_series: recurringAction === 'series' });
         toast.success('Appointment updated');
+        setLoading(false); // Reset loading state
         promptSmsAfterAction('appointment_rescheduled', () => {
           setShowRecurringDialog(false);
           onSave();
@@ -339,6 +340,7 @@ export function AppointmentModal({
       } else {
         await appointmentsAPI.create(data);
         toast.success('Appointment created');
+        setLoading(false); // Reset loading state
         promptSmsAfterAction('appointment_booked', () => {
           setShowRecurringDialog(false);
           onSave();
