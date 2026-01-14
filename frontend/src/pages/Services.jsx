@@ -113,7 +113,6 @@ export default function Services() {
                     </span>
                     <span className="font-medium text-primary">
                       {formatCurrency(service.price)}
-                      {formatCurrency(service.price)}
                     </span>
                   </div>
                 </div>
