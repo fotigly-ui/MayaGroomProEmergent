@@ -204,10 +204,14 @@ export default function CustomerDetail() {
               <h1 className="text-2xl font-bold text-maya-text">{client.name}</h1>
               <div className="flex flex-wrap gap-4 mt-3 text-sm text-maya-text-muted">
                 {client.phone && (
-                  <a href={`tel:${client.phone}`} className="flex items-center gap-1 hover:text-primary">
+                  <button 
+                    onClick={handlePhoneClick}
+                    className="flex items-center gap-1 hover:text-primary cursor-pointer"
+                    data-testid="client-phone"
+                  >
                     <Phone size={14} />
                     {client.phone}
-                  </a>
+                  </button>
                 )}
                 {client.email && (
                   <a href={`mailto:${client.email}`} className="flex items-center gap-1 hover:text-primary">
@@ -216,19 +220,29 @@ export default function CustomerDetail() {
                   </a>
                 )}
                 {client.address && (
-                  <span className="flex items-center gap-1">
+                  <button 
+                    onClick={handleAddressClick}
+                    className="flex items-center gap-1 hover:text-primary cursor-pointer"
+                    data-testid="client-address"
+                  >
                     <MapPin size={14} />
                     {client.address}
-                  </span>
+                  </button>
                 )}
               </div>
             </div>
-            {client.no_show_count > 0 && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm">
-                <span className="text-maya-warning font-medium">{client.no_show_count}</span>
-                <span className="text-maya-text-muted ml-1">no-shows</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {client.no_show_count > 0 && (
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm">
+                  <span className="text-maya-warning font-medium">{client.no_show_count}</span>
+                  <span className="text-maya-text-muted ml-1">no-shows</span>
+                </div>
+              )}
+              <Button variant="outline" size="sm" onClick={openClientModal} data-testid="edit-client-btn">
+                <Edit2 size={14} className="mr-1" />
+                Edit
+              </Button>
+            </div>
           </div>
         </div>
 
