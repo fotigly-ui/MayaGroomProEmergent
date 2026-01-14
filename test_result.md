@@ -358,6 +358,42 @@ frontend:
           agent: "testing"
           comment: "✅ TEST PASSED - Complete appointment creation flow works: client search/selection, date/time setting, recurring appointment toggle, pet addition, service selection with custom pricing, notes, and save functionality. SMS prompt appears after appointment creation. Modal closes properly after save."
 
+  - task: "Customer Selection Modal Critical Fix"
+    implemented: true
+    working: true
+    file: "frontend/src/components/AppointmentModal.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL TEST PASSED - Customer selection modal opens correctly when clicking 'Add Customer' button (does NOT navigate to /customers page). Modal includes search functionality, customer list display, and proper selection mechanism. Search field works without interference. Modal can be closed and reopened successfully."
+
+  - task: "Recurring Appointment Conversion Critical Fix"
+    implemented: true
+    working: true
+    file: "frontend/src/components/AppointmentModal.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL TEST PASSED - Recurring appointment conversion functionality exists and works correctly. Can toggle recurring ON/OFF, set recurring parameters (value and unit), and update appointments without 'Appointment not found' errors. Recurring dialog appears for series updates when appropriate."
+
+  - task: "Customer Search Icon Minor Fix"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/Customers.jsx"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ MINOR TEST PASSED - Search icon on customers page doesn't overlap or block the input field. Users can click and type in the search field without any interference from the search icon. Search functionality works properly."
+
 metadata:
   created_by: "testing_agent"
   version: "1.0"
