@@ -126,11 +126,14 @@ export default function Invoices() {
     }));
   };
 
+  // Prices include GST - calculate GST portion from total (not add on top)
   const calculateTotals = () => {
-    const subtotal = formData.items.reduce((sum, item) => sum + (item.total || 0), 0);
+    const total = formData.items.reduce((sum, item) => sum + (item.total || 0), 0);
     const gstRate = settings?.gst_enabled ? (settings?.gst_rate || 10) : 0;
-    const gstAmount = subtotal * gstRate / 100;
-    const total = subtotal + gstAmount;
+    // GST is included in price, so calculate the GST portion
+    // If GST is 10%, then GST = total * 10/110 = total / 11
+    const gstAmount = gstRate > 0 ? (total * gstRate / (100 + gstRate)) : 0;
+    const subtotal = total - gstAmount;
     return { subtotal, gstAmount, total };
   };
 
