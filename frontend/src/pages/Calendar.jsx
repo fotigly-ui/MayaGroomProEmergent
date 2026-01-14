@@ -135,11 +135,6 @@ export default function CalendarPage() {
       return () => clearTimeout(timer);
     }
   }, [loading]);
-        }
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [loading, zoomLevel]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
