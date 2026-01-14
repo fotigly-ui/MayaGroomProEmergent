@@ -117,14 +117,20 @@ export default function CalendarPage() {
 
   // Scroll to current time on first load
   useEffect(() => {
-    if (scrollRef.current && !hasScrolledToTime.current) {
-      const now = new Date();
-      const hour = now.getHours();
-      const minutes = now.getMinutes();
-      const slotIndex = hour * 4 + Math.floor(minutes / 15);
-      const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100;
-      scrollRef.current.scrollTop = Math.max(0, scrollPosition);
-      hasScrolledToTime.current = true;
+    if (scrollRef.current && !hasScrolledToTime.current && !loading) {
+      // Use setTimeout to ensure DOM is fully rendered
+      const timer = setTimeout(() => {
+        if (scrollRef.current) {
+          const now = new Date();
+          const hour = now.getHours();
+          const minutes = now.getMinutes();
+          const slotIndex = hour * 4 + Math.floor(minutes / 15);
+          const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100;
+          scrollRef.current.scrollTop = Math.max(0, scrollPosition);
+          hasScrolledToTime.current = true;
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
   }, [loading, zoomLevel]);
 
