@@ -95,17 +95,17 @@ export default function Items() {
           }
         />
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((item) => (
-            <div key={item.id} className="card-maya" data-testid={`item-card-${item.id}`}>
+            <div key={item.id} className="card-maya p-3" data-testid={`item-card-${item.id}`}>
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-maya-primary-light flex items-center justify-center">
-                    <Package className="text-primary" size={20} />
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-maya-primary-light flex items-center justify-center">
+                    <Package className="text-primary" size={16} />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-maya-text">{item.name}</h3>
-                    <span className="text-primary font-medium">{formatCurrency(item.price)}</span>
+                    <h3 className="font-semibold text-maya-text text-base">{item.name}</h3>
+                    <span className="text-primary font-medium text-xs">{formatCurrency(item.price)}</span>
                   </div>
                 </div>
                 <Button

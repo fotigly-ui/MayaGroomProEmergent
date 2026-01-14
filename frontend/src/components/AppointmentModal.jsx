@@ -66,7 +66,9 @@ export function AppointmentModal({
   const [clientId, setClientId] = useState('');
   const [clientSearch, setClientSearch] = useState('');
   const [showClientDropdown, setShowClientDropdown] = useState(false);
-  const [showClientSelectionModal, setShowClientSelectionModal] = useState(false); // New: Customer selection modal
+  const [showClientSelectionModal, setShowClientSelectionModal] = useState(false);
+  const [showPhoneMenu, setShowPhoneMenu] = useState(false); // New: Phone options menu
+  const [showAddressMenu, setShowAddressMenu] = useState(false); // New: Address options menu
   const [clientPets, setClientPets] = useState([]);
   const [dateTime, setDateTime] = useState('');
   const [notes, setNotes] = useState('');
@@ -384,18 +386,8 @@ export function AppointmentModal({
     
     // If recurring, ask if delete series
     if (appointment.is_recurring && appointment.recurring_id) {
-      const choice = window.confirm('Delete this appointment or entire series?\n\nOK = Delete Series\nCancel = Delete Only This One');
-      const deleteSeries = choice;
-      
-      setLoading(true);
-      try {
-        await appointmentsAPI.delete(appointment.id, { params: { delete_series: deleteSeries } });
-        toast.success(deleteSeries ? 'Series deleted' : 'Appointment deleted');
-        promptSmsAfterAction('appointment_cancelled', () => onSave());
-      } catch (error) {
-        toast.error('Failed to delete appointment');
-        setLoading(false);
-      }
+      setShowRecurringDialog(true);
+      setRecurringAction('delete'); // Mark this as a delete action
     } else {
       if (!window.confirm('Are you sure you want to delete this appointment?')) return;
 
@@ -403,9 +395,10 @@ export function AppointmentModal({
       try {
         await appointmentsAPI.delete(appointment.id);
         toast.success('Appointment deleted');
-        promptSmsAfterAction('appointment_cancelled', () => onSave());
+        onSave();
       } catch (error) {
         toast.error('Failed to delete appointment');
+      } finally {
         setLoading(false);
       }
     }
