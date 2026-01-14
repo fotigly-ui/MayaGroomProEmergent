@@ -445,23 +445,7 @@ export function AppointmentModal({
                         type="button"
                         onClick={(e) => {
                           e.preventDefault();
-                          const phone = selectedClient.phone.replace(/\D/g, '');
-                          const action = window.confirm('Choose an option:\n\nOK = Call\nCancel to see more options');
-                          if (action) {
-                            // Call
-                            window.location.href = `tel:${phone}`;
-                          } else {
-                            // Show SMS and Copy options
-                            const smsOrCopy = window.confirm('Choose an option:\n\nOK = Send SMS\nCancel = Copy Number');
-                            if (smsOrCopy) {
-                              // SMS
-                              window.location.href = `sms:${phone}`;
-                            } else {
-                              // Copy
-                              navigator.clipboard.writeText(selectedClient.phone);
-                              toast.success('Phone number copied!');
-                            }
-                          }
+                          setShowPhoneMenu(true);
                         }}
                         className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-sm mt-1"
                       >
@@ -473,25 +457,7 @@ export function AppointmentModal({
                         type="button"
                         onClick={(e) => {
                           e.preventDefault();
-                          const address = selectedClient.address;
-                          const encodedAddress = encodeURIComponent(address);
-                          
-                          // Show options
-                          const choice = window.confirm('Open in:\n\nOK = Apple Maps\nCancel = Google Maps/Waze');
-                          if (choice) {
-                            // Apple Maps
-                            window.location.href = `maps://?q=${encodedAddress}`;
-                          } else {
-                            // Google Maps or Waze
-                            const googleOrWaze = window.confirm('Choose:\n\nOK = Google Maps\nCancel = Waze');
-                            if (googleOrWaze) {
-                              // Google Maps
-                              window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-                            } else {
-                              // Waze
-                              window.location.href = `https://waze.com/ul?q=${encodedAddress}`;
-                            }
-                          }
+                          setShowAddressMenu(true);
                         }}
                         className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-sm mt-1"
                       >
