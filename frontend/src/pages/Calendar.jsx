@@ -71,6 +71,20 @@ export default function CalendarPage() {
   const scrollRef = useRef(null);
   const hasScrolledToTime = useRef(false);
 
+  // Function to scroll to current time
+  const scrollToCurrentTime = useCallback(() => {
+    if (scrollRef.current && !hasScrolledToTime.current) {
+      const now = new Date();
+      const hour = now.getHours();
+      const minutes = now.getMinutes();
+      const slotIndex = hour * 4 + Math.floor(minutes / 15);
+      // Account for 120px padding at top
+      const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100 + 120;
+      scrollRef.current.scrollTop = Math.max(0, scrollPosition);
+      hasScrolledToTime.current = true;
+    }
+  }, [zoomLevel]);
+
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
     return addDays(weekStart, i);
