@@ -1,0 +1,38 @@
+{
+  "timestamp": "2026-01-14T02:39:58.376467",
+  "total_tests": 6,
+  "passed_tests": 5,
+  "success_rate": 0.8333333333333334,
+  "results": [
+    {
+      "test": "Create Non-Recurring Appointment",
+      "success": true,
+      "details": "Appointment ID: a95273c1-2b07-4a49-880e-f1e9b17c5af2"
+    },
+    {
+      "test": "Update Appointment to Recurring",
+      "success": true,
+      "details": "Recurring ID: 8121026e-563b-466f-80a3-dbe734241559"
+    },
+    {
+      "test": "Verify Multiple Appointments Created",
+      "success": true,
+      "details": "Found 53 recurring appointments"
+    },
+    {
+      "test": "Series Update Functionality",
+      "success": true,
+      "details": "Updated 53 future appointments"
+    },
+    {
+      "test": "Series Delete Functionality",
+      "success": true,
+      "details": "Successfully deleted all future appointments"
+    },
+    {
+      "test": "Standard CRUD - Delete Verification",
+      "success": false,
+      "details": "Appointment still exists after deletion"
+    }
+  ]
+}
