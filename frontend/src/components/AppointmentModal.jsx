@@ -472,9 +472,7 @@ export function AppointmentModal({
                   </Button>
                 </div>
               )}
-                        <div className="text-xs text-gray-500">{client.phone}</div>
-                      </div>
-                    </div>
+            </div>
 
             {/* Date & Time */}
             <div className="space-y-2">
