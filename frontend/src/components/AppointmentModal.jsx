@@ -319,7 +319,6 @@ export function AppointmentModal({
       const recValue = parseInt(recurringValue) || 1;
       const data = {
         client_id: clientId,
-        date_time: new Date(dateTime).toISOString(),
         notes,
         is_recurring: isRecurring,
         recurring_value: isRecurring ? recValue : null,
