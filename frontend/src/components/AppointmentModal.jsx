@@ -429,7 +429,7 @@ export function AppointmentModal({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => window.location.href = '/clients'}
+                  onClick={() => window.location.href = '/customers'}
                   className="w-full justify-center h-12"
                 >
                   <Plus size={18} className="mr-2" />

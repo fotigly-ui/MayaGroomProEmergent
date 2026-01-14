@@ -158,7 +158,6 @@ export default function Customers() {
 
         {/* Search */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-maya-text-muted pointer-events-none" size={20} />
           <Input
             placeholder="Search by name, phone, or email..."
             value={search}
@@ -166,6 +165,7 @@ export default function Customers() {
             className="pl-10 input-maya"
             data-testid="search-customers"
           />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-maya-text-muted pointer-events-none" size={20} />
         </div>
 
         {/* Clients List */}
