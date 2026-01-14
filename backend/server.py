@@ -980,10 +980,9 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
                 
                 # Generate future occurrences
                 # FIX: Use updated date_time if provided, otherwise use original
-                if update.date_time:
-                    base_date = update.date_time
-                else:
-                    base_date = datetime.fromisoformat(original_appt["date_time"].replace('Z', '+00:00')) if isinstance(original_appt["date_time"], str) else original_appt["date_time"]
+                # Always use original appointment's date_time for frequency changes
+                # This ensures proper date progression for recurring appointments
+                base_date = datetime.fromisoformat(original_appt["date_time"].replace('Z', '+00:00')) if isinstance(original_appt["date_time"], str) else original_appt["date_time"]
                 
                 # CRITICAL FIX: Start from NEXT occurrence after the base appointment
                 current_date = base_date + delta
