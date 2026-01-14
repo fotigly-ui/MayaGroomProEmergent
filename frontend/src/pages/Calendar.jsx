@@ -391,9 +391,10 @@ export default function CalendarPage() {
 
   return (
     <Layout>
-      <div className="h-full flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
-        {/* FIXED Header - Month */}
-        <div className="sticky top-0 flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-30 flex-shrink-0">
+      <div className="h-full flex flex-col bg-white dark:bg-gray-900">
+        {/* FIXED Header - Month - POSITION FIXED */}
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-30">
+
           <Popover>
             <PopoverTrigger asChild>
               <button className="text-lg font-semibold text-gray-900 dark:text-white hover:text-primary flex items-center gap-1">
@@ -455,8 +456,9 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* FIXED Week Day Selector */}
-        <div className="sticky top-[57px] flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 flex-shrink-0">
+        {/* FIXED Week Day Selector - POSITION FIXED */}
+        <div className="fixed top-[57px] left-0 right-0 flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20">
+
           <button onClick={navigatePrev} className="px-2 flex items-center text-gray-400 hover:text-primary">
             <ChevronLeft size={20} />
           </button>
@@ -489,9 +491,10 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        {/* SCROLLABLE Calendar Grid */}
+        {/* SCROLLABLE Calendar Grid - ADD TOP PADDING FOR FIXED HEADERS */}
         <div 
           className="flex-1 overflow-y-auto relative touch-pan-y bg-white dark:bg-gray-900"
+          style={{paddingTop: '120px'}}
           ref={scrollRef}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
