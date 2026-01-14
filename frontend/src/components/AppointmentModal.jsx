@@ -442,14 +442,39 @@ export function AppointmentModal({
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => window.location.href = `/customers/${selectedClient.id}`}
-                    className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
-                  >
-                    <div className="font-medium text-primary">{selectedClient?.name}</div>
-                    <div className="text-xs text-gray-500 mt-0.5">Click to view details</div>
-                  </button>
+                  <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = `/customers/${selectedClient.id}`}
+                      className="font-medium text-primary hover:underline text-left"
+                    >
+                      {selectedClient?.name}
+                    </button>
+                    {selectedClient?.phone && (
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowPhoneMenu(true);
+                        }}
+                        className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-sm mt-1"
+                      >
+                        <Phone size={12} /> {selectedClient.phone}
+                      </button>
+                    )}
+                    {selectedClient?.address && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowAddressMenu(true);
+                        }}
+                        className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-sm mt-1"
+                      >
+                        <MapPin size={12} /> {selectedClient.address}
+                      </button>
+                    )}
+                  </div>
                   <Button type="button" variant="ghost" size="icon" onClick={clearClient}>
                     <X size={16} />
                   </Button>

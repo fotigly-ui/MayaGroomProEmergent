@@ -100,15 +100,15 @@ export default function Services() {
           }
         />
 
-        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-1.5 md:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => (
-            <div key={service.id} className="card-maya p-3" data-testid={`service-card-${service.id}`}>
+            <div key={service.id} className="card-maya py-1.5 px-2.5" data-testid={`service-card-${service.id}`}>
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-semibold text-maya-text text-base">{service.name}</h3>
-                  <div className="flex items-center gap-3 mt-1.5 text-xs text-maya-text-muted">
+                  <div className="flex items-center gap-2.5 mt-0.5 text-xs text-maya-text-muted">
                     <span className="flex items-center gap-1">
-                      <Clock size={12} />
+                      <Clock size={11} />
                       {formatDuration(service.duration)}
                     </span>
                     <span className="font-medium text-primary">

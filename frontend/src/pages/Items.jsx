@@ -95,13 +95,13 @@ export default function Items() {
           }
         />
 
-        <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-1.5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {items.map((item) => (
-            <div key={item.id} className="card-maya p-3" data-testid={`item-card-${item.id}`}>
+            <div key={item.id} className="card-maya py-1.5 px-2.5" data-testid={`item-card-${item.id}`}>
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-maya-primary-light flex items-center justify-center">
-                    <Package className="text-primary" size={16} />
+                  <div className="w-7 h-7 rounded-lg bg-maya-primary-light flex items-center justify-center">
+                    <Package className="text-primary" size={15} />
                   </div>
                   <div>
                     <h3 className="font-semibold text-maya-text text-base">{item.name}</h3>

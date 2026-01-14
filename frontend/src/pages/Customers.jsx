@@ -169,12 +169,12 @@ export default function Customers() {
         </div>
 
         {/* Clients List */}
-        <div className="grid gap-2">
+        <div className="grid gap-1.5">
           {clients.map((client) => (
             <Link
               key={client.id}
               to={`/customers/${client.id}`}
-              className="card-maya card-maya-interactive flex items-center justify-between fade-in p-3"
+              className="card-maya card-maya-interactive flex items-center justify-between fade-in py-1.5 px-2.5"
               data-testid={`client-card-${client.id}`}
             >
               <div className="flex-1">
@@ -183,27 +183,21 @@ export default function Customers() {
                   {client.no_show_count > 0 && (
                     <span className="flex items-center gap-1 text-xs text-maya-warning bg-yellow-50 px-1.5 py-0.5 rounded-full">
                       <AlertTriangle size={10} />
-                      {client.no_show_count} no-show{client.no_show_count > 1 ? 's' : ''}
+                      {client.no_show_count}
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-maya-text-muted">
+                <div className="flex flex-wrap gap-2.5 mt-0.5 text-xs text-maya-text-muted">
                   {client.phone && (
                     <span className="flex items-center gap-1">
-                      <Phone size={12} />
+                      <Phone size={11} />
                       {client.phone}
                     </span>
                   )}
                   {client.email && (
                     <span className="flex items-center gap-1">
-                      <Mail size={12} />
+                      <Mail size={11} />
                       {client.email}
-                    </span>
-                  )}
-                  {client.address && (
-                    <span className="flex items-center gap-1">
-                      <MapPin size={12} />
-                      {client.address}
                     </span>
                   )}
                 </div>
