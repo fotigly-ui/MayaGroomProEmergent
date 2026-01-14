@@ -66,6 +66,7 @@ export function AppointmentModal({
   const [clientId, setClientId] = useState('');
   const [clientSearch, setClientSearch] = useState('');
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [showClientSelectionModal, setShowClientSelectionModal] = useState(false); // New: Customer selection modal
   const [clientPets, setClientPets] = useState([]);
   const [dateTime, setDateTime] = useState('');
   const [notes, setNotes] = useState('');
@@ -436,7 +437,7 @@ export function AppointmentModal({
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => window.location.href = '/customers'}
+                  onClick={() => setShowClientSelectionModal(true)}
                   className="w-full justify-center h-12"
                 >
                   <Plus size={18} className="mr-2" />
