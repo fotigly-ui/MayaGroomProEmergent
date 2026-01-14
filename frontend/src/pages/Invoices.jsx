@@ -528,18 +528,20 @@ export default function Invoices() {
                 {/* Totals */}
                 <div className="flex justify-end">
                   <div className="w-64 space-y-1">
-                    <div className="flex justify-between">
-                      <span>Subtotal</span>
-                      <span>{formatCurrency(selectedInvoice.invoice.subtotal)}</span>
-                    </div>
                     {selectedInvoice.business.gst_enabled && selectedInvoice.invoice.gst_amount > 0 && (
-                      <div className="flex justify-between">
-                        <span>GST</span>
-                        <span>{formatCurrency(selectedInvoice.invoice.gst_amount)}</span>
-                      </div>
+                      <>
+                        <div className="flex justify-between text-sm text-maya-text-muted">
+                          <span>Subtotal (excl. GST)</span>
+                          <span>{formatCurrency(selectedInvoice.invoice.subtotal)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm text-maya-text-muted">
+                          <span>GST (incl.)</span>
+                          <span>{formatCurrency(selectedInvoice.invoice.gst_amount)}</span>
+                        </div>
+                      </>
                     )}
                     <div className="flex justify-between text-lg font-bold border-t border-maya-border pt-2">
-                      <span>Total</span>
+                      <span>Total {selectedInvoice.business.gst_enabled ? '(incl. GST)' : ''}</span>
                       <span className="text-primary">{formatCurrency(selectedInvoice.invoice.total)}</span>
                     </div>
                   </div>
