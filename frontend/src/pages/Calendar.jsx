@@ -569,38 +569,39 @@ export default function CalendarPage() {
                     onDragEnd={handleDragEnd}
                     onClick={(e) => handleAppointmentClick(appt, e)}
                     className={cn(
-                      "absolute border-l-4 rounded-r-md px-2 py-1.5 overflow-visible cursor-grab active:cursor-grabbing hover:opacity-90 transition-colors shadow-md z-10",
+                      "absolute border-l-4 rounded-r-md px-2 py-1.5 cursor-grab active:cursor-grabbing hover:opacity-90 transition-colors shadow-md z-10 overflow-hidden",
                       colors.bg, colors.border, colors.text,
                       draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary"
                     )}
                     style={{
                       ...style,
-                      left: `calc(56px + ${style.left})`,
-                      width: group.length > 1 ? `calc(${style.width} - 4px)` : 'calc(100% - 64px)',
-                      minWidth: '140px'
+                      left: `64px`, // Fixed: Always start after time column (56px time + 8px padding)
+                      width: group.length > 1 ? `calc((100% - 72px) / ${group.length})` : 'calc(100% - 72px)',
+                      minWidth: '120px',
+                      marginLeft: group.length > 1 ? `${apptIndex * (100 / group.length)}%` : '0'
                     }}
                     data-testid={`appointment-${appt.id}`}
                   >
-                    <div className="text-xs font-semibold leading-tight mb-0.5">
+                    <div className="text-xs font-semibold leading-tight mb-0.5 truncate">
                       {appt.client_name}
                       {appt.pets?.length > 0 && (
-                        <span className="font-normal opacity-80">
+                        <span className="font-normal opacity-80 truncate">
                           {' '}({appt.pets.map(p => p.pet_name).join(' & ')})
                         </span>
                       )}
                     </div>
-                    <div className="text-[11px] opacity-90 leading-tight">
+                    <div className="text-[11px] opacity-90 leading-tight truncate">
                       {format(new Date(appt.date_time), 'HH:mm')}
                     </div>
                     {/* Services - ALWAYS show */}
-                    <div className="text-[11px] font-medium opacity-80 mt-1 leading-tight">
+                    <div className="text-[11px] font-medium opacity-80 mt-1 leading-tight truncate">
                       {appt.pets?.flatMap(p => 
                         services.filter(s => p.services?.includes(s.id)).map(s => s.name)
                       ).filter(Boolean).join(', ') || 'No service'}
                     </div>
                     {/* Price */}
                     {appt.total_price > 0 && (
-                      <div className="text-[10px] opacity-70 mt-0.5">
+                      <div className="text-[10px] opacity-70 mt-0.5 truncate">
                         ${appt.total_price.toFixed(2)}
                       </div>
                     )}
