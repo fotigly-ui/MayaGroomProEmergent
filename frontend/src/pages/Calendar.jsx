@@ -59,6 +59,7 @@ export default function CalendarPage() {
   
   // Dialogs
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false); // New: Appointment Details modal
   const [pendingReschedule, setPendingReschedule] = useState(null);
   const [showSmsPrompt, setShowSmsPrompt] = useState(false);
   const [showPhoneOptions, setShowPhoneOptions] = useState(false);
@@ -179,7 +180,7 @@ export default function CalendarPage() {
     e.stopPropagation();
     setSelectedAppointment(appointment);
     setSelectedSlot(null);
-    setShowModal(true);
+    setShowDetailsModal(true); // Show details modal first
   };
 
   const handleModalClose = () => {
