@@ -767,28 +767,70 @@ export function AppointmentModal({
       <Dialog open={showRecurringDialog} onOpenChange={setShowRecurringDialog}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Recurring Appointment</DialogTitle>
+            <DialogTitle>
+              {recurringAction === 'delete' ? 'Delete Recurring Appointment' : 'Update Recurring Appointment'}
+            </DialogTitle>
           </DialogHeader>
-          <p className="text-maya-text-muted">Update only this occurrence or the entire series?</p>
+          <p className="text-maya-text-muted">
+            {recurringAction === 'delete' 
+              ? 'Delete only this occurrence or the entire series?'
+              : 'Update only this occurrence or the entire series?'}
+          </p>
           <div className="space-y-3 mt-4">
             <Button
               className="w-full justify-start"
               variant={recurringAction === 'single' ? 'default' : 'outline'}
-              onClick={() => setRecurringAction('single')}
+              onClick={async () => {
+                if (recurringAction === 'delete') {
+                  // Delete only this one
+                  setLoading(true);
+                  try {
+                    await appointmentsAPI.delete(appointment.id, { params: { delete_series: false } });
+                    toast.success('Appointment deleted');
+                    setShowRecurringDialog(false);
+                    onSave();
+                  } catch (error) {
+                    toast.error('Failed to delete appointment');
+                  } finally {
+                    setLoading(false);
+                  }
+                } else {
+                  setRecurringAction('single');
+                }
+              }}
             >
               Only this appointment
             </Button>
             <Button
               className="w-full justify-start"
               variant={recurringAction === 'series' ? 'default' : 'outline'}
-              onClick={() => setRecurringAction('series')}
+              onClick={async () => {
+                if (recurringAction === 'delete') {
+                  // Delete entire series
+                  setLoading(true);
+                  try {
+                    await appointmentsAPI.delete(appointment.id, { params: { delete_series: true } });
+                    toast.success('Series deleted');
+                    setShowRecurringDialog(false);
+                    onSave();
+                  } catch (error) {
+                    toast.error('Failed to delete series');
+                  } finally {
+                    setLoading(false);
+                  }
+                } else {
+                  setRecurringAction('series');
+                }
+              }}
             >
               All appointments in series
             </Button>
           </div>
           <DialogFooter className="mt-4">
             <Button variant="outline" onClick={() => setShowRecurringDialog(false)}>Cancel</Button>
-            <Button className="btn-maya-primary" onClick={handleSubmit}>Continue</Button>
+            {recurringAction !== 'delete' && (
+              <Button className="btn-maya-primary" onClick={handleSubmit}>Continue</Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
