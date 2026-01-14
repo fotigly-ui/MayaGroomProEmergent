@@ -169,46 +169,46 @@ export default function Customers() {
         </div>
 
         {/* Clients List */}
-        <div className="grid gap-4">
+        <div className="grid gap-2">
           {clients.map((client) => (
             <Link
               key={client.id}
               to={`/customers/${client.id}`}
-              className="card-maya card-maya-interactive flex items-center justify-between fade-in"
+              className="card-maya card-maya-interactive flex items-center justify-between fade-in p-3"
               data-testid={`client-card-${client.id}`}
             >
               <div className="flex-1">
-                <div className="flex items-center gap-3">
-                  <h3 className="font-semibold text-maya-text">{client.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-base text-maya-text">{client.name}</h3>
                   {client.no_show_count > 0 && (
-                    <span className="flex items-center gap-1 text-xs text-maya-warning bg-yellow-50 px-2 py-0.5 rounded-full">
-                      <AlertTriangle size={12} />
+                    <span className="flex items-center gap-1 text-xs text-maya-warning bg-yellow-50 px-1.5 py-0.5 rounded-full">
+                      <AlertTriangle size={10} />
                       {client.no_show_count} no-show{client.no_show_count > 1 ? 's' : ''}
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-4 mt-2 text-sm text-maya-text-muted">
+                <div className="flex flex-wrap gap-3 mt-1.5 text-xs text-maya-text-muted">
                   {client.phone && (
                     <span className="flex items-center gap-1">
-                      <Phone size={14} />
+                      <Phone size={12} />
                       {client.phone}
                     </span>
                   )}
                   {client.email && (
                     <span className="flex items-center gap-1">
-                      <Mail size={14} />
+                      <Mail size={12} />
                       {client.email}
                     </span>
                   )}
                   {client.address && (
                     <span className="flex items-center gap-1">
-                      <MapPin size={14} />
+                      <MapPin size={12} />
                       {client.address}
                     </span>
                   )}
                 </div>
               </div>
-              <ChevronRight className="text-maya-text-muted group-hover:text-primary transition-colors" />
+              <ChevronRight className="text-maya-text-muted group-hover:text-primary transition-colors" size={16} />
             </Link>
           ))}
 
