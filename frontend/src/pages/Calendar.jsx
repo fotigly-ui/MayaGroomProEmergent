@@ -117,8 +117,9 @@ export default function CalendarPage() {
 
   // Scroll to current time on first load
   useEffect(() => {
-    if (scrollRef.current && !hasScrolledToTime.current && !loading) {
-      // Use setTimeout to ensure DOM is fully rendered
+    // Only scroll once when loading completes
+    if (!loading && !hasScrolledToTime.current && scrollRef.current) {
+      // Longer delay to ensure DOM is fully rendered
       const timer = setTimeout(() => {
         if (scrollRef.current) {
           const now = new Date();
@@ -126,8 +127,14 @@ export default function CalendarPage() {
           const minutes = now.getMinutes();
           const slotIndex = hour * 4 + Math.floor(minutes / 15);
           const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100;
+          console.log('Scrolling calendar to:', scrollPosition, 'hour:', hour);
           scrollRef.current.scrollTop = Math.max(0, scrollPosition);
           hasScrolledToTime.current = true;
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [loading]);
         }
       }, 100);
       return () => clearTimeout(timer);
