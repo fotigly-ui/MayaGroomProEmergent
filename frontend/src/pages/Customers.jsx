@@ -162,7 +162,8 @@ export default function Customers() {
             placeholder="Search by name, phone, or email..."
             value={search}
             onChange={handleSearch}
-            className="pl-11 input-maya"
+            className="input-maya"
+            style={{ paddingLeft: '2.75rem' }}
             data-testid="search-customers"
           />
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-maya-text-muted pointer-events-none" size={18} />
