@@ -111,8 +111,8 @@ export default function Services() {
                       <Clock size={12} />
                       {formatDuration(service.duration)}
                     </span>
-                    <span className="flex items-center gap-1 font-medium text-primary">
-                      <DollarSign size={12} />
+                    <span className="font-medium text-primary">
+                      {formatCurrency(service.price)}
                       {formatCurrency(service.price)}
                     </span>
                   </div>

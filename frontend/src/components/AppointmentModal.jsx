@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { appointmentsAPI, petsAPI } from '../lib/api';
 import { formatCurrency, formatDuration } from '../lib/utils';
 import { toast } from 'sonner';
-import { Plus, Trash2, Loader2, MessageSquare, Send, FileText, RefreshCw, Check, Search, X, Edit, Phone, MapPin, Mail } from 'lucide-react';
+import { Plus, Trash2, Loader2, MessageSquare, Send, FileText, RefreshCw, Check, Search, X, Edit, Phone, MapPin, Mail, Copy, Navigation } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
@@ -438,33 +438,14 @@ export function AppointmentModal({
                 </Button>
               ) : (
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
-                    <div className="font-medium">{selectedClient?.name}</div>
-                    {selectedClient?.phone && (
-                      <button 
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowPhoneMenu(true);
-                        }}
-                        className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-sm mt-1"
-                      >
-                        <Phone size={12} /> {selectedClient.phone}
-                      </button>
-                    )}
-                    {selectedClient?.address && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowAddressMenu(true);
-                        }}
-                        className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline text-sm mt-1"
-                      >
-                        <MapPin size={12} /> {selectedClient.address}
-                      </button>
-                    )}
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => window.location.href = `/customers/${selectedClient.id}`}
+                    className="flex-1 bg-gray-50 dark:bg-gray-800 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-left"
+                  >
+                    <div className="font-medium text-primary">{selectedClient?.name}</div>
+                    <div className="text-xs text-gray-500 mt-0.5">Click to view details</div>
+                  </button>
                   <Button type="button" variant="ghost" size="icon" onClick={clearClient}>
                     <X size={16} />
                   </Button>
@@ -871,6 +852,100 @@ export function AppointmentModal({
                 ))
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phone Options Menu */}
+      <Dialog open={showPhoneMenu} onOpenChange={setShowPhoneMenu}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone size={18} className="text-primary" />
+              Phone Options
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                const phone = selectedClient?.phone?.replace(/\D/g, '');
+                window.location.href = `tel:${phone}`;
+                setShowPhoneMenu(false);
+              }}
+            >
+              <Phone size={16} className="mr-2" /> Call
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                const phone = selectedClient?.phone?.replace(/\D/g, '');
+                window.location.href = `sms:${phone}`;
+                setShowPhoneMenu(false);
+              }}
+            >
+              <MessageSquare size={16} className="mr-2" /> Send SMS
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                navigator.clipboard.writeText(selectedClient?.phone || '');
+                toast.success('Phone number copied!');
+                setShowPhoneMenu(false);
+              }}
+            >
+              <Copy size={16} className="mr-2" /> Copy Number
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Address Options Menu */}
+      <Dialog open={showAddressMenu} onOpenChange={setShowAddressMenu}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin size={18} className="text-primary" />
+              Open in Maps
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                const address = encodeURIComponent(selectedClient?.address || '');
+                window.location.href = `maps://?q=${address}`;
+                setShowAddressMenu(false);
+              }}
+            >
+              <MapPin size={16} className="mr-2" /> Apple Maps
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                const address = encodeURIComponent(selectedClient?.address || '');
+                window.location.href = `https://www.google.com/maps/search/?api=1&query=${address}`;
+                setShowAddressMenu(false);
+              }}
+            >
+              <MapPin size={16} className="mr-2" /> Google Maps
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => {
+                const address = encodeURIComponent(selectedClient?.address || '');
+                window.location.href = `https://waze.com/ul?q=${address}`;
+                setShowAddressMenu(false);
+              }}
+            >
+              <Navigation size={16} className="mr-2" /> Waze
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

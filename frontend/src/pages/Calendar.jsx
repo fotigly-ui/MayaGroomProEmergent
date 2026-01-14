@@ -740,9 +740,17 @@ export default function CalendarPage() {
           </DialogHeader>
           {selectedAppointment && (
             <div className="space-y-4">
-              {/* Client Info */}
+              {/* Client Info - Make Name Clickable */}
               <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="font-semibold text-lg">{selectedAppointment.client_name}</div>
+                <button
+                  onClick={() => {
+                    setShowDetailsModal(false);
+                    window.location.href = `/customers/${selectedAppointment.client_id}`;
+                  }}
+                  className="font-semibold text-lg hover:text-primary transition-colors text-left"
+                >
+                  {selectedAppointment.client_name}
+                </button>
                 {selectedAppointment.pets?.length > 0 && (
                   <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     {selectedAppointment.pets.map(p => p.pet_name).join(', ')}

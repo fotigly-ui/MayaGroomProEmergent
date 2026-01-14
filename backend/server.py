@@ -980,7 +980,9 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
                 
                 # Generate future occurrences
                 base_date = datetime.fromisoformat(original_appt["date_time"].replace('Z', '+00:00')) if isinstance(original_appt["date_time"], str) else original_appt["date_time"]
-                current_date = base_date + delta  # Start from NEXT occurrence
+                
+                # CRITICAL FIX: Use the appointment's actual date, not current date
+                current_date = base_date + delta  # Start from NEXT occurrence after the base appointment
                 end_date = base_date + timedelta(days=365)
                 
                 future_appointments = []
