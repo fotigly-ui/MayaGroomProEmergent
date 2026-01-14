@@ -460,7 +460,7 @@ export default function Invoices() {
             <>
               <DialogHeader className="print:hidden pr-10">
                 <DialogTitle>
-                  Invoice {selectedInvoice.invoice.invoice_number}
+                  View Invoice
                 </DialogTitle>
                 <div className="flex gap-2 mt-2">
                   <Button variant="outline" size="sm" onClick={printInvoice}>
