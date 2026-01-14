@@ -167,7 +167,20 @@ export default function CalendarPage() {
   
   const goToToday = () => {
     setSelectedDate(new Date());
-    hasScrolledToTime.current = false; // Will trigger scroll to current time
+    // Scroll to current time immediately
+    setTimeout(() => {
+      if (scrollRef.current) {
+        const now = new Date();
+        const hour = now.getHours();
+        const minutes = now.getMinutes();
+        const slotIndex = hour * 4 + Math.floor(minutes / 15);
+        const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100;
+        scrollRef.current.scrollTo({
+          top: Math.max(0, scrollPosition),
+          behavior: 'smooth'
+        });
+      }
+    }, 100);
   };
 
   const handleSlotClick = (hour, minute) => {

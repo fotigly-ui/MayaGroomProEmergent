@@ -455,15 +455,15 @@ export default function Invoices() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto print:max-w-full print:m-0 print:shadow-none">
           {selectedInvoice && (
             <>
-              <DialogHeader className="print:hidden">
-                <DialogTitle className="flex items-center justify-between">
-                  <span>Invoice {selectedInvoice.invoice.invoice_number}</span>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={printInvoice}>
-                      <Printer size={14} className="mr-1" /> Print
-                    </Button>
-                  </div>
+              <DialogHeader className="print:hidden pr-10">
+                <DialogTitle>
+                  Invoice {selectedInvoice.invoice.invoice_number}
                 </DialogTitle>
+                <div className="flex gap-2 mt-2">
+                  <Button variant="outline" size="sm" onClick={printInvoice}>
+                    <Printer size={14} className="mr-1" /> Print
+                  </Button>
+                </div>
               </DialogHeader>
 
               {/* Invoice Content */}

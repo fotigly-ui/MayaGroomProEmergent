@@ -162,10 +162,10 @@ export default function Customers() {
             placeholder="Search by name, phone, or email..."
             value={search}
             onChange={handleSearch}
-            className="pl-10 input-maya"
+            className="pl-11 input-maya"
             data-testid="search-customers"
           />
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-maya-text-muted pointer-events-none" size={20} />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-maya-text-muted pointer-events-none" size={18} />
         </div>
 
         {/* Clients List */}
