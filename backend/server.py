@@ -1265,10 +1265,11 @@ async def create_invoice(invoice_data: InvoiceCreate, user_id: str = Depends(get
     gst_enabled = settings.get("gst_enabled", False) if settings else False
     gst_rate = settings.get("gst_rate", 10) if settings else 10
     
-    # Calculate totals
-    subtotal = sum(item.total for item in invoice_data.items)
-    gst_amount = (subtotal * gst_rate / 100) if gst_enabled else 0
-    total = subtotal + gst_amount
+    # Calculate totals - prices INCLUDE GST, so extract GST portion
+    total = sum(item.total for item in invoice_data.items)
+    # GST is included: if 10% GST, then GST = total * 10/110
+    gst_amount = (total * gst_rate / (100 + gst_rate)) if gst_enabled else 0
+    subtotal = total - gst_amount
     
     # Generate invoice number
     invoice_number = await generate_invoice_number(user_id)
