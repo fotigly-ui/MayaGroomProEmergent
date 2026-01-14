@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { appointmentsAPI, petsAPI } from '../lib/api';
 import { formatCurrency, formatDuration } from '../lib/utils';
 import { toast } from 'sonner';
-import { Plus, Trash2, Loader2, MessageSquare, Send, FileText, RefreshCw, Check, Search, X, Edit, Phone, MapPin } from 'lucide-react';
+import { Plus, Trash2, Loader2, MessageSquare, Send, FileText, RefreshCw, Check, Search, X, Edit, Phone, MapPin, Mail } from 'lucide-react';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
