@@ -731,6 +731,89 @@ export default function CalendarPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Appointment Details Modal */}
+      <Dialog open={showDetailsModal} onOpenChange={setShowDetailsModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Appointment Details</DialogTitle>
+          </DialogHeader>
+          {selectedAppointment && (
+            <div className="space-y-4">
+              {/* Client Info */}
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="font-semibold text-lg">{selectedAppointment.client_name}</div>
+                {selectedAppointment.pets?.length > 0 && (
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                    {selectedAppointment.pets.map(p => p.pet_name).join(', ')}
+                  </div>
+                )}
+              </div>
+              
+              {/* Date & Time */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Date</div>
+                  <div className="font-medium">{format(new Date(selectedAppointment.date_time), 'EEE, MMM d, yyyy')}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">Time</div>
+                  <div className="font-medium">{format(new Date(selectedAppointment.date_time), 'HH:mm')} - {format(new Date(selectedAppointment.end_time), 'HH:mm')}</div>
+                </div>
+              </div>
+              
+              {/* Services */}
+              <div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Services</div>
+                <div className="space-y-2">
+                  {selectedAppointment.pets?.map((pet, idx) => (
+                    <div key={idx} className="text-sm">
+                      <span className="font-medium">{pet.pet_name}:</span>{' '}
+                      {services.filter(s => pet.services?.includes(s.id)).map(s => s.name).join(', ') || 'No services'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Total */}
+              <div className="flex justify-between items-center p-3 bg-primary/10 rounded-lg">
+                <span className="font-semibold">Total</span>
+                <span className="text-xl font-bold text-primary">${selectedAppointment.total_price?.toFixed(2) || '0.00'}</span>
+              </div>
+              
+              {/* Notes */}
+              {selectedAppointment.notes && (
+                <div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Notes</div>
+                  <div className="text-sm p-2 bg-gray-50 dark:bg-gray-800 rounded">{selectedAppointment.notes}</div>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDetailsModal(false);
+                setShowModal(true); // Open edit modal
+              }}
+              className="w-full sm:w-auto"
+            >
+              <Edit size={16} className="mr-2" /> Edit
+            </Button>
+            <Button 
+              className="btn-maya-primary w-full sm:w-auto"
+              onClick={() => {
+                setShowDetailsModal(false);
+                // TODO: Open checkout modal (implement in next phase)
+                toast.info('Checkout flow coming soon!');
+              }}
+            >
+              Review & Checkout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
