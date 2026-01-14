@@ -417,6 +417,166 @@ export default function CustomerDetail() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Client Modal */}
+      <Dialog open={showClientModal} onOpenChange={setShowClientModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Customer</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleClientSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Name *</Label>
+              <Input
+                value={clientForm.name}
+                onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
+                placeholder="Customer name"
+                data-testid="client-name-input"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Phone</Label>
+              <Input
+                value={clientForm.phone}
+                onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
+                placeholder="Phone number"
+                data-testid="client-phone-input"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email</Label>
+              <Input
+                type="email"
+                value={clientForm.email}
+                onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
+                placeholder="Email address"
+                data-testid="client-email-input"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Address</Label>
+              <Textarea
+                value={clientForm.address}
+                onChange={(e) => setClientForm({ ...clientForm, address: e.target.value })}
+                placeholder="Address"
+                data-testid="client-address-input"
+                rows={2}
+              />
+            </div>
+            <DialogFooter className="gap-2">
+              <Button type="button" variant="destructive" onClick={handleDeleteClient}>
+                Delete Customer
+              </Button>
+              <Button type="button" variant="outline" onClick={() => setShowClientModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="btn-maya-primary" data-testid="save-client-btn">
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phone Options Popup */}
+      <Dialog open={showPhoneOptions} onOpenChange={setShowPhoneOptions}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>{client.phone}</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                window.location.href = `tel:${client.phone}`;
+                setShowPhoneOptions(false);
+              }}
+            >
+              <Phone size={16} className="mr-2" />
+              Call
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                window.location.href = `sms:${client.phone}`;
+                setShowPhoneOptions(false);
+              }}
+            >
+              <MessageSquare size={16} className="mr-2" />
+              Send SMS
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                copyToClipboard(client.phone);
+                setShowPhoneOptions(false);
+              }}
+            >
+              <Copy size={16} className="mr-2" />
+              Copy Number
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Address Options Popup */}
+      <Dialog open={showAddressOptions} onOpenChange={setShowAddressOptions}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle>Open in Maps</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-2">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`, '_blank');
+                setShowAddressOptions(false);
+              }}
+            >
+              <Navigation size={16} className="mr-2" />
+              Google Maps
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                window.open(`https://waze.com/ul?q=${encodeURIComponent(client.address)}`, '_blank');
+                setShowAddressOptions(false);
+              }}
+            >
+              <Navigation size={16} className="mr-2" />
+              Waze
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                window.open(`maps://?q=${encodeURIComponent(client.address)}`, '_blank');
+                setShowAddressOptions(false);
+              }}
+            >
+              <MapPin size={16} className="mr-2" />
+              Apple Maps
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                copyToClipboard(client.address);
+                setShowAddressOptions(false);
+              }}
+            >
+              <Copy size={16} className="mr-2" />
+              Copy Address
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
