@@ -92,7 +92,12 @@ export const appointmentsAPI = {
   get: (id) => api.get(`/appointments/${id}`),
   create: (data) => api.post('/appointments', data),
   update: (id, data) => api.put(`/appointments/${id}`, data),
-  delete: (id, config = {}) => api.delete(`/appointments/${id}`, config),
+  delete: (id, options = {}) => {
+    const url = options.delete_series !== undefined 
+      ? `/appointments/${id}?delete_series=${options.delete_series}`
+      : `/appointments/${id}`;
+    return api.delete(url);
+  },
 };
 
 // Waitlist

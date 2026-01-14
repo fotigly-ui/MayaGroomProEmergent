@@ -59,7 +59,9 @@ export default function CalendarPage() {
   
   // Dialogs
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
-  const [showDetailsModal, setShowDetailsModal] = useState(false); // New: Appointment Details modal
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showPhoneMenu, setShowPhoneMenu] = useState(false); // Added for phone popup
+  const [showAddressMenu, setShowAddressMenu] = useState(false); // Added for address popup
   const [pendingReschedule, setPendingReschedule] = useState(null);
   const [showSmsPrompt, setShowSmsPrompt] = useState(false);
   const [showPhoneOptions, setShowPhoneOptions] = useState(false);
@@ -740,20 +742,46 @@ export default function CalendarPage() {
           </DialogHeader>
           {selectedAppointment && (
             <div className="space-y-4">
-              {/* Client Info - Make Name Clickable */}
+              {/* Client Info - Make Name Clickable & Show Contact Options */}
               <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <button
                   onClick={() => {
                     setShowDetailsModal(false);
                     window.location.href = `/customers/${selectedAppointment.client_id}`;
                   }}
-                  className="font-semibold text-lg hover:text-primary transition-colors text-left"
+                  className="font-semibold text-lg hover:text-primary transition-colors text-left block mb-2"
                 >
                   {selectedAppointment.client_name}
                 </button>
                 {selectedAppointment.pets?.length > 0 && (
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                     {selectedAppointment.pets.map(p => p.pet_name).join(', ')}
+                  </div>
+                )}
+                
+                {/* Contact Actions */}
+                {clients.find(c => c.id === selectedAppointment.client_id) && (
+                  <div className="flex gap-2 mt-2">
+                    {clients.find(c => c.id === selectedAppointment.client_id)?.phone && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowPhoneMenu(true)}
+                        className="flex-1"
+                      >
+                        <Phone size={14} className="mr-1" /> Call/SMS
+                      </Button>
+                    )}
+                    {clients.find(c => c.id === selectedAppointment.client_id)?.address && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAddressMenu(true)}
+                        className="flex-1"
+                      >
+                        <MapPin size={14} className="mr-1" /> Navigate
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>
@@ -820,6 +848,109 @@ export default function CalendarPage() {
               Review & Checkout
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Phone Options Menu - In Calendar */}
+      <Dialog open={showPhoneMenu} onOpenChange={setShowPhoneMenu}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone size={18} className="text-primary" />
+              Contact Options
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {selectedAppointment && clients.find(c => c.id === selectedAppointment.client_id) && (
+              <>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const phone = clients.find(c => c.id === selectedAppointment.client_id)?.phone?.replace(/\D/g, '');
+                    window.location.href = `tel:${phone}`;
+                    setShowPhoneMenu(false);
+                  }}
+                >
+                  <Phone size={16} className="mr-2" /> Call
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const phone = clients.find(c => c.id === selectedAppointment.client_id)?.phone?.replace(/\D/g, '');
+                    window.location.href = `sms:${phone}`;
+                    setShowPhoneMenu(false);
+                  }}
+                >
+                  <MessageSquare size={16} className="mr-2" /> Send SMS
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const phone = clients.find(c => c.id === selectedAppointment.client_id)?.phone;
+                    navigator.clipboard.writeText(phone || '');
+                    toast.success('Phone number copied!');
+                    setShowPhoneMenu(false);
+                  }}
+                >
+                  <Copy size={16} className="mr-2" /> Copy Number
+                </Button>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Address Options Menu - In Calendar */}
+      <Dialog open={showAddressMenu} onOpenChange={setShowAddressMenu}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin size={18} className="text-primary" />
+              Navigate
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-2">
+            {selectedAppointment && clients.find(c => c.id === selectedAppointment.client_id) && (
+              <>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const address = encodeURIComponent(clients.find(c => c.id === selectedAppointment.client_id)?.address || '');
+                    window.location.href = `maps://?q=${address}`;
+                    setShowAddressMenu(false);
+                  }}
+                >
+                  <MapPin size={16} className="mr-2" /> Apple Maps
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const address = encodeURIComponent(clients.find(c => c.id === selectedAppointment.client_id)?.address || '');
+                    window.location.href = `https://www.google.com/maps/search/?api=1&query=${address}`;
+                    setShowAddressMenu(false);
+                  }}
+                >
+                  <MapPin size={16} className="mr-2" /> Google Maps
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const address = encodeURIComponent(clients.find(c => c.id === selectedAppointment.client_id)?.address || '');
+                    window.location.href = `https://waze.com/ul?q=${address}`;
+                    setShowAddressMenu(false);
+                  }}
+                >
+                  <Navigation size={16} className="mr-2" /> Waze
+                </Button>
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </Layout>
