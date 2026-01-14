@@ -761,7 +761,7 @@ export function AppointmentModal({
                   // Delete only this one
                   setLoading(true);
                   try {
-                    await appointmentsAPI.delete(appointment.id, { params: { delete_series: false } });
+                    await appointmentsAPI.delete(appointment.id, { delete_series: false });
                     toast.success('Appointment deleted');
                     setShowRecurringDialog(false);
                     onSave();
@@ -785,7 +785,7 @@ export function AppointmentModal({
                   // Delete entire series
                   setLoading(true);
                   try {
-                    await appointmentsAPI.delete(appointment.id, { params: { delete_series: true } });
+                    await appointmentsAPI.delete(appointment.id, { delete_series: true });
                     toast.success('Series deleted');
                     setShowRecurringDialog(false);
                     onSave();
