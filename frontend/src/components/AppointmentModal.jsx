@@ -568,9 +568,11 @@ export function AppointmentModal({
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label>Pets & Services</Label>
-                <Button type="button" variant="outline" size="sm" onClick={addPetToAppointment} data-testid="add-pet-btn">
-                  <Plus size={16} className="mr-1" /> Add Pet
-                </Button>
+                {clientPets.length > appointmentPets.length && (
+                  <Button type="button" variant="outline" size="sm" onClick={addPetToAppointment} data-testid="add-pet-btn">
+                    <Plus size={16} className="mr-1" /> Add Another Pet
+                  </Button>
+                )}
               </div>
 
               {appointmentPets.map((pet, index) => (
