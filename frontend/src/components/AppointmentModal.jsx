@@ -226,7 +226,7 @@ export function AppointmentModal({
       return;
     }
     try {
-      const res = await petsAPI.listByClient(cId);
+      const res = await petsAPI.list(cId);
       setClientPets(res.data);
       // Auto-add all pets to the appointment with "No Service" option if creating new appointment
       if (res.data.length > 0 && appointmentPets.length === 0 && !appointment) {
