@@ -112,18 +112,20 @@ export default function CalendarPage() {
       const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
       const weekEnd = addDays(weekStart, 7);
       
-      const [apptRes, clientsRes, servicesRes] = await Promise.all([
+      const [apptRes, clientsRes, servicesRes, itemsRes] = await Promise.all([
         appointmentsAPI.list({
           startDate: weekStart.toISOString(),
           endDate: weekEnd.toISOString()
         }),
         clientsAPI.list(),
-        servicesAPI.list()
+        servicesAPI.list(),
+        itemsAPI.list()
       ]);
       
       setAppointments(apptRes.data);
       setClients(clientsRes.data);
       setServices(servicesRes.data);
+      setItems(itemsRes.data);
     } catch (error) {
       console.error('Error fetching calendar data:', error);
       toast.error('Failed to load appointments');
