@@ -147,9 +147,10 @@ export default function CalendarPage() {
   // Scroll to current time on first load
   useEffect(() => {
     if (!loading && !hasScrolledToTime.current) {
+      // Wait for DOM to be ready
       const timer = setTimeout(() => {
         scrollToCurrentTime();
-      }, 300);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [loading, scrollToCurrentTime]);
