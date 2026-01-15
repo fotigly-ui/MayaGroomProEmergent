@@ -121,4 +121,13 @@ export const dashboardAPI = {
   getStats: () => api.get('/dashboard/stats'),
 };
 
+// Invoices
+export const invoicesAPI = {
+  list: (status = '') => api.get(`/invoices?status=${status}`),
+  get: (id) => api.get(`/invoices/${id}`),
+  getByNumber: (invoiceNumber) => api.get(`/invoices/by-number/${invoiceNumber}`),
+  create: (data) => api.post('/invoices', data),
+  update: (id, data) => api.put(`/invoices/${id}`, data),
+};
+
 export default api;
