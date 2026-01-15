@@ -84,13 +84,15 @@ export default function CalendarPage() {
 
   // Function to scroll to current time
   const scrollToCurrentTime = useCallback(() => {
-    if (scrollRef.current && !hasScrolledToTime.current) {
+    if (scrollRef.current) {
       const now = new Date();
       const hour = now.getHours();
       const minutes = now.getMinutes();
       const slotIndex = hour * 4 + Math.floor(minutes / 15);
-      // Account for 120px padding at top
-      const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100 + 120;
+      // Calculate position: each slot is SLOT_HEIGHT * zoomLevel
+      // Subtract some offset to show time in upper portion of visible area
+      const scrollPosition = (slotIndex * SLOT_HEIGHT * zoomLevel) - 50;
+      console.log('Scrolling to:', scrollPosition, 'hour:', hour, 'slot:', slotIndex);
       scrollRef.current.scrollTop = Math.max(0, scrollPosition);
       hasScrolledToTime.current = true;
     }
