@@ -199,14 +199,26 @@ export default function CustomerDetail() {
 
         {/* Client Info Card */}
         <div className="card-maya mb-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-maya-text">{client.name}</h1>
-              <div className="flex flex-wrap gap-4 mt-3 text-sm text-maya-text-muted">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold text-maya-text">{client.name}</h1>
+                <Button variant="outline" size="sm" onClick={openClientModal} data-testid="edit-client-btn">
+                  <Edit2 size={14} className="mr-1" />
+                  Edit
+                </Button>
+                {client.no_show_count > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 text-xs">
+                    <span className="text-maya-warning font-medium">{client.no_show_count}</span>
+                    <span className="text-maya-text-muted ml-1">no-shows</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-2 mt-3 text-sm text-maya-text-muted">
                 {client.phone && (
                   <button 
                     onClick={handlePhoneClick}
-                    className="flex items-center gap-1 hover:text-primary cursor-pointer"
+                    className="flex items-center gap-2 hover:text-primary cursor-pointer w-fit"
                     data-testid="client-phone"
                   >
                     <Phone size={14} />
@@ -214,7 +226,7 @@ export default function CustomerDetail() {
                   </button>
                 )}
                 {client.email && (
-                  <a href={`mailto:${client.email}`} className="flex items-center gap-1 hover:text-primary">
+                  <a href={`mailto:${client.email}`} className="flex items-center gap-2 hover:text-primary w-fit">
                     <Mail size={14} />
                     {client.email}
                   </a>
@@ -222,26 +234,14 @@ export default function CustomerDetail() {
                 {client.address && (
                   <button 
                     onClick={handleAddressClick}
-                    className="flex items-center gap-1 hover:text-primary cursor-pointer"
+                    className="flex items-center gap-2 hover:text-primary cursor-pointer w-fit text-left"
                     data-testid="client-address"
                   >
-                    <MapPin size={14} />
-                    {client.address}
+                    <MapPin size={14} className="flex-shrink-0" />
+                    <span className="break-words">{client.address}</span>
                   </button>
                 )}
               </div>
-            </div>
-            <div className="flex items-center gap-2">
-              {client.no_show_count > 0 && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-3 py-2 text-sm">
-                  <span className="text-maya-warning font-medium">{client.no_show_count}</span>
-                  <span className="text-maya-text-muted ml-1">no-shows</span>
-                </div>
-              )}
-              <Button variant="outline" size="sm" onClick={openClientModal} data-testid="edit-client-btn">
-                <Edit2 size={14} className="mr-1" />
-                Edit
-              </Button>
             </div>
           </div>
         </div>
