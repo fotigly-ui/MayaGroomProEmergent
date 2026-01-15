@@ -1022,97 +1022,171 @@ export default function CalendarPage() {
           
           {selectedAppointment && (
             <div className="space-y-6">
-              {/* Client Info */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div>
-                  <p className="font-semibold">{selectedAppointment.client_name}</p>
-                  <p className="text-sm text-gray-500">
-                    {format(new Date(selectedAppointment.date_time), 'EEE, MMM d, yyyy')} at {format(new Date(selectedAppointment.date_time), 'HH:mm')}
-                  </p>
+              {/* Client & Appointment Info */}
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-maya-text">{selectedAppointment.client_name}</h3>
+                    <p className="text-sm text-maya-text-muted mt-1">
+                      {format(new Date(selectedAppointment.date_time), 'EEEE, MMMM d, yyyy')}
+                    </p>
+                    <p className="text-sm text-maya-text-muted">
+                      {format(new Date(selectedAppointment.date_time), 'h:mm a')} - {format(new Date(selectedAppointment.end_time), 'h:mm a')}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className={cn(
+                      "px-2 py-1 rounded-full text-xs font-medium",
+                      selectedAppointment.status === 'completed' ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                    )}>
+                      {selectedAppointment.status}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Line Items */}
+              {/* Services Section */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <Label className="text-base font-semibold">Items & Services</Label>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setCheckoutItems([...checkoutItems, { id: Date.now().toString(), name: '', quantity: 1, unit_price: 0, total: 0 }])}
-                  >
-                    <Plus size={14} className="mr-1" /> Add Item
-                  </Button>
+                  <h4 className="font-semibold text-maya-text">Services</h4>
+                  <Select onValueChange={(serviceId) => {
+                    const service = services.find(s => s.id === serviceId);
+                    if (service) {
+                      setCheckoutItems([...checkoutItems, {
+                        id: `svc-${Date.now()}`,
+                        type: 'service',
+                        name: service.name,
+                        quantity: 1,
+                        unit_price: service.price,
+                        total: service.price
+                      }]);
+                    }
+                  }}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="+ Add Service" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {services.map(service => (
+                        <SelectItem key={service.id} value={service.id}>
+                          {service.name} - {formatCurrency(service.price)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                
-                {checkoutItems.map((item, index) => (
-                  <div key={item.id} className="grid grid-cols-12 gap-2 items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="col-span-5">
-                      <Input
-                        placeholder="Description"
-                        value={item.name}
-                        onChange={(e) => {
-                          const updated = [...checkoutItems];
-                          updated[index].name = e.target.value;
-                          setCheckoutItems(updated);
-                        }}
-                      />
+
+                {/* Services List */}
+                <div className="space-y-2">
+                  {checkoutItems.filter(i => i.type === 'service').map((item, index) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                      <div className="flex-1">
+                        <p className="font-medium text-maya-text">{item.name}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
+                            onClick={() => {
+                              const updated = checkoutItems.map(i => 
+                                i.id === item.id ? { ...i, quantity: Math.max(1, i.quantity - 1), total: Math.max(1, i.quantity - 1) * i.unit_price } : i
+                              );
+                              setCheckoutItems(updated);
+                            }}>-</Button>
+                          <span className="w-6 text-center">{item.quantity}</span>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
+                            onClick={() => {
+                              const updated = checkoutItems.map(i => 
+                                i.id === item.id ? { ...i, quantity: i.quantity + 1, total: (i.quantity + 1) * i.unit_price } : i
+                              );
+                              setCheckoutItems(updated);
+                            }}>+</Button>
+                        </div>
+                        <span className="font-semibold w-20 text-right">{formatCurrency(item.total)}</span>
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 h-6 w-6 p-0"
+                          onClick={() => setCheckoutItems(checkoutItems.filter(i => i.id !== item.id))}>
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        min="1"
-                        placeholder="Qty"
-                        value={item.quantity}
-                        onChange={(e) => {
-                          const updated = [...checkoutItems];
-                          const qty = parseInt(e.target.value) || 1;
-                          updated[index].quantity = qty;
-                          updated[index].total = qty * updated[index].unit_price;
-                          setCheckoutItems(updated);
-                        }}
-                      />
+                  ))}
+                  {checkoutItems.filter(i => i.type === 'service').length === 0 && (
+                    <p className="text-sm text-maya-text-muted text-center py-3">No services added</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Products Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-semibold text-maya-text">Products</h4>
+                  <Select onValueChange={(itemId) => {
+                    const product = items.find(i => i.id === itemId);
+                    if (product) {
+                      setCheckoutItems([...checkoutItems, {
+                        id: `item-${Date.now()}`,
+                        type: 'item',
+                        name: product.name,
+                        quantity: 1,
+                        unit_price: product.price,
+                        total: product.price
+                      }]);
+                    }
+                  }}>
+                    <SelectTrigger className="w-48">
+                      <SelectValue placeholder="+ Add Product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {items.map(item => (
+                        <SelectItem key={item.id} value={item.id}>
+                          {item.name} - {formatCurrency(item.price)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Products List */}
+                <div className="space-y-2">
+                  {checkoutItems.filter(i => i.type === 'item').map((item, index) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
+                      <div className="flex-1">
+                        <p className="font-medium text-maya-text">{item.name}</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
+                            onClick={() => {
+                              const updated = checkoutItems.map(i => 
+                                i.id === item.id ? { ...i, quantity: Math.max(1, i.quantity - 1), total: Math.max(1, i.quantity - 1) * i.unit_price } : i
+                              );
+                              setCheckoutItems(updated);
+                            }}>-</Button>
+                          <span className="w-6 text-center">{item.quantity}</span>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
+                            onClick={() => {
+                              const updated = checkoutItems.map(i => 
+                                i.id === item.id ? { ...i, quantity: i.quantity + 1, total: (i.quantity + 1) * i.unit_price } : i
+                              );
+                              setCheckoutItems(updated);
+                            }}>+</Button>
+                        </div>
+                        <span className="font-semibold w-20 text-right">{formatCurrency(item.total)}</span>
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 h-6 w-6 p-0"
+                          onClick={() => setCheckoutItems(checkoutItems.filter(i => i.id !== item.id))}>
+                          <Trash2 size={14} />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="col-span-2">
-                      <Input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        placeholder="Price"
-                        value={item.unit_price}
-                        onChange={(e) => {
-                          const updated = [...checkoutItems];
-                          const price = parseFloat(e.target.value) || 0;
-                          updated[index].unit_price = price;
-                          updated[index].total = updated[index].quantity * price;
-                          setCheckoutItems(updated);
-                        }}
-                      />
-                    </div>
-                    <div className="col-span-2 text-right font-medium">
-                      {formatCurrency(item.total)}
-                    </div>
-                    <div className="col-span-1 text-right">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setCheckoutItems(checkoutItems.filter((_, i) => i !== index))}
-                        className="text-red-500 hover:text-red-600"
-                        disabled={checkoutItems.length === 1}
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                  {checkoutItems.filter(i => i.type === 'item').length === 0 && (
+                    <p className="text-sm text-maya-text-muted text-center py-3">No products added</p>
+                  )}
+                </div>
               </div>
 
               {/* Discount */}
               <div className="space-y-3">
-                <Label className="text-base font-semibold">Discount</Label>
-                <div className="flex gap-3 items-center">
+                <h4 className="font-semibold text-maya-text">Discount</h4>
+                <div className="flex gap-3 items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <Select 
                     value={checkoutDiscount.type} 
                     onValueChange={(v) => setCheckoutDiscount({ ...checkoutDiscount, type: v })}
@@ -1134,51 +1208,50 @@ export default function CalendarPage() {
                     value={checkoutDiscount.value || ''}
                     onChange={(e) => setCheckoutDiscount({ ...checkoutDiscount, value: parseFloat(e.target.value) || 0 })}
                   />
-                  {checkoutDiscount.type === 'percent' && <Percent size={16} className="text-gray-400" />}
-                  {checkoutDiscount.type === 'fixed' && <DollarSign size={16} className="text-gray-400" />}
                 </div>
               </div>
 
               {/* Notes */}
               <div className="space-y-2">
-                <Label>Notes</Label>
+                <h4 className="font-semibold text-maya-text">Notes</h4>
                 <Textarea
                   value={checkoutNotes}
                   onChange={(e) => setCheckoutNotes(e.target.value)}
                   placeholder="Payment notes, special instructions..."
                   rows={2}
+                  className="resize-none"
                 />
               </div>
 
               {/* Totals */}
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+              <div className="bg-gray-900 dark:bg-gray-800 text-white rounded-xl p-5 space-y-3">
                 {(() => {
                   const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
                   const discountAmount = checkoutDiscount.type === 'percent' 
                     ? subtotal * (checkoutDiscount.value || 0) / 100 
                     : (checkoutDiscount.value || 0);
                   const total = Math.max(0, subtotal - discountAmount);
-                  const gstAmount = total * 10 / 110; // GST included at 10%
+                  const gstAmount = total * 10 / 110;
                   
                   return (
                     <>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Subtotal</span>
+                      <div className="flex justify-between text-gray-300">
+                        <span>Subtotal</span>
                         <span>{formatCurrency(subtotal)}</span>
                       </div>
                       {discountAmount > 0 && (
-                        <div className="flex justify-between text-sm text-green-600">
+                        <div className="flex justify-between text-green-400">
                           <span>Discount</span>
                           <span>-{formatCurrency(discountAmount)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-sm text-gray-500">
+                      <div className="flex justify-between text-gray-400 text-sm">
                         <span>GST (incl.)</span>
                         <span>{formatCurrency(gstAmount)}</span>
                       </div>
-                      <div className="flex justify-between text-lg font-bold border-t border-gray-200 dark:border-gray-700 pt-2">
+                      <div className="flex justify-between text-2xl font-bold border-t border-gray-700 pt-3">
                         <span>Total</span>
-                        <span className="text-primary">{formatCurrency(total)}</span>
+                        <span>{formatCurrency(total)}</span>
                       </div>
                     </>
                   );
@@ -1193,41 +1266,53 @@ export default function CalendarPage() {
             </Button>
             <Button 
               className="btn-maya-primary w-full sm:w-auto"
+              disabled={checkoutItems.length === 0 || selectedAppointment?.status === 'completed'}
               onClick={async () => {
+                if (checkoutItems.length === 0) {
+                  toast.error('Please add at least one item');
+                  return;
+                }
                 try {
                   const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
                   const discountAmount = checkoutDiscount.type === 'percent' 
                     ? subtotal * (checkoutDiscount.value || 0) / 100 
                     : (checkoutDiscount.value || 0);
-                  const total = Math.max(0, subtotal - discountAmount);
                   
                   // Create invoice
                   const invoiceData = {
                     client_id: selectedAppointment.client_id,
                     appointment_id: selectedAppointment.id,
-                    items: checkoutItems.filter(i => i.name && i.total > 0),
+                    items: checkoutItems.map(i => ({
+                      name: i.name,
+                      quantity: i.quantity,
+                      unit_price: i.unit_price,
+                      total: i.total
+                    })),
                     notes: checkoutNotes,
                     discount: discountAmount,
                   };
                   
-                  await invoicesAPI.create(invoiceData);
+                  const response = await invoicesAPI.create(invoiceData);
+                  console.log('Invoice created:', response);
                   
                   // Update appointment status to completed
                   await appointmentsAPI.update(selectedAppointment.id, { status: 'completed' });
                   
                   toast.success('Invoice created successfully!');
                   setShowCheckoutModal(false);
-                  fetchData(); // Refresh appointments
+                  setSelectedAppointment(null);
+                  fetchData();
                 } catch (error) {
                   console.error('Checkout error:', error);
-                  toast.error('Failed to process checkout');
+                  toast.error(error.response?.data?.detail || 'Failed to process checkout');
                 }
               }}
             >
-              <DollarSign size={16} className="mr-2" /> Complete & Generate Invoice
+              <DollarSign size={16} className="mr-2" /> 
+              {selectedAppointment?.status === 'completed' ? 'Already Completed' : 'Complete & Generate Invoice'}
             </Button>
           </DialogFooter>
-        </DialogContent>
+        </DialogContent>>
       </Dialog>
     </Layout>
   );
