@@ -639,12 +639,6 @@ export default function CalendarPage() {
                         services.filter(s => p.services?.includes(s.id)).map(s => s.name)
                       ).filter(Boolean).join(', ') || 'No service'}
                     </div>
-                    {/* Price */}
-                    {appt.total_price > 0 && (
-                      <div className="text-[10px] opacity-70 mt-0.5 truncate">
-                        ${appt.total_price.toFixed(2)}
-                      </div>
-                    )}
                   </div>
                 );
               })
