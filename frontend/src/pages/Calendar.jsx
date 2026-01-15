@@ -873,18 +873,20 @@ export default function CalendarPage() {
             </Button>
             <Button 
               className="btn-maya-primary w-full sm:w-auto"
+              disabled={selectedAppointment?.status === 'completed'}
               onClick={() => {
-                // Initialize checkout items from appointment
-                const items = [];
+                // Initialize checkout items from appointment services
+                const checkoutItemsInit = [];
                 if (selectedAppointment.pets) {
                   selectedAppointment.pets.forEach(pet => {
                     if (pet.services) {
                       pet.services.forEach(svc => {
                         const service = services.find(s => s.id === svc.service_id || s.id === svc);
                         if (service) {
-                          items.push({
-                            id: `${pet.pet_id}-${service.id}`,
-                            name: `${pet.pet_name} - ${service.name}`,
+                          checkoutItemsInit.push({
+                            id: `svc-${pet.pet_id}-${service.id}`,
+                            type: 'service',
+                            name: `${service.name} (${pet.pet_name})`,
                             quantity: 1,
                             unit_price: svc.price || service.price,
                             total: svc.price || service.price
@@ -894,14 +896,15 @@ export default function CalendarPage() {
                     }
                   });
                 }
-                setCheckoutItems(items.length > 0 ? items : [{ id: '1', name: '', quantity: 1, unit_price: 0, total: 0 }]);
+                setCheckoutItems(checkoutItemsInit);
                 setCheckoutDiscount({ type: 'fixed', value: 0 });
                 setCheckoutNotes('');
                 setShowDetailsModal(false);
                 setShowCheckoutModal(true);
               }}
             >
-              <Receipt size={16} className="mr-2" /> Review & Checkout
+              <Receipt size={16} className="mr-2" /> 
+              {selectedAppointment?.status === 'completed' ? 'Completed' : 'Review & Checkout'}
             </Button>
           </DialogFooter>
         </DialogContent>
