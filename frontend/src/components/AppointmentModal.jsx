@@ -638,7 +638,25 @@ export function AppointmentModal({
                     <div className="space-y-2">
                       <Label className="text-sm text-maya-text-muted">Services</Label>
                       <div className="space-y-2">
-                        {safeServices.map((service) => {
+                        {/* No Service Option */}
+                        <div className="flex items-center gap-2 p-2 rounded-lg border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+                          <SimpleCheckbox
+                            checked={pet.noService || (pet.services || []).length === 0}
+                            onChange={() => {
+                              const updated = [...appointmentPets];
+                              updated[index] = { 
+                                ...updated[index], 
+                                noService: !pet.noService,
+                                services: !pet.noService ? [] : updated[index].services 
+                              };
+                              setAppointmentPets(updated);
+                            }}
+                            testId={`no-service-pet-${index}`}
+                          />
+                          <span className="text-sm text-gray-500">No service required</span>
+                        </div>
+                        
+                        {!pet.noService && safeServices.map((service) => {
                           const isSelected = (pet.services || []).includes(service.id);
                           const priceKey = `${index}-${service.id}`;
                           const currentPrice = customPrices[priceKey] !== undefined ? customPrices[priceKey] : service.price;
