@@ -389,6 +389,7 @@ class InvoiceCreate(BaseModel):
     items: List[InvoiceItem] = Field(default_factory=list)
     notes: str = ""
     due_date: Optional[datetime] = None
+    discount: float = 0.0  # Discount amount
 
 class Invoice(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
@@ -402,6 +403,7 @@ class Invoice(BaseModel):
     client_address: str = ""
     items: List[InvoiceItem] = Field(default_factory=list)
     subtotal: float = 0.0
+    discount: float = 0.0  # Discount amount
     gst_amount: float = 0.0
     total: float = 0.0
     notes: str = ""
