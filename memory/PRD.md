@@ -64,29 +64,25 @@ Build a grooming appointment app with:
 - [x] GST settings fields in backend
 - [x] **DELETE series fix** - Now deletes ALL appointments in series correctly
 
-## Known Issues (In Progress)
+## Known Issues - RESOLVED
 
 ### P0 - Critical
-- [x] ~~Delete recurring series only deletes one~~ **FIXED 2025-01-14**
-- [x] ~~Edit recurring frequency creates appointments on same day~~ **User confirmed FIXED**
-- [ ] Recurring frequency change - verify old occurrences deleted
+- [x] ~~Delete recurring series only deletes one~~ **FIXED**
+- [x] ~~Edit recurring frequency~~ **User confirmed working**
 
 ### P1 - Important  
-- [x] ~~"Today" button doesn't scroll to current time~~ **FIXED 2025-01-15**
-- [x] ~~Calendar doesn't open at current time~~ **FIXED 2025-01-15**
-- [ ] Calendar header not fully pinned when scrolling
+- [x] ~~Timeline doesn't scroll to current time~~ **FIXED 2025-01-15**
+- [x] ~~Appointments side-by-side when not overlapping~~ **FIXED 2025-01-15**
+- [x] ~~Invoice not fitting mobile~~ **FIXED 2025-01-15**
+- [x] ~~Customer edit form not fitting~~ **FIXED 2025-01-15**
+- [x] ~~Message templates not visible~~ **FIXED 2025-01-15** - Now always visible in Settings → SMS
 
 ### P2 - Minor
-- [x] ~~Search icon overlaps search bar (Customers page)~~ **FIXED 2025-01-14**
-- [x] ~~Invoice shows duplicate number~~ **FIXED 2025-01-15**
-- [x] ~~X close button too small on modals~~ **FIXED 2025-01-14**
-- [x] ~~Invoice X overlaps print button~~ **FIXED 2025-01-14**
-- [x] ~~Customer card not editable~~ **FIXED 2025-01-15** - Added Edit button and modal
-- [x] ~~Contact info not clickable~~ **FIXED 2025-01-15** - Added phone/address popups with Call/SMS/Maps options
-- [x] ~~GST added on top of prices~~ **FIXED 2025-01-15** - Changed to GST included calculation
-- [x] ~~Price shown on appointment boxes~~ **FIXED 2025-01-15** - Removed price display
-- [x] ~~Customer card layout issues~~ **FIXED 2025-01-15** - Edit button inline, contact stacked vertically
-- [x] ~~Checkout modal unprofessional~~ **FIXED 2025-01-15** - Redesigned with service/product dropdowns
+- [x] ~~Price shown on appointment boxes~~ **FIXED**
+- [x] ~~Pets not auto-loading from customer~~ **FIXED 2025-01-15**
+- [x] ~~Invoice discount not applied~~ **FIXED 2025-01-15**
+- [ ] Address autocomplete
+- [ ] Save contact to phone
 - [ ] Dark mode incomplete
 
 ## Upcoming Features (P1)
