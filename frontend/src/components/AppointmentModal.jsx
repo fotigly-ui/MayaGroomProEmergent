@@ -237,22 +237,30 @@ export function AppointmentModal({
     setClientId(client.id);
     setClientSearch(client.name);
     setShowClientDropdown(false);
-    setAppointmentPets([]);
-    fetchClientPets(client.id);
+    // Auto-populate pets from client
+    fetchClientPets(client.id).then(() => {
+      // After fetching pets, add them to appointment automatically
+    });
   };
 
-  const clearClient = () => {
-    setClientId('');
-    setClientSearch('');
-    setClientPets([]);
-    setAppointmentPets([]);
-  };
-
-  const addPetToAppointment = () => {
-    setAppointmentPets([
-      ...appointmentPets,
-      { id: Date.now().toString(), pet_name: '', pet_id: '', services: [], items: [] }
-    ]);
+  const fetchClientPets = async (cId) => {
+    try {
+      const res = await petsAPI.listByClient(cId);
+      setClientPets(res.data);
+      // Auto-add all pets to the appointment with "No Service" option
+      if (res.data.length > 0 && appointmentPets.length === 0) {
+        setAppointmentPets(res.data.map(pet => ({
+          id: Date.now().toString() + pet.id,
+          pet_name: pet.name,
+          pet_id: pet.id,
+          services: [],
+          items: [],
+          noService: false
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching pets:', error);
+    }
   };
 
   const removePetFromAppointment = (index) => {
