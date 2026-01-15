@@ -559,53 +559,48 @@ export default function Settings() {
                   )}
                 </div>
 
-                {/* SMS Templates */}
-                {formData.sms_enabled && (
-                  <div className="card-maya space-y-4">
-                    <h2 className="text-lg font-semibold text-maya-text">Message Templates</h2>
-                    <p className="text-sm text-maya-text-muted">Customize your SMS messages. Use variables like {'{client_name}'} for dynamic content.</p>
-                    
-                    <div className="space-y-3">
-                      {Object.entries(smsTemplates).map(([key, template]) => (
-                        <div 
-                          key={key} 
-                          className="flex items-center justify-between p-4 bg-maya-cream rounded-lg"
-                          data-testid={`template-${key}`}
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-medium text-maya-text">{template.name}</h4>
-                              {!template.enabled && (
-                                <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">Disabled</span>
-                              )}
-                            </div>
-                            <p className="text-sm text-maya-text-muted mt-1 line-clamp-1">{template.template}</p>
-                          </div>
-                          <div className="flex items-center gap-2 ml-4">
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => previewTemplate(key)}
-                              title="Preview"
-                            >
-                              <Eye size={16} />
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openTemplateEditor(key)}
-                              title="Edit"
-                            >
-                              <Edit2 size={16} />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                {/* SMS Templates - Always visible so users can customize */}
+                <div className="card-maya space-y-4">
+                  <h2 className="text-lg font-semibold text-maya-text">Message Templates</h2>
+                  <p className="text-sm text-maya-text-muted">
+                    Customize your SMS messages. Use variables: {'{client_name}'}, {'{pet_names}'}, {'{date}'}, {'{time}'}, {'{business_name}'}
+                  </p>
+                  
+                  {!formData.sms_enabled && (
+                    <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg p-3 text-sm">
+                      Enable SMS above to send these messages automatically
                     </div>
+                  )}
+                  
+                  <div className="space-y-3">
+                    {Object.entries(smsTemplates).map(([key, template]) => (
+                      <div 
+                        key={key} 
+                        className="flex items-center justify-between p-3 bg-maya-cream dark:bg-gray-800 rounded-lg"
+                        data-testid={`template-${key}`}
+                      >
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium text-maya-text text-sm">{template.name}</h4>
+                            {!template.enabled && (
+                              <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">Off</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-maya-text-muted mt-1 truncate">{template.template}</p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openTemplateEditor(key)}
+                          className="ml-2"
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
               </div>
             </TabsContent>
 
