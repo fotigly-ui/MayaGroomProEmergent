@@ -138,12 +138,6 @@ export default function CalendarPage() {
       return () => clearTimeout(timer);
     }
   }, [loading, scrollToCurrentTime]);
-          hasScrolledToTime.current = true;
-        }
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [loading]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
