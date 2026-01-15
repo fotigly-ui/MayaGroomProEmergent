@@ -432,10 +432,8 @@ export default function CalendarPage() {
     const top = (slotIndex + offsetInSlot) * SLOT_HEIGHT * zoomLevel;
     const height = (duration / 15) * SLOT_HEIGHT * zoomLevel;
     
-    const width = groupSize > 1 ? `${100 / groupSize}%` : '100%';
-    const left = groupSize > 1 ? `${(indexInGroup / groupSize) * 100}%` : '0';
-    
-    return { top: `${top}px`, height: `${Math.max(height, 40)}px`, minHeight: '40px', width, left };
+    // Only return top and height - width/left are calculated separately in render
+    return { top: `${top}px`, height: `${Math.max(height, 40)}px`, minHeight: '40px' };
   };
 
   const groups = getOverlappingGroups();
