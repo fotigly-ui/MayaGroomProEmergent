@@ -457,141 +457,102 @@ export default function Invoices() {
 
       {/* View Invoice Modal */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto print:max-w-full print:m-0 print:shadow-none">
+        <DialogContent className="max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto print:max-w-full print:m-0 print:shadow-none p-4">
           {selectedInvoice && (
             <>
-              <DialogHeader className="print:hidden pr-10">
-                <DialogTitle>
-                  View Invoice
-                </DialogTitle>
-                <div className="flex gap-2 mt-2">
-                  <Button variant="outline" size="sm" onClick={printInvoice}>
-                    <Printer size={14} className="mr-1" /> Print
-                  </Button>
-                </div>
+              <DialogHeader className="print:hidden pr-8">
+                <DialogTitle className="text-lg">Invoice</DialogTitle>
+                <Button variant="outline" size="sm" onClick={printInvoice} className="absolute right-12 top-4">
+                  <Printer size={14} />
+                </Button>
               </DialogHeader>
 
-              {/* Invoice Content */}
-              <div className="space-y-6 print:p-8" id="invoice-print">
+              {/* Invoice Content - Mobile Optimized */}
+              <div className="space-y-4 print:p-8 text-sm" id="invoice-print">
                 {/* Header */}
-                <div className="flex justify-between">
+                <div className="border-b border-maya-border pb-3">
+                  <h2 className="text-lg font-bold text-primary">{selectedInvoice.business.name || 'Business Name'}</h2>
+                  {selectedInvoice.business.abn && <p className="text-xs text-maya-text-muted">ABN: {selectedInvoice.business.abn}</p>}
+                </div>
+
+                {/* Invoice Info */}
+                <div className="flex justify-between items-start">
                   <div>
-                    <h2 className="text-2xl font-bold text-primary">{selectedInvoice.business.name || 'Business Name'}</h2>
-                    {selectedInvoice.business.abn && <p className="text-sm text-maya-text-muted">ABN: {selectedInvoice.business.abn}</p>}
-                    <p className="text-sm text-maya-text-muted">{selectedInvoice.business.address}</p>
-                    <p className="text-sm text-maya-text-muted">{selectedInvoice.business.phone}</p>
-                    <p className="text-sm text-maya-text-muted">{selectedInvoice.business.email}</p>
+                    <p className="text-xs text-maya-text-muted mb-1">Bill To:</p>
+                    <p className="font-semibold">{selectedInvoice.invoice.client_name}</p>
+                    {selectedInvoice.invoice.client_address && <p className="text-xs">{selectedInvoice.invoice.client_address}</p>}
+                    {selectedInvoice.invoice.client_phone && <p className="text-xs">{selectedInvoice.invoice.client_phone}</p>}
                   </div>
                   <div className="text-right">
-                    <h3 className="text-xl font-bold">INVOICE</h3>
-                    <p className="font-medium">{selectedInvoice.invoice.invoice_number}</p>
-                    <p className="text-sm text-maya-text-muted">
-                      Date: {format(new Date(selectedInvoice.invoice.created_at), 'MMM d, yyyy')}
+                    <p className="font-bold">{selectedInvoice.invoice.invoice_number}</p>
+                    <p className="text-xs text-maya-text-muted">
+                      {format(new Date(selectedInvoice.invoice.created_at), 'MMM d, yyyy')}
                     </p>
-                    {selectedInvoice.invoice.due_date && (
-                      <p className="text-sm text-maya-text-muted">
-                        Due: {format(new Date(selectedInvoice.invoice.due_date), 'MMM d, yyyy')}
-                      </p>
-                    )}
                   </div>
                 </div>
 
-                {/* Bill To */}
-                <div className="border-t border-maya-border pt-4">
-                  <p className="text-sm text-maya-text-muted mb-1">Bill To:</p>
-                  <p className="font-semibold">{selectedInvoice.invoice.client_name}</p>
-                  {selectedInvoice.invoice.client_address && <p className="text-sm">{selectedInvoice.invoice.client_address}</p>}
-                  {selectedInvoice.invoice.client_phone && <p className="text-sm">{selectedInvoice.invoice.client_phone}</p>}
-                  {selectedInvoice.invoice.client_email && <p className="text-sm">{selectedInvoice.invoice.client_email}</p>}
-                </div>
-
-                {/* Items Table */}
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-maya-border">
-                      <th className="text-left py-2">Description</th>
-                      <th className="text-center py-2">Qty</th>
-                      <th className="text-right py-2">Price</th>
-                      <th className="text-right py-2">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedInvoice.invoice.items.map((item, i) => (
-                      <tr key={i} className="border-b border-maya-border/50">
-                        <td className="py-2">{item.name}</td>
-                        <td className="text-center py-2">{item.quantity}</td>
-                        <td className="text-right py-2">{formatCurrency(item.unit_price)}</td>
-                        <td className="text-right py-2">{formatCurrency(item.total)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-
-                {/* Totals */}
-                <div className="flex justify-end">
-                  <div className="w-64 space-y-1">
-                    {selectedInvoice.business.gst_enabled && selectedInvoice.invoice.gst_amount > 0 && (
-                      <>
-                        <div className="flex justify-between text-sm text-maya-text-muted">
-                          <span>Subtotal (excl. GST)</span>
-                          <span>{formatCurrency(selectedInvoice.invoice.subtotal)}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-maya-text-muted">
-                          <span>GST (incl.)</span>
-                          <span>{formatCurrency(selectedInvoice.invoice.gst_amount)}</span>
-                        </div>
-                      </>
-                    )}
-                    <div className="flex justify-between text-lg font-bold border-t border-maya-border pt-2">
-                      <span>Total {selectedInvoice.business.gst_enabled ? '(incl. GST)' : ''}</span>
-                      <span className="text-primary">{formatCurrency(selectedInvoice.invoice.total)}</span>
+                {/* Items - Simplified for Mobile */}
+                <div className="border-t border-maya-border pt-3 space-y-2">
+                  {selectedInvoice.invoice.items.map((item, i) => (
+                    <div key={i} className="flex justify-between items-start py-2 border-b border-maya-border/30">
+                      <div className="flex-1">
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-xs text-maya-text-muted">Qty: {item.quantity} × {formatCurrency(item.unit_price)}</p>
+                      </div>
+                      <p className="font-semibold">{formatCurrency(item.total)}</p>
                     </div>
-                  </div>
+                  ))}
                 </div>
 
-                {/* Payment Details */}
-                {(selectedInvoice.business.bank_name || selectedInvoice.business.pay_id) && (
-                  <div className="bg-maya-cream rounded-lg p-4 mt-6">
-                    <p className="font-medium mb-2">Payment Details</p>
-                    {selectedInvoice.business.pay_id && (
-                      <p className="text-sm">PayID: {selectedInvoice.business.pay_id}</p>
-                    )}
-                    {selectedInvoice.business.bank_name && (
-                      <>
-                        <p className="text-sm">Bank: {selectedInvoice.business.bank_name}</p>
-                        <p className="text-sm">BSB: {selectedInvoice.business.bsb}</p>
-                        <p className="text-sm">Account: {selectedInvoice.business.account_number}</p>
-                        <p className="text-sm">Name: {selectedInvoice.business.account_name}</p>
-                      </>
-                    )}
+                {/* Totals - Compact */}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-1">
+                  {selectedInvoice.invoice.discount > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span>Subtotal</span>
+                      <span>{formatCurrency(selectedInvoice.invoice.items.reduce((s, i) => s + i.total, 0))}</span>
+                    </div>
+                  )}
+                  {selectedInvoice.invoice.discount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Discount</span>
+                      <span>-{formatCurrency(selectedInvoice.invoice.discount)}</span>
+                    </div>
+                  )}
+                  {selectedInvoice.business.gst_enabled && selectedInvoice.invoice.gst_amount > 0 && (
+                    <div className="flex justify-between text-xs text-maya-text-muted">
+                      <span>GST (incl.)</span>
+                      <span>{formatCurrency(selectedInvoice.invoice.gst_amount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-lg font-bold border-t border-maya-border pt-2 mt-2">
+                    <span>Total</span>
+                    <span className="text-primary">{formatCurrency(selectedInvoice.invoice.total)}</span>
                   </div>
-                )}
+                </div>
 
                 {/* Notes */}
                 {selectedInvoice.invoice.notes && (
-                  <div className="text-sm text-maya-text-muted">
+                  <div className="text-xs text-maya-text-muted bg-gray-50 dark:bg-gray-800 rounded p-2">
                     <p className="font-medium">Notes:</p>
                     <p>{selectedInvoice.invoice.notes}</p>
                   </div>
                 )}
               </div>
 
-              {/* Actions */}
-              <div className="flex justify-between items-center pt-4 border-t border-maya-border print:hidden">
-                <div className="flex items-center gap-2">
-                  <span className={cn("text-xs px-2 py-1 rounded-full", getStatusColor(selectedInvoice.invoice.status))}>
-                    {selectedInvoice.invoice.status}
-                  </span>
-                </div>
+              {/* Actions - Fixed at Bottom */}
+              <div className="flex justify-between items-center pt-3 border-t border-maya-border print:hidden">
+                <span className={cn("text-xs px-2 py-1 rounded-full", getStatusColor(selectedInvoice.invoice.status))}>
+                  {selectedInvoice.invoice.status}
+                </span>
                 <div className="flex gap-2">
                   {selectedInvoice.invoice.status === 'draft' && (
                     <Button variant="outline" size="sm" onClick={() => updateStatus(selectedInvoice.invoice.id, 'sent')}>
-                      <Send size={14} className="mr-1" /> Mark Sent
+                      Mark Sent
                     </Button>
                   )}
                   {['draft', 'sent', 'overdue'].includes(selectedInvoice.invoice.status) && (
                     <Button size="sm" className="btn-maya-primary" onClick={() => updateStatus(selectedInvoice.invoice.id, 'paid')}>
-                      <CheckCircle size={14} className="mr-1" /> Mark Paid
+                      Mark Paid
                     </Button>
                   )}
                 </div>
