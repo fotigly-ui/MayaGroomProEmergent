@@ -573,7 +573,7 @@ export default function Settings() {
                   )}
                   
                   <div className="space-y-3">
-                    {Object.entries(smsTemplates).map(([key, template]) => (
+                    {smsTemplates && Object.entries(smsTemplates).map(([key, template]) => template && (
                       <div 
                         key={key} 
                         className="flex items-center justify-between p-3 bg-maya-cream dark:bg-gray-800 rounded-lg"
@@ -581,12 +581,12 @@ export default function Settings() {
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h4 className="font-medium text-maya-text text-sm">{template.name}</h4>
+                            <h4 className="font-medium text-maya-text text-sm">{template.name || key}</h4>
                             {!template.enabled && (
                               <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded">Off</span>
                             )}
                           </div>
-                          <p className="text-xs text-maya-text-muted mt-1 truncate">{template.template}</p>
+                          <p className="text-xs text-maya-text-muted mt-1 truncate">{template.template || 'No template set'}</p>
                         </div>
                         <Button
                           type="button"
