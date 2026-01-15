@@ -226,29 +226,10 @@ export function AppointmentModal({
       return;
     }
     try {
-      const res = await petsAPI.list(cId);
-      setClientPets(res.data);
-    } catch (error) {
-      console.error('Error fetching pets:', error);
-    }
-  };
-
-  const handleClientSelect = (client) => {
-    setClientId(client.id);
-    setClientSearch(client.name);
-    setShowClientDropdown(false);
-    // Auto-populate pets from client
-    fetchClientPets(client.id).then(() => {
-      // After fetching pets, add them to appointment automatically
-    });
-  };
-
-  const fetchClientPets = async (cId) => {
-    try {
       const res = await petsAPI.listByClient(cId);
       setClientPets(res.data);
-      // Auto-add all pets to the appointment with "No Service" option
-      if (res.data.length > 0 && appointmentPets.length === 0) {
+      // Auto-add all pets to the appointment with "No Service" option if creating new appointment
+      if (res.data.length > 0 && appointmentPets.length === 0 && !appointment) {
         setAppointmentPets(res.data.map(pet => ({
           id: Date.now().toString() + pet.id,
           pet_name: pet.name,
@@ -261,6 +242,14 @@ export function AppointmentModal({
     } catch (error) {
       console.error('Error fetching pets:', error);
     }
+  };
+
+  const handleClientSelect = (client) => {
+    setClientId(client.id);
+    setClientSearch(client.name);
+    setShowClientDropdown(false);
+    // Auto-populate pets from client
+    fetchClientPets(client.id);
   };
 
   const clearClient = () => {
