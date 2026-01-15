@@ -69,6 +69,7 @@ Build a grooming appointment app with:
 ### P0 - Critical
 - [x] ~~Delete recurring series only deletes one~~ **FIXED 2025-01-14**
 - [x] ~~Edit recurring frequency creates appointments on same day~~ **User confirmed FIXED**
+- [ ] Recurring frequency change - verify old occurrences deleted
 
 ### P1 - Important  
 - [x] ~~"Today" button doesn't scroll to current time~~ **FIXED 2025-01-15**
@@ -83,12 +84,10 @@ Build a grooming appointment app with:
 - [x] ~~Customer card not editable~~ **FIXED 2025-01-15** - Added Edit button and modal
 - [x] ~~Contact info not clickable~~ **FIXED 2025-01-15** - Added phone/address popups with Call/SMS/Maps options
 - [x] ~~GST added on top of prices~~ **FIXED 2025-01-15** - Changed to GST included calculation
+- [x] ~~Price shown on appointment boxes~~ **FIXED 2025-01-15** - Removed price display
+- [x] ~~Customer card layout issues~~ **FIXED 2025-01-15** - Edit button inline, contact stacked vertically
+- [x] ~~Checkout modal unprofessional~~ **FIXED 2025-01-15** - Redesigned with service/product dropdowns
 - [ ] Dark mode incomplete
-
-### SMS Templates
-- Available in Settings → SMS tab
-- 7 editable templates: Booking Confirmation, Update, Reschedule, Cancellation, No Show, Reminder (3 days), Reminder (1 day)
-- Supports dynamic variables: {client_name}, {pet_names}, {business_name}, {date}, {time}, {business_phone}
 
 ## Upcoming Features (P1)
 - [x] ~~"Review & Checkout" flow modal~~ **IMPLEMENTED 2025-01-15**
