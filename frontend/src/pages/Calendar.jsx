@@ -77,6 +77,7 @@ export default function CalendarPage() {
   const [checkoutItems, setCheckoutItems] = useState([]);
   const [checkoutDiscount, setCheckoutDiscount] = useState({ type: 'fixed', value: 0 });
   const [checkoutNotes, setCheckoutNotes] = useState('');
+  const [items, setItems] = useState([]); // Products/items for sale
   
   const scrollRef = useRef(null);
   const hasScrolledToTime = useRef(false);
