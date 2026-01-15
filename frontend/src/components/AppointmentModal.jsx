@@ -263,6 +263,20 @@ export function AppointmentModal({
     }
   };
 
+  const clearClient = () => {
+    setClientId('');
+    setClientSearch('');
+    setClientPets([]);
+    setAppointmentPets([]);
+  };
+
+  const addPetToAppointment = () => {
+    setAppointmentPets([
+      ...appointmentPets,
+      { id: Date.now().toString(), pet_name: '', pet_id: '', services: [], items: [], noService: false }
+    ]);
+  };
+
   const removePetFromAppointment = (index) => {
     setAppointmentPets(appointmentPets.filter((_, i) => i !== index));
   };
