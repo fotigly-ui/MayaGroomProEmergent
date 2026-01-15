@@ -193,7 +193,9 @@ export function AppointmentModal({
           items: p.items || []
         })) || []);
         setIsRecurring(appointment.is_recurring || false);
-        setRecurringValue(appointment.recurring_value?.toString() || '');
+        // Preserve recurring values - use 1 as default if not set but is_recurring is true
+        const recVal = appointment.recurring_value || (appointment.is_recurring ? 1 : '');
+        setRecurringValue(recVal.toString());
         setRecurringUnit(appointment.recurring_unit || 'week');
         fetchClientPets(appointment.client_id);
       } else {
