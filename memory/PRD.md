@@ -68,19 +68,27 @@ Build a grooming appointment app with:
 
 ### P0 - Critical
 - [x] ~~Delete recurring series only deletes one~~ **FIXED 2025-01-14**
-- [ ] Edit recurring frequency creates appointments on same day
+- [x] ~~Edit recurring frequency creates appointments on same day~~ **User confirmed FIXED**
 
 ### P1 - Important  
-- [x] ~~"Today" button doesn't scroll to current time~~ **FIXED 2025-01-14**
+- [x] ~~"Today" button doesn't scroll to current time~~ **FIXED 2025-01-15**
+- [x] ~~Calendar doesn't open at current time~~ **FIXED 2025-01-15**
 - [ ] Calendar header not fully pinned when scrolling
 
 ### P2 - Minor
 - [x] ~~Search icon overlaps search bar (Customers page)~~ **FIXED 2025-01-14**
-- [x] ~~Invoice shows duplicate number~~ **FIXED 2025-01-14**
+- [x] ~~Invoice shows duplicate number~~ **FIXED 2025-01-15**
 - [x] ~~X close button too small on modals~~ **FIXED 2025-01-14**
 - [x] ~~Invoice X overlaps print button~~ **FIXED 2025-01-14**
-- [ ] GST not added to invoice total (code exists, needs settings enabled)
+- [x] ~~Customer card not editable~~ **FIXED 2025-01-15** - Added Edit button and modal
+- [x] ~~Contact info not clickable~~ **FIXED 2025-01-15** - Added phone/address popups with Call/SMS/Maps options
+- [x] ~~GST added on top of prices~~ **FIXED 2025-01-15** - Changed to GST included calculation
 - [ ] Dark mode incomplete
+
+### SMS Templates
+- Available in Settings → SMS tab
+- 7 editable templates: Booking Confirmation, Update, Reschedule, Cancellation, No Show, Reminder (3 days), Reminder (1 day)
+- Supports dynamic variables: {client_name}, {pet_names}, {business_name}, {date}, {time}, {business_phone}
 
 ## Upcoming Features (P1)
 - [ ] "Review & Checkout" flow modal
