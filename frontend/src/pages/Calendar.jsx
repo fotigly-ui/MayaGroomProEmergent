@@ -1012,6 +1012,226 @@ export default function CalendarPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Checkout Modal */}
+      <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Receipt className="text-primary" size={20} />
+              Review & Checkout
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedAppointment && (
+            <div className="space-y-6">
+              {/* Client Info */}
+              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div>
+                  <p className="font-semibold">{selectedAppointment.client_name}</p>
+                  <p className="text-sm text-gray-500">
+                    {format(new Date(selectedAppointment.date_time), 'EEE, MMM d, yyyy')} at {format(new Date(selectedAppointment.date_time), 'HH:mm')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Line Items */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-semibold">Items & Services</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setCheckoutItems([...checkoutItems, { id: Date.now().toString(), name: '', quantity: 1, unit_price: 0, total: 0 }])}
+                  >
+                    <Plus size={14} className="mr-1" /> Add Item
+                  </Button>
+                </div>
+                
+                {checkoutItems.map((item, index) => (
+                  <div key={item.id} className="grid grid-cols-12 gap-2 items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                    <div className="col-span-5">
+                      <Input
+                        placeholder="Description"
+                        value={item.name}
+                        onChange={(e) => {
+                          const updated = [...checkoutItems];
+                          updated[index].name = e.target.value;
+                          setCheckoutItems(updated);
+                        }}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        placeholder="Qty"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const updated = [...checkoutItems];
+                          const qty = parseInt(e.target.value) || 1;
+                          updated[index].quantity = qty;
+                          updated[index].total = qty * updated[index].unit_price;
+                          setCheckoutItems(updated);
+                        }}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Price"
+                        value={item.unit_price}
+                        onChange={(e) => {
+                          const updated = [...checkoutItems];
+                          const price = parseFloat(e.target.value) || 0;
+                          updated[index].unit_price = price;
+                          updated[index].total = updated[index].quantity * price;
+                          setCheckoutItems(updated);
+                        }}
+                      />
+                    </div>
+                    <div className="col-span-2 text-right font-medium">
+                      {formatCurrency(item.total)}
+                    </div>
+                    <div className="col-span-1 text-right">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setCheckoutItems(checkoutItems.filter((_, i) => i !== index))}
+                        className="text-red-500 hover:text-red-600"
+                        disabled={checkoutItems.length === 1}
+                      >
+                        <Trash2 size={16} />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Discount */}
+              <div className="space-y-3">
+                <Label className="text-base font-semibold">Discount</Label>
+                <div className="flex gap-3 items-center">
+                  <Select 
+                    value={checkoutDiscount.type} 
+                    onValueChange={(v) => setCheckoutDiscount({ ...checkoutDiscount, type: v })}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fixed">$ Fixed</SelectItem>
+                      <SelectItem value="percent">% Percent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="0"
+                    className="w-24"
+                    value={checkoutDiscount.value || ''}
+                    onChange={(e) => setCheckoutDiscount({ ...checkoutDiscount, value: parseFloat(e.target.value) || 0 })}
+                  />
+                  {checkoutDiscount.type === 'percent' && <Percent size={16} className="text-gray-400" />}
+                  {checkoutDiscount.type === 'fixed' && <DollarSign size={16} className="text-gray-400" />}
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div className="space-y-2">
+                <Label>Notes</Label>
+                <Textarea
+                  value={checkoutNotes}
+                  onChange={(e) => setCheckoutNotes(e.target.value)}
+                  placeholder="Payment notes, special instructions..."
+                  rows={2}
+                />
+              </div>
+
+              {/* Totals */}
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
+                {(() => {
+                  const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
+                  const discountAmount = checkoutDiscount.type === 'percent' 
+                    ? subtotal * (checkoutDiscount.value || 0) / 100 
+                    : (checkoutDiscount.value || 0);
+                  const total = Math.max(0, subtotal - discountAmount);
+                  const gstAmount = total * 10 / 110; // GST included at 10%
+                  
+                  return (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-500">Subtotal</span>
+                        <span>{formatCurrency(subtotal)}</span>
+                      </div>
+                      {discountAmount > 0 && (
+                        <div className="flex justify-between text-sm text-green-600">
+                          <span>Discount</span>
+                          <span>-{formatCurrency(discountAmount)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>GST (incl.)</span>
+                        <span>{formatCurrency(gstAmount)}</span>
+                      </div>
+                      <div className="flex justify-between text-lg font-bold border-t border-gray-200 dark:border-gray-700 pt-2">
+                        <span>Total</span>
+                        <span className="text-primary">{formatCurrency(total)}</span>
+                      </div>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="w-full sm:w-auto">
+              Cancel
+            </Button>
+            <Button 
+              className="btn-maya-primary w-full sm:w-auto"
+              onClick={async () => {
+                try {
+                  const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
+                  const discountAmount = checkoutDiscount.type === 'percent' 
+                    ? subtotal * (checkoutDiscount.value || 0) / 100 
+                    : (checkoutDiscount.value || 0);
+                  const total = Math.max(0, subtotal - discountAmount);
+                  
+                  // Create invoice
+                  const invoiceData = {
+                    client_id: selectedAppointment.client_id,
+                    appointment_id: selectedAppointment.id,
+                    items: checkoutItems.filter(i => i.name && i.total > 0),
+                    notes: checkoutNotes,
+                    discount: discountAmount,
+                  };
+                  
+                  await invoicesAPI.create(invoiceData);
+                  
+                  // Update appointment status to completed
+                  await appointmentsAPI.update(selectedAppointment.id, { status: 'completed' });
+                  
+                  toast.success('Invoice created successfully!');
+                  setShowCheckoutModal(false);
+                  fetchData(); // Refresh appointments
+                } catch (error) {
+                  console.error('Checkout error:', error);
+                  toast.error('Failed to process checkout');
+                }
+              }}
+            >
+              <DollarSign size={16} className="mr-2" /> Complete & Generate Invoice
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 }
