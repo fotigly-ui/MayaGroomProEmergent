@@ -60,6 +60,7 @@ export default function CalendarPage() {
   // Dialogs
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showPhoneMenu, setShowPhoneMenu] = useState(false); // Added for phone popup
   const [showAddressMenu, setShowAddressMenu] = useState(false); // Added for address popup
   const [pendingReschedule, setPendingReschedule] = useState(null);
@@ -67,6 +68,11 @@ export default function CalendarPage() {
   const [showPhoneOptions, setShowPhoneOptions] = useState(false);
   const [showAddressOptions, setShowAddressOptions] = useState(false);
   const [selectedContact, setSelectedContact] = useState(null);
+  
+  // Checkout state
+  const [checkoutItems, setCheckoutItems] = useState([]);
+  const [checkoutDiscount, setCheckoutDiscount] = useState({ type: 'fixed', value: 0 });
+  const [checkoutNotes, setCheckoutNotes] = useState('');
   
   const scrollRef = useRef(null);
   const hasScrolledToTime = useRef(false);
