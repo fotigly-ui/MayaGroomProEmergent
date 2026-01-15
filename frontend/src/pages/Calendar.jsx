@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
-import { ChevronLeft, ChevronRight, Plus, Send, MessageSquare, Phone, Copy, MapPin, Navigation, Calendar as CalendarIcon, Edit } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Send, MessageSquare, Phone, Copy, MapPin, Navigation, Calendar as CalendarIcon, Edit, Trash2, DollarSign, Receipt, Percent } from 'lucide-react';
 import { Layout } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
-import { appointmentsAPI, clientsAPI, servicesAPI } from '../lib/api';
-import { cn, isToday } from '../lib/utils';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import { Textarea } from '../components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { appointmentsAPI, clientsAPI, servicesAPI, itemsAPI, invoicesAPI } from '../lib/api';
+import { cn, isToday, formatCurrency } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { AppointmentModal } from '../components/AppointmentModal';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
