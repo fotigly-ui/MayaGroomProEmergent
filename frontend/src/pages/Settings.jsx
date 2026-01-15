@@ -85,7 +85,15 @@ export default function Settings() {
     reminder_unit: settings?.reminder_unit || 'hours'
   });
   
-  const [smsTemplates, setSmsTemplates] = useState(settings?.sms_templates || DEFAULT_TEMPLATES);
+  const [smsTemplates, setSmsTemplates] = useState(() => {
+    try {
+      return settings?.sms_templates && Object.keys(settings.sms_templates).length > 0 
+        ? settings.sms_templates 
+        : DEFAULT_TEMPLATES;
+    } catch (e) {
+      return DEFAULT_TEMPLATES;
+    }
+  });
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [templateForm, setTemplateForm] = useState({ template: '', enabled: true });
   const [previewData, setPreviewData] = useState(null);
