@@ -91,8 +91,8 @@ Build a grooming appointment app with:
 - Supports dynamic variables: {client_name}, {pet_names}, {business_name}, {date}, {time}, {business_phone}
 
 ## Upcoming Features (P1)
-- [ ] "Review & Checkout" flow modal
-- [ ] Appointment Details view
+- [x] ~~"Review & Checkout" flow modal~~ **IMPLEMENTED 2025-01-15**
+- [x] ~~Appointment Details view~~ **IMPLEMENTED 2025-01-15**
 - [ ] Individual occurrence editing (without affecting series)
 
 ## Backlog (P2+)
