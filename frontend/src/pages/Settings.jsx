@@ -129,7 +129,13 @@ export default function Settings() {
         reminder_value: settings.reminder_value || 24,
         reminder_unit: settings.reminder_unit || 'hours'
       });
-      setSmsTemplates(settings.sms_templates || DEFAULT_TEMPLATES);
+      try {
+        setSmsTemplates(settings.sms_templates && Object.keys(settings.sms_templates).length > 0 
+          ? settings.sms_templates 
+          : DEFAULT_TEMPLATES);
+      } catch (e) {
+        setSmsTemplates(DEFAULT_TEMPLATES);
+      }
     }
   }, [settings]);
 
