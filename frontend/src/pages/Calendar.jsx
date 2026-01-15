@@ -877,12 +877,34 @@ export default function CalendarPage() {
             <Button 
               className="btn-maya-primary w-full sm:w-auto"
               onClick={() => {
+                // Initialize checkout items from appointment
+                const items = [];
+                if (selectedAppointment.pets) {
+                  selectedAppointment.pets.forEach(pet => {
+                    if (pet.services) {
+                      pet.services.forEach(svc => {
+                        const service = services.find(s => s.id === svc.service_id || s.id === svc);
+                        if (service) {
+                          items.push({
+                            id: `${pet.pet_id}-${service.id}`,
+                            name: `${pet.pet_name} - ${service.name}`,
+                            quantity: 1,
+                            unit_price: svc.price || service.price,
+                            total: svc.price || service.price
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
+                setCheckoutItems(items.length > 0 ? items : [{ id: '1', name: '', quantity: 1, unit_price: 0, total: 0 }]);
+                setCheckoutDiscount({ type: 'fixed', value: 0 });
+                setCheckoutNotes('');
                 setShowDetailsModal(false);
-                // TODO: Open checkout modal (implement in next phase)
-                toast.info('Checkout flow coming soon!');
+                setShowCheckoutModal(true);
               }}
             >
-              Review & Checkout
+              <Receipt size={16} className="mr-2" /> Review & Checkout
             </Button>
           </DialogFooter>
         </DialogContent>
