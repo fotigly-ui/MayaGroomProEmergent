@@ -627,10 +627,13 @@ export default function CalendarPage() {
                     )}
                     style={{
                       ...style,
-                      left: `64px`, // Fixed: Always start after time column (56px time + 8px padding)
-                      width: group.length > 1 ? `calc((100% - 72px) / ${group.length})` : 'calc(100% - 72px)',
-                      minWidth: '120px',
-                      marginLeft: group.length > 1 ? `${apptIndex * (100 / group.length)}%` : '0'
+                      left: group.length > 1 
+                        ? `calc(64px + (${apptIndex} * (100% - 72px) / ${group.length}))` 
+                        : '64px',
+                      width: group.length > 1 
+                        ? `calc((100% - 72px) / ${group.length})` 
+                        : 'calc(100% - 72px)',
+                      minWidth: '100px',
                     }}
                     data-testid={`appointment-${appt.id}`}
                   >
