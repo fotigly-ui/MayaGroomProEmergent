@@ -684,9 +684,16 @@ export function AppointmentModal({
                 </div>
               ))}
 
-              {appointmentPets.length === 0 && (
+              {appointmentPets.length === 0 && clientId && (
                 <div className="text-center py-4 text-maya-text-muted border border-dashed border-maya-border dark:border-gray-700 rounded-lg">
-                  Click "Add Pet" to add pets
+                  No pets found for this customer. <br/>
+                  <span className="text-xs">Add pets in the customer profile first.</span>
+                </div>
+              )}
+              
+              {appointmentPets.length === 0 && !clientId && (
+                <div className="text-center py-4 text-maya-text-muted border border-dashed border-maya-border dark:border-gray-700 rounded-lg">
+                  Select a customer to see their pets
                 </div>
               )}
             </div>
