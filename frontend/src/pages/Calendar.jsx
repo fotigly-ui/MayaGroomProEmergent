@@ -397,8 +397,6 @@ export default function CalendarPage() {
     return (slotIndex + offsetInSlot) * SLOT_HEIGHT * zoomLevel;
   };
 
-  const currentTimePos = getCurrentTimePosition();
-
   // Appointment style
   const getAppointmentStyle = (appt, groupSize, indexInGroup) => {
     const apptDate = new Date(appt.date_time);
