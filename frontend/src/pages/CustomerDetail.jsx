@@ -644,6 +644,23 @@ export default function CustomerDetail() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Appointment Modal */}
+      {showAppointmentModal && (
+        <AppointmentModal
+          isOpen={showAppointmentModal}
+          onClose={() => {
+            setShowAppointmentModal(false);
+            setSelectedAppointment(null);
+          }}
+          onSave={() => {
+            fetchData(); // Refresh appointments after save
+            setShowAppointmentModal(false);
+            setSelectedAppointment(null);
+          }}
+          appointment={selectedAppointment}
+        />
+      )}
     </Layout>
   );
 }
