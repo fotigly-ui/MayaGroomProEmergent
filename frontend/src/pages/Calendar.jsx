@@ -397,21 +397,6 @@ export default function CalendarPage() {
     return groups;
   };
 
-  // Current time
-  const [currentTime, setCurrentTime] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const getCurrentTimePosition = () => {
-    const hour = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
-    const slotIndex = hour * 4 + Math.floor(minutes / 15);
-    const offsetInSlot = (minutes % 15) / 15;
-    return (slotIndex + offsetInSlot) * SLOT_HEIGHT * zoomLevel;
-  };
-
   // Appointment style
   const getAppointmentStyle = (appt, groupSize, indexInGroup) => {
     const apptDate = new Date(appt.date_time);
