@@ -320,7 +320,7 @@ frontend:
     implemented: true
     working: false
     file: "frontend/src/pages/Calendar.jsx"
-    stuck_count: 4
+    stuck_count: 5
     priority: "high"
     needs_retesting: false
     status_history:
@@ -336,6 +336,9 @@ frontend:
         - working: false
           agent: "testing"
           comment: "❌ CRITICAL ISSUE PERSISTS - Calendar auto-scroll still NOT WORKING after latest fixes. Comprehensive testing shows: Initial scroll: 0px, Final scroll after navigation: 0px, Expected scroll for current time (10:42): ~860px. Calendar remains at midnight position instead of scrolling to current time. Current time indicator (red line) is visible at 10:42, confirming calendar renders correctly but auto-scroll functionality is completely broken. This is a high-priority user experience issue."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE STILL NOT WORKING - Fixed compilation error (duplicate isToday import) but auto-scroll functionality remains broken. Comprehensive testing at 11:02 shows: Initial scroll: 0px, After 5 seconds: 0px, After navigation back to calendar: 0px, Expected scroll: ~900px. Calendar displays correctly with current time indicator (red line at 11:02) but scroll position never changes from 0px. The useEffect scroll logic is not executing properly or scrollRef.current is not being set correctly."
 
   - task: "Appointment Layout - Full Width for Non-Overlapping"
     implemented: true
