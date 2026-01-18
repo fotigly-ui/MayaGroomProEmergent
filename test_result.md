@@ -487,11 +487,13 @@ frontend:
           agent: "testing"
           comment: "✅ MINOR TEST PASSED - Search icon on customers page doesn't overlap or block the input field. Users can click and type in the search field without any interference from the search icon. Search functionality works properly."
 
-metadata:
-  created_by: "testing_agent"
-  version: "1.0"
-  test_sequence: 1
-  run_ui: false
+test_plan:
+  current_focus:
+    - "Calendar Auto-Scroll to Current Time"
+  stuck_tasks:
+    - "Calendar Auto-Scroll to Current Time"
+  test_all: false
+  test_priority: "high_first"
 
     - agent: "testing"
       message: "CRITICAL FRONTEND FIXES TESTING COMPLETE - Comprehensive testing of all 4 requested critical fixes: 1) ❌ CRITICAL: Calendar Auto-Scroll has JavaScript errors preventing component from rendering (ReferenceError: Cannot access variables before initialization), fixed by moving variable definitions before useEffect, 2) ✅ VERIFIED: Appointment Layout correctly groups only same-time appointments side-by-side, different times take full width, 3) ✅ VERIFIED: Invoice Modal is fully responsive on mobile (76.6% viewport height, readable fonts, proper button sizing), 4) ✅ VERIFIED: Customer Edit Modal is scrollable on mobile (84.2% viewport height, all fields accessible). 3 out of 4 fixes working correctly. Calendar needs JavaScript error resolution."
