@@ -321,7 +321,11 @@ export default function CustomerDetail() {
 
               <TabsContent value="upcoming">
                 <div className="space-y-3">
-                  {appointments.filter(appt => new Date(appt.date_time) >= new Date()).map((appt) => (
+                  {appointments.filter(appt => {
+                    const isFuture = new Date(appt.date_time) >= new Date();
+                    const isActive = !['cancelled', 'no_show'].includes(appt.status);
+                    return isFuture && isActive;
+                  }).map((appt) => (
                     <div
                       key={appt.id}
                       className="card-maya flex items-center justify-between cursor-pointer hover:shadow-lg transition-shadow"
@@ -352,9 +356,7 @@ export default function CustomerDetail() {
                           "text-xs px-2 py-0.5 rounded-full",
                           appt.status === 'scheduled' && "bg-maya-info text-white",
                           appt.status === 'confirmed' && "bg-green-500 text-white",
-                          appt.status === 'completed' && "bg-maya-success text-white",
-                          appt.status === 'cancelled' && "bg-gray-400 text-white",
-                          appt.status === 'no_show' && "bg-maya-error text-white"
+                          appt.status === 'completed' && "bg-maya-success text-white"
                         )}>
                           {appt.status}
                         </span>
@@ -362,7 +364,11 @@ export default function CustomerDetail() {
                     </div>
                   ))}
 
-                  {appointments.filter(appt => new Date(appt.date_time) >= new Date()).length === 0 && (
+                  {appointments.filter(appt => {
+                    const isFuture = new Date(appt.date_time) >= new Date();
+                    const isActive = !['cancelled', 'no_show'].includes(appt.status);
+                    return isFuture && isActive;
+                  }).length === 0 && (
                     <div className="empty-state">
                       <Calendar className="empty-state-icon mx-auto" />
                       <p>No upcoming appointments</p>
@@ -373,7 +379,11 @@ export default function CustomerDetail() {
 
               <TabsContent value="past">
                 <div className="space-y-3">
-                  {appointments.filter(appt => new Date(appt.date_time) < new Date()).map((appt) => (
+                  {appointments.filter(appt => {
+                    const isPast = new Date(appt.date_time) < new Date();
+                    const isCancelled = ['cancelled', 'no_show'].includes(appt.status);
+                    return isPast || isCancelled;
+                  }).map((appt) => (
                     <div
                       key={appt.id}
                       className="card-maya flex items-center justify-between cursor-pointer hover:shadow-lg transition-shadow opacity-75"
@@ -414,7 +424,11 @@ export default function CustomerDetail() {
                     </div>
                   ))}
 
-                  {appointments.filter(appt => new Date(appt.date_time) < new Date()).length === 0 && (
+                  {appointments.filter(appt => {
+                    const isPast = new Date(appt.date_time) < new Date();
+                    const isCancelled = ['cancelled', 'no_show'].includes(appt.status);
+                    return isPast || isCancelled;
+                  }).length === 0 && (
                     <div className="empty-state">
                       <Calendar className="empty-state-icon mx-auto" />
                       <p>No past appointments</p>
