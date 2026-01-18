@@ -348,15 +348,18 @@ frontend:
 
   - task: "Invoice Modal Responsive Layout"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/Invoices.jsx"
     stuck_count: 1
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "🔧 FIXED - Made invoice view modal fully responsive: Reduced max-h to 85vh, added responsive font sizes (text-[10px] sm:text-xs), reduced padding (p-2 sm:p-3), changed layout to flex-col on mobile for header info, made buttons full-width on mobile with flex-1."
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL FIX VERIFIED - Invoice modal is fully responsive on mobile. Modal height is 76.6% of viewport (within 85vh limit), Bill To section stacks vertically on mobile, font sizes are appropriately small but readable (text-[10px] sm:text-xs), and action buttons are properly sized for mobile interaction."
 
   - task: "Customer Edit Modal Scrollable"
     implemented: true
