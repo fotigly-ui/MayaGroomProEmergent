@@ -474,14 +474,19 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Recurring Appointments Creation"
-    - "Series Update Functionality"
-    - "Series Delete Functionality"
+    - "Edit Single Occurrence of Recurring Appointment (Detach from Series)"
+    - "Preserve Recurring Fields on Series Update"
+    - "Calendar Auto-Scroll to Current Time"
+    - "Appointment Layout - Full Width for Non-Overlapping"
+    - "Invoice Modal Responsive Layout"
+    - "Customer Edit Modal Scrollable"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+    - agent: "main"
+      message: "BATCH BUG FIXES IMPLEMENTED - Fixed all P0, P1, P2 bugs reported by user. P0: 1) Single occurrence edit now detaches appointment from series (removes recurring metadata), 2) Recurring fields preserved on series updates. P1: 3) Appointment layout fixed to only group same-start-time appointments, 4) Calendar scroll consolidated and fixed. P2: 5) Invoice modal made fully responsive, 6) Customer edit modal restructured with scrollable content. Ready for batch testing."
     - agent: "testing"
       message: "CRITICAL RECURRING APPOINTMENTS TESTING COMPLETE - All P0 critical tests PASSED. Recurring appointments system is working correctly: 1) Creates multiple appointments (26 for every 2 weeks over 1 year), 2) Series updates affect all future appointments correctly, 3) Series deletes remove all future appointments while preserving past ones, 4) Date math is accurate (14-day intervals), 5) All appointments maintain proper recurring_id linkage. Standard appointment CRUD and filtering also working. Backend API is fully functional with 36/36 total tests passed across all endpoints."
     - agent: "testing"
