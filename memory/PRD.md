@@ -11,73 +11,34 @@ Build a grooming appointment app with:
 - Invoicing & Checkout with GST calculation
 - Dark mode
 
-## Core Requirements
+## Build Documentation
+**See `/app/BUILD_SUMMARY.md` for complete technical documentation**
 
-### Calendar Features
-- Week view with full-week header, showing appointments for selected day only
-- Pinned header (month/year) and week day selector
-- Pinch to zoom on calendar grid only
-- "Today" button navigates to current date and scrolls to current time
-- Red line indicator for current time
-- 24-hour time slots (00:00-23:59) with 15-minute intervals
-- Drag and drop to reschedule appointments
-- Overlapping appointments displayed side-by-side
+## Current Status: MVP COMPLETE ✅
 
-### Appointments
-- Customer selection modal within appointment form
-- Recurring appointments (daily, weekly, monthly)
-- Edit single occurrence or entire series
-- Appointment details view with Edit and "Review & Checkout" buttons
-- Editable time/date in reschedule dialog
-- Status-based color coding
+### Completed Features (January 2025)
+- [x] User authentication (JWT)
+- [x] Calendar with week view, current time indicator, auto-scroll
+- [x] Appointments with drag & drop, color-coded status
+- [x] Recurring appointments (daily/weekly/monthly)
+- [x] Customer management with contact popups (Call/SMS/Maps)
+- [x] Pet management linked to customers
+- [x] Services & Items management
+- [x] Review & Checkout flow with service/product selection
+- [x] Invoice generation with discount & GST
+- [x] SMS templates (7 editable templates)
+- [x] Settings (Business, Payment, SMS, Preferences)
+- [x] Supabase backup integration
+- [x] Mobile-responsive design
 
-### Clients & Pets
-- View customer past/future appointments
-- Phone: Prompt for SMS, Call, or Copy
-- Address: Prompt for Maps/Google Maps/Waze
-
-### Invoicing
-- Company ABN field in settings
-- Checkout flow with add/remove/update services, items, prices, discounts
-- GST calculation and display
-
-## Tech Stack
-- **Frontend:** React, TailwindCSS, Shadcn/UI, Lucide React
-- **Backend:** FastAPI, Pydantic
-- **Database:** MongoDB
-- **Auth:** JWT
-- **SMS:** Twilio
-
-## What's Been Implemented ✅
-
-### 2025-01-14
-- [x] User authentication (login/register)
-- [x] Client CRUD operations
-- [x] Pet CRUD operations
-- [x] Services CRUD operations
-- [x] Items CRUD operations
-- [x] Calendar view with week navigation
-- [x] Recurring appointment creation (creates 52 weekly occurrences)
-- [x] Customer selection modal in appointment form
-- [x] Phone/Address click popups (Call/SMS/Copy options)
-- [x] Reduced UI card sizes
-- [x] GST settings fields in backend
-- [x] **DELETE series fix** - Now deletes ALL appointments in series correctly
-
-## Known Issues - RESOLVED
-
-### P0 - Critical
-- [x] ~~Delete recurring series only deletes one~~ **FIXED**
-- [x] ~~Edit recurring frequency~~ **User confirmed working**
-
-### P1 - Important  
-- [x] ~~Timeline doesn't scroll to current time~~ **FIXED 2025-01-15**
-- [x] ~~Appointments side-by-side when not overlapping~~ **FIXED 2025-01-15**
-- [x] ~~Invoice not fitting mobile~~ **FIXED 2025-01-15**
-- [x] ~~Customer edit form not fitting~~ **FIXED 2025-01-15**
-- [x] ~~Message templates not visible~~ **FIXED 2025-01-15** - Now always visible in Settings → SMS
-
-### P2 - Minor
+### Pending Features
+- [ ] Dark mode completion
+- [ ] Address autocomplete (Google Places)
+- [ ] Save contact to phone (vCard export)
+- [ ] Month/List calendar views
+- [ ] Automatic SMS sending via Twilio
+- [ ] Online customer booking portal
+- [ ] Reporting & Analytics dashboard
 - [x] ~~Price shown on appointment boxes~~ **FIXED**
 - [x] ~~Pets not auto-loading from customer~~ **FIXED 2025-01-15**
 - [x] ~~Invoice discount not applied~~ **FIXED 2025-01-15**
