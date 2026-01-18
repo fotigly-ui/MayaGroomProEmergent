@@ -168,37 +168,31 @@ export default function CalendarPage() {
 
   // Scroll to current time on first load and when navigating to today
   useEffect(() => {
-    console.log('🔍 SCROLL EFFECT CHECK:', { loading, apptCount: appointments.length, date: selectedDate.toISOString(), isToday: isToday(selectedDate), hasScrolled: hasScrolledToTime.current });
-    
     // Wait for appointments to load, then scroll
-    if (!loading && appointments.length >= 0) {
-      const isViewingToday = isToday(selectedDate);
-      
-      console.log('🔍 Is today?', isViewingToday);
-      
-      if (isViewingToday && !hasScrolledToTime.current && scrollRef.current) {
-        console.log('✅ Conditions met, scheduling scroll...');
-        
-        // Delay to ensure DOM is rendered
-        setTimeout(() => {
-          if (scrollRef.current) {
-            const now = new Date();
-            const hour = now.getHours();
-            const minutes = now.getMinutes();
-            const slotIndex = hour * 4 + Math.floor(minutes / 15);
-            const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
-            
-            console.log('📍 Scrolling to:', scrollPosition, 'current scrollTop:', scrollRef.current.scrollTop);
-            scrollRef.current.scrollTop = scrollPosition;
-            console.log('📍 After scroll, scrollTop:', scrollRef.current.scrollTop);
-            hasScrolledToTime.current = true;
-          }
-        }, 300);
-      } else {
-        console.log('❌ Conditions NOT met:', { isViewingToday, hasScrolled: hasScrolledToTime.current, refExists: !!scrollRef.current });
-      }
+    if (!loading && appointments.length >= 0 && isToday(selectedDate) && !hasScrolledToTime.current) {
+      // Use requestAnimationFrame for reliable scroll timing
+      requestAnimationFrame(() => {
+        if (scrollRef.current) {
+          const now = new Date();
+          const hour = now.getHours();
+          const minutes = now.getMinutes();
+          const slotIndex = hour * 4 + Math.floor(minutes / 15);
+          const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
+          
+          scrollRef.current.scrollTop = scrollPosition;
+          hasScrolledToTime.current = true;
+          
+          // Verify scroll worked
+          requestAnimationFrame(() => {
+            if (scrollRef.current && scrollRef.current.scrollTop < 100) {
+              // Retry once more
+              scrollRef.current.scrollTop = scrollPosition;
+            }
+          });
+        }
+      });
     }
-  }, [loading, appointments.length, selectedDate]); // Removed zoomLevel to prevent scroll reset on zoom
+  }, [loading, appointments.length, selectedDate]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
