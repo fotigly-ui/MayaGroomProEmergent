@@ -44,6 +44,7 @@ const STATUS_COLORS = {
 
 export default function CalendarPage() {
   const { settings } = useAuth();
+  const location = useLocation();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +84,16 @@ export default function CalendarPage() {
   const scrollRef = useRef(null);
   const hasScrolledToTime = useRef(false);
   const currentTimeRef = useRef(null);
+  
+  // Handle navigation from customer detail page
+  useEffect(() => {
+    if (location.state?.scrollToDate) {
+      setSelectedDate(new Date(location.state.scrollToDate));
+      hasScrolledToTime.current = false;
+      // Clear the navigation state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
