@@ -154,6 +154,13 @@ export default function CalendarPage() {
 
   // Scroll to current time on first load and when navigating to today
   useEffect(() => {
+    console.log('Scroll useEffect triggered:', { 
+      loading, 
+      hasScrolled: hasScrolledToTime.current, 
+      isToday: isSelectedDateToday,
+      scrollRefExists: !!scrollRef.current 
+    });
+    
     // Only scroll if not loading and haven't scrolled yet, or if explicitly reset
     if (!loading && !hasScrolledToTime.current && isSelectedDateToday) {
       // Wait for DOM to be fully rendered
@@ -165,12 +172,15 @@ export default function CalendarPage() {
           const slotIndex = hour * 4 + Math.floor(minutes / 15);
           // Calculate scroll position: account for 120px padding at top
           const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100;
+          console.log('Scrolling to position:', scrollPosition, 'for time', `${hour}:${minutes}`);
           scrollRef.current.scrollTo({
             top: Math.max(0, scrollPosition),
             behavior: 'instant'
           });
           hasScrolledToTime.current = true;
           console.log('Auto-scrolled to current time');
+        } else {
+          console.log('scrollRef.current is null');
         }
       }, 300);
       return () => clearTimeout(timer);
