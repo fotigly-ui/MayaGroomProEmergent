@@ -792,12 +792,16 @@ export function AppointmentModal({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {recurringAction === 'delete' ? 'Delete Recurring Appointment' : 'Update Recurring Appointment'}
+              {recurringAction === 'delete' ? 'Delete Recurring Appointment' : 
+               recurringAction === 'status' ? 'Update Status' :
+               'Update Recurring Appointment'}
             </DialogTitle>
           </DialogHeader>
           <p className="text-maya-text-muted">
             {recurringAction === 'delete' 
               ? 'Delete only this occurrence or the entire series?'
+              : recurringAction === 'status'
+              ? 'Update only this occurrence or the entire series?'
               : 'Update only this occurrence or the entire series?'}
           </p>
           <div className="space-y-3 mt-4">
@@ -815,6 +819,24 @@ export function AppointmentModal({
                     onSave();
                   } catch (error) {
                     toast.error('Failed to delete appointment');
+                  } finally {
+                    setLoading(false);
+                  }
+                } else if (recurringAction === 'status' && pendingStatusChange) {
+                  // Update status for single appointment
+                  setLoading(true);
+                  try {
+                    await appointmentsAPI.update(appointment.id, { 
+                      status: pendingStatusChange,
+                      update_series: false 
+                    });
+                    toast.success(`Marked as ${pendingStatusChange === 'no_show' ? 'No Show' : 'Cancelled'}`);
+                    const messageType = pendingStatusChange === 'cancelled' ? 'appointment_cancelled' : 'no_show';
+                    setShowRecurringDialog(false);
+                    setPendingStatusChange(null);
+                    promptSmsAfterAction(messageType, () => onSave());
+                  } catch (error) {
+                    toast.error('Failed to update status');
                   } finally {
                     setLoading(false);
                   }
@@ -842,6 +864,24 @@ export function AppointmentModal({
                   } finally {
                     setLoading(false);
                   }
+                } else if (recurringAction === 'status' && pendingStatusChange) {
+                  // Update status for entire series
+                  setLoading(true);
+                  try {
+                    await appointmentsAPI.update(appointment.id, { 
+                      status: pendingStatusChange,
+                      update_series: true 
+                    });
+                    toast.success(`Series marked as ${pendingStatusChange === 'no_show' ? 'No Show' : 'Cancelled'}`);
+                    const messageType = pendingStatusChange === 'cancelled' ? 'appointment_cancelled' : 'no_show';
+                    setShowRecurringDialog(false);
+                    setPendingStatusChange(null);
+                    promptSmsAfterAction(messageType, () => onSave());
+                  } catch (error) {
+                    toast.error('Failed to update series status');
+                  } finally {
+                    setLoading(false);
+                  }
                 } else {
                   setRecurringAction('series');
                 }
@@ -851,8 +891,11 @@ export function AppointmentModal({
             </Button>
           </div>
           <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowRecurringDialog(false)}>Cancel</Button>
-            {recurringAction !== 'delete' && (
+            <Button variant="outline" onClick={() => {
+              setShowRecurringDialog(false);
+              setPendingStatusChange(null);
+            }}>Cancel</Button>
+            {recurringAction !== 'delete' && recurringAction !== 'status' && (
               <Button className="btn-maya-primary" onClick={handleSubmit}>Continue</Button>
             )}
           </DialogFooter>
