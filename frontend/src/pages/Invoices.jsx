@@ -457,74 +457,74 @@ export default function Invoices() {
 
       {/* View Invoice Modal */}
       <Dialog open={showViewModal} onOpenChange={setShowViewModal}>
-        <DialogContent className="max-w-lg w-[95vw] max-h-[90vh] overflow-y-auto print:max-w-full print:m-0 print:shadow-none p-4">
+        <DialogContent className="max-w-lg w-[95vw] max-h-[85vh] overflow-y-auto print:max-w-full print:m-0 print:shadow-none p-3 sm:p-6">
           {selectedInvoice && (
             <>
               <DialogHeader className="print:hidden pr-8">
-                <DialogTitle className="text-lg">Invoice</DialogTitle>
-                <Button variant="outline" size="sm" onClick={printInvoice} className="absolute right-12 top-4">
+                <DialogTitle className="text-base sm:text-lg">Invoice</DialogTitle>
+                <Button variant="outline" size="sm" onClick={printInvoice} className="absolute right-12 top-3 sm:top-4">
                   <Printer size={14} />
                 </Button>
               </DialogHeader>
 
               {/* Invoice Content - Mobile Optimized */}
-              <div className="space-y-4 print:p-8 text-sm" id="invoice-print">
+              <div className="space-y-3 sm:space-y-4 print:p-8 text-xs sm:text-sm" id="invoice-print">
                 {/* Header */}
-                <div className="border-b border-maya-border pb-3">
-                  <h2 className="text-lg font-bold text-primary">{selectedInvoice.business.name || 'Business Name'}</h2>
-                  {selectedInvoice.business.abn && <p className="text-xs text-maya-text-muted">ABN: {selectedInvoice.business.abn}</p>}
+                <div className="border-b border-maya-border pb-2 sm:pb-3">
+                  <h2 className="text-base sm:text-lg font-bold text-primary">{selectedInvoice.business.name || 'Business Name'}</h2>
+                  {selectedInvoice.business.abn && <p className="text-[10px] sm:text-xs text-maya-text-muted">ABN: {selectedInvoice.business.abn}</p>}
                 </div>
 
                 {/* Invoice Info */}
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row justify-between items-start gap-3 sm:gap-0">
                   <div>
-                    <p className="text-xs text-maya-text-muted mb-1">Bill To:</p>
-                    <p className="font-semibold">{selectedInvoice.invoice.client_name}</p>
-                    {selectedInvoice.invoice.client_address && <p className="text-xs">{selectedInvoice.invoice.client_address}</p>}
-                    {selectedInvoice.invoice.client_phone && <p className="text-xs">{selectedInvoice.invoice.client_phone}</p>}
+                    <p className="text-[10px] sm:text-xs text-maya-text-muted mb-1">Bill To:</p>
+                    <p className="font-semibold text-xs sm:text-sm">{selectedInvoice.invoice.client_name}</p>
+                    {selectedInvoice.invoice.client_address && <p className="text-[10px] sm:text-xs">{selectedInvoice.invoice.client_address}</p>}
+                    {selectedInvoice.invoice.client_phone && <p className="text-[10px] sm:text-xs">{selectedInvoice.invoice.client_phone}</p>}
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold">{selectedInvoice.invoice.invoice_number}</p>
-                    <p className="text-xs text-maya-text-muted">
+                  <div className="text-left sm:text-right">
+                    <p className="font-bold text-xs sm:text-sm">{selectedInvoice.invoice.invoice_number}</p>
+                    <p className="text-[10px] sm:text-xs text-maya-text-muted">
                       {format(new Date(selectedInvoice.invoice.created_at), 'MMM d, yyyy')}
                     </p>
                   </div>
                 </div>
 
                 {/* Items - Simplified for Mobile */}
-                <div className="border-t border-maya-border pt-3 space-y-2">
+                <div className="border-t border-maya-border pt-2 sm:pt-3 space-y-1.5 sm:space-y-2">
                   {selectedInvoice.invoice.items.map((item, i) => (
-                    <div key={i} className="flex justify-between items-start py-2 border-b border-maya-border/30">
-                      <div className="flex-1">
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-xs text-maya-text-muted">Qty: {item.quantity} × {formatCurrency(item.unit_price)}</p>
+                    <div key={i} className="flex justify-between items-start py-1.5 sm:py-2 border-b border-maya-border/30">
+                      <div className="flex-1 pr-2">
+                        <p className="font-medium text-xs sm:text-sm">{item.name}</p>
+                        <p className="text-[10px] sm:text-xs text-maya-text-muted">Qty: {item.quantity} × {formatCurrency(item.unit_price)}</p>
                       </div>
-                      <p className="font-semibold">{formatCurrency(item.total)}</p>
+                      <p className="font-semibold text-xs sm:text-sm whitespace-nowrap">{formatCurrency(item.total)}</p>
                     </div>
                   ))}
                 </div>
 
                 {/* Totals - Compact */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-1">
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2 sm:p-3 space-y-1">
                   {selectedInvoice.invoice.discount > 0 && (
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs sm:text-sm">
                       <span>Subtotal</span>
                       <span>{formatCurrency(selectedInvoice.invoice.items.reduce((s, i) => s + i.total, 0))}</span>
                     </div>
                   )}
                   {selectedInvoice.invoice.discount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
+                    <div className="flex justify-between text-xs sm:text-sm text-green-600">
                       <span>Discount</span>
                       <span>-{formatCurrency(selectedInvoice.invoice.discount)}</span>
                     </div>
                   )}
                   {selectedInvoice.business.gst_enabled && selectedInvoice.invoice.gst_amount > 0 && (
-                    <div className="flex justify-between text-xs text-maya-text-muted">
+                    <div className="flex justify-between text-[10px] sm:text-xs text-maya-text-muted">
                       <span>GST (incl.)</span>
                       <span>{formatCurrency(selectedInvoice.invoice.gst_amount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-lg font-bold border-t border-maya-border pt-2 mt-2">
+                  <div className="flex justify-between text-base sm:text-lg font-bold border-t border-maya-border pt-1.5 sm:pt-2 mt-1.5 sm:mt-2">
                     <span>Total</span>
                     <span className="text-primary">{formatCurrency(selectedInvoice.invoice.total)}</span>
                   </div>
@@ -532,7 +532,7 @@ export default function Invoices() {
 
                 {/* Notes */}
                 {selectedInvoice.invoice.notes && (
-                  <div className="text-xs text-maya-text-muted bg-gray-50 dark:bg-gray-800 rounded p-2">
+                  <div className="text-[10px] sm:text-xs text-maya-text-muted bg-gray-50 dark:bg-gray-800 rounded p-2">
                     <p className="font-medium">Notes:</p>
                     <p>{selectedInvoice.invoice.notes}</p>
                   </div>
@@ -540,18 +540,18 @@ export default function Invoices() {
               </div>
 
               {/* Actions - Fixed at Bottom */}
-              <div className="flex justify-between items-center pt-3 border-t border-maya-border print:hidden">
-                <span className={cn("text-xs px-2 py-1 rounded-full", getStatusColor(selectedInvoice.invoice.status))}>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 pt-3 border-t border-maya-border print:hidden">
+                <span className={cn("text-[10px] sm:text-xs px-2 py-1 rounded-full", getStatusColor(selectedInvoice.invoice.status))}>
                   {selectedInvoice.invoice.status}
                 </span>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto">
                   {selectedInvoice.invoice.status === 'draft' && (
-                    <Button variant="outline" size="sm" onClick={() => updateStatus(selectedInvoice.invoice.id, 'sent')}>
+                    <Button variant="outline" size="sm" onClick={() => updateStatus(selectedInvoice.invoice.id, 'sent')} className="text-xs flex-1 sm:flex-none">
                       Mark Sent
                     </Button>
                   )}
                   {['draft', 'sent', 'overdue'].includes(selectedInvoice.invoice.status) && (
-                    <Button size="sm" className="btn-maya-primary" onClick={() => updateStatus(selectedInvoice.invoice.id, 'paid')}>
+                    <Button size="sm" className="btn-maya-primary text-xs flex-1 sm:flex-none" onClick={() => updateStatus(selectedInvoice.invoice.id, 'paid')}>
                       Mark Paid
                     </Button>
                   )}
