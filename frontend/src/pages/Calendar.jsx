@@ -173,7 +173,7 @@ export default function CalendarPage() {
       const isViewingToday = isToday(selectedDate);
       
       if (isViewingToday && !hasScrolledToTime.current && scrollRef.current) {
-        // Small delay to ensure DOM is rendered
+        // Delay to ensure DOM is rendered
         setTimeout(() => {
           if (scrollRef.current) {
             const now = new Date();
@@ -182,33 +182,13 @@ export default function CalendarPage() {
             const slotIndex = hour * 4 + Math.floor(minutes / 15);
             const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
             
-            console.log('📍 Container info:', {
-              scrollHeight: scrollRef.current.scrollHeight,
-              clientHeight: scrollRef.current.clientHeight,
-              maxScroll: scrollRef.current.scrollHeight - scrollRef.current.clientHeight,
-              targetScroll: scrollPosition
-            });
-            
             scrollRef.current.scrollTop = scrollPosition;
-            
-            // Force a re-check after a tiny delay
-            setTimeout(() => {
-              if (scrollRef.current && scrollRef.current.scrollTop === 0) {
-                console.log('⚠️ Scroll reset detected, retrying with scrollIntoView...');
-                // Try alternative method
-                const targetElement = scrollRef.current.querySelector(`[data-time="${hour}:${minutes}"]`);
-                if (targetElement) {
-                  targetElement.scrollIntoView({ block: 'center', behavior: 'instant' });
-                }
-              }
-            }, 50);
-            
             hasScrolledToTime.current = true;
           }
-        }, 300); // Increased delay
+        }, 300);
       }
     }
-  }, [loading, appointments.length, selectedDate, zoomLevel]);
+  }, [loading, appointments.length, selectedDate]); // Removed zoomLevel to prevent scroll reset on zoom
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
