@@ -8,7 +8,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { clientsAPI, petsAPI, appointmentsAPI } from '../lib/api';
+import { clientsAPI, petsAPI, appointmentsAPI, servicesAPI } from '../lib/api';
 import { formatDate, formatTime, formatCurrency, cn } from '../lib/utils';
 import { AppointmentModal } from '../components/AppointmentModal';
 import { toast } from 'sonner';
@@ -50,14 +50,16 @@ export default function CustomerDetail() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [clientRes, petsRes, apptsRes] = await Promise.all([
+      const [clientRes, petsRes, apptsRes, servicesRes] = await Promise.all([
         clientsAPI.get(id),
         petsAPI.list(id),
-        appointmentsAPI.list({ clientId: id })
+        appointmentsAPI.list({ clientId: id }),
+        servicesAPI.list()
       ]);
       setClient(clientRes.data);
       setPets(petsRes.data);
       setAppointments(apptsRes.data);
+      setServices(servicesRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load customer');
