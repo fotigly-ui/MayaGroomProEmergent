@@ -129,6 +129,21 @@ export default function CalendarPage() {
     setPopoverMonth(selectedDate);
   }, [selectedDate]);
 
+  // Current time
+  const [currentTime, setCurrentTime] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const getCurrentTimePosition = () => {
+    const hour = currentTime.getHours();
+    const minutes = currentTime.getMinutes();
+    const slotIndex = hour * 4 + Math.floor(minutes / 15);
+    const offsetInSlot = (minutes % 15) / 15;
+    return (slotIndex + offsetInSlot) * SLOT_HEIGHT * zoomLevel;
+  };
+
   const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isToday(selectedDate);
 
