@@ -374,19 +374,18 @@ export default function CalendarPage() {
     
     sorted.forEach((appt) => {
       const apptStart = new Date(appt.date_time);
-      const apptEnd = new Date(apptStart.getTime() + (appt.total_duration || 60) * 60000);
       
       if (currentGroup.length === 0) {
         currentGroup.push(appt);
       } else {
-        // Check overlap with ALL in current group
-        const hasOverlap = currentGroup.some(existingAppt => {
+        // FIXED: Only group appointments that start at the EXACT same time
+        // This means they're truly overlapping and should display side-by-side
+        const hasSameStartTime = currentGroup.some(existingAppt => {
           const existingStart = new Date(existingAppt.date_time);
-          const existingEnd = new Date(existingStart.getTime() + (existingAppt.total_duration || 60) * 60000);
-          return apptStart < existingEnd && apptEnd > existingStart;
+          return existingStart.getTime() === apptStart.getTime();
         });
         
-        if (hasOverlap) {
+        if (hasSameStartTime) {
           currentGroup.push(appt);
         } else {
           groups.push([...currentGroup]);
