@@ -318,15 +318,18 @@ frontend:
 
   - task: "Calendar Auto-Scroll to Current Time"
     implemented: true
-    working: "NA"
+    working: false
     file: "frontend/src/pages/Calendar.jsx"
-    stuck_count: 1
+    stuck_count: 2
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "🔧 FIXED - Consolidated scroll logic into single useEffect. Removed conflicting scrollToCurrentTime function and separate goToToday implementation. Now uses consistent calculation: slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100. Only triggers on load when isSelectedDateToday is true."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL JAVASCRIPT ERRORS FOUND - Calendar page has ReferenceError: Cannot access 'isSelectedDateToday' and 'getCurrentTimePosition' before initialization. These variables are used in useEffect before being defined, causing the entire calendar component to crash. Fixed by moving variable definitions before useEffect. Today button and current time indicator not rendering due to component crash."
 
   - task: "Appointment Layout - Full Width for Non-Overlapping"
     implemented: true
