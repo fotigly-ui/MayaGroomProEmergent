@@ -501,9 +501,17 @@ test_plan:
   test_all: false
   test_priority: "high_first"
 
-agent_communication:
-    - agent: "main"
-      message: "BATCH BUG FIXES IMPLEMENTED - Fixed all P0, P1, P2 bugs reported by user. P0: 1) Single occurrence edit now detaches appointment from series (removes recurring metadata), 2) Recurring fields preserved on series updates. P1: 3) Appointment layout fixed to only group same-start-time appointments, 4) Calendar scroll consolidated and fixed. P2: 5) Invoice modal made fully responsive, 6) Customer edit modal restructured with scrollable content. Ready for batch testing."
+  - task: "Recurring Appointments Editability"
+    implemented: true
+    working: true
+    file: "frontend/src/components/AppointmentModal.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TESTING COMPLETED - Successfully tested recurring appointments editability: 1) ✅ Created NEW recurring appointment (Emma Thompson, tomorrow 10:00 AM, every 1 week), 2) ✅ Recurring appointment creation working perfectly with customer selection, date/time setting, recurring toggle, and save functionality, 3) ✅ DateTime field in edit modal is FULLY EDITABLE (not disabled, not readonly), 4) ✅ Status change to 'Cancelled' triggers recurring dialog asking 'single vs series' as expected, 5) ✅ User can select 'Only this appointment' or 'All appointments in series' options. All recurring appointment functionality is working correctly."
     - agent: "testing"
       message: "CRITICAL RECURRING APPOINTMENTS TESTING COMPLETE - All P0 critical tests PASSED. Recurring appointments system is working correctly: 1) Creates multiple appointments (26 for every 2 weeks over 1 year), 2) Series updates affect all future appointments correctly, 3) Series deletes remove all future appointments while preserving past ones, 4) Date math is accurate (14-day intervals), 5) All appointments maintain proper recurring_id linkage. Standard appointment CRUD and filtering also working. Backend API is fully functional with 36/36 total tests passed across all endpoints."
     - agent: "testing"
