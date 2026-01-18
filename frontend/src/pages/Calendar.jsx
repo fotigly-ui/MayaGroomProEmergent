@@ -149,16 +149,30 @@ export default function CalendarPage() {
     setPopoverMonth(selectedDate);
   }, [selectedDate]);
 
-  // Scroll to current time on first load
+  // Scroll to current time on first load and when navigating to today
   useEffect(() => {
-    if (!loading && !hasScrolledToTime.current) {
-      // Wait for DOM to be ready
+    // Only scroll if not loading and haven't scrolled yet, or if explicitly reset
+    if (!loading && !hasScrolledToTime.current && isSelectedDateToday) {
+      // Wait for DOM to be fully rendered
       const timer = setTimeout(() => {
-        scrollToCurrentTime();
-      }, 500);
+        if (scrollRef.current) {
+          const now = new Date();
+          const hour = now.getHours();
+          const minutes = now.getMinutes();
+          const slotIndex = hour * 4 + Math.floor(minutes / 15);
+          // Calculate scroll position: account for 120px padding at top
+          const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100;
+          scrollRef.current.scrollTo({
+            top: Math.max(0, scrollPosition),
+            behavior: 'instant'
+          });
+          hasScrolledToTime.current = true;
+          console.log('Auto-scrolled to current time');
+        }
+      }, 300);
       return () => clearTimeout(timer);
     }
-  }, [loading, scrollToCurrentTime]);
+  }, [loading, zoomLevel, isSelectedDateToday]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
