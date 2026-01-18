@@ -480,8 +480,6 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Edit Single Occurrence of Recurring Appointment (Detach from Series)"
-    - "Preserve Recurring Fields on Series Update"
     - "Calendar Auto-Scroll to Current Time"
     - "Appointment Layout - Full Width for Non-Overlapping"
     - "Invoice Modal Responsive Layout"
