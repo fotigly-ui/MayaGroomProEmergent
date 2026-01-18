@@ -310,17 +310,16 @@ export default function CustomerDetail() {
           </TabsContent>
 
           <TabsContent value="appointments">
-            <h2 className="text-lg font-semibold text-maya-text mb-4">Appointment History</h2>
+            <h2 className="text-lg font-semibold text-maya-text mb-4">Upcoming Appointments</h2>
             <div className="space-y-3">
-              {appointments.map((appt) => (
+              {appointments.filter(appt => new Date(appt.date_time) >= new Date()).map((appt) => (
                 <div
                   key={appt.id}
                   className="card-maya flex items-center justify-between cursor-pointer hover:shadow-lg transition-shadow"
                   data-testid={`appt-${appt.id}`}
                   onClick={() => {
-                    // Navigate to calendar and set the appointment date
-                    const apptDate = new Date(appt.date_time);
-                    navigate('/', { state: { scrollToDate: apptDate, scrollToAppointment: appt.id } });
+                    setSelectedAppointment(appt);
+                    setShowAppointmentModal(true);
                   }}
                 >
                   <div className="flex items-center gap-4">
@@ -353,9 +352,64 @@ export default function CustomerDetail() {
                 </div>
               ))}
 
-              {appointments.length === 0 && (
+              {appointments.filter(appt => new Date(appt.date_time) >= new Date()).length === 0 && (
                 <div className="empty-state">
                   <Calendar className="empty-state-icon mx-auto" />
+                  <p>No upcoming appointments</p>
+                </div>
+              )}
+            </div>
+
+            <h2 className="text-lg font-semibold text-maya-text mb-4 mt-8">Past Appointments</h2>
+            <div className="space-y-3">
+              {appointments.filter(appt => new Date(appt.date_time) < new Date()).map((appt) => (
+                <div
+                  key={appt.id}
+                  className="card-maya flex items-center justify-between cursor-pointer hover:shadow-lg transition-shadow opacity-75"
+                  data-testid={`appt-${appt.id}`}
+                  onClick={() => {
+                    setSelectedAppointment(appt);
+                    setShowAppointmentModal(true);
+                  }}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                      <Calendar className="text-gray-600" size={18} />
+                    </div>
+                    <div>
+                      <p className="font-medium text-maya-text">
+                        {formatDate(appt.date_time)} at {formatTime(appt.date_time)}
+                      </p>
+                      {appt.pets?.length > 0 && (
+                        <p className="text-sm text-maya-text-muted">
+                          {appt.pets.map(p => p.pet_name).join(', ')}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-semibold text-primary">{formatCurrency(appt.total_price)}</p>
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-full",
+                      appt.status === 'scheduled' && "bg-maya-info text-white",
+                      appt.status === 'completed' && "bg-maya-success text-white",
+                      appt.status === 'cancelled' && "bg-gray-400 text-white",
+                      appt.status === 'no_show' && "bg-maya-error text-white"
+                    )}>
+                      {appt.status}
+                    </span>
+                  </div>
+                </div>
+              ))}
+
+              {appointments.filter(appt => new Date(appt.date_time) < new Date()).length === 0 && (
+                <div className="empty-state">
+                  <Calendar className="empty-state-icon mx-auto" />
+                  <p>No past appointments</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
                   <p>No appointments yet</p>
                 </div>
               )}
