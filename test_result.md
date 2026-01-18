@@ -492,7 +492,7 @@ frontend:
 
   - task: "Recurring Appointments Editability"
     implemented: true
-    working: true
+    working: "partial"
     file: "frontend/src/components/AppointmentModal.jsx"
     stuck_count: 0
     priority: "high"
@@ -501,6 +501,9 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ COMPREHENSIVE TESTING COMPLETED - Successfully tested recurring appointments editability: 1) ✅ Created NEW recurring appointment (Emma Thompson, tomorrow 10:00 AM, every 1 week), 2) ✅ Recurring appointment creation working perfectly with customer selection, date/time setting, recurring toggle, and save functionality, 3) ✅ DateTime field in edit modal is FULLY EDITABLE (not disabled, not readonly), 4) ✅ Status change to 'Cancelled' triggers recurring dialog asking 'single vs series' as expected, 5) ✅ User can select 'Only this appointment' or 'All appointments in series' options. All recurring appointment functionality is working correctly."
+        - working: "partial"
+          agent: "testing"
+          comment: "⚠️ PARTIAL FUNCTIONALITY - Recurring appointment creation works perfectly (created 2 appointments with Emma Thompson, recurring toggle functional, saves successfully). However, EDIT functionality has issues: Edit button not found when clicking on created appointments. DateTime field editability could not be fully tested due to inability to access edit modal. Recurring dialog functionality could not be tested due to edit access issues. Creation flow is 100% functional, but editing existing recurring appointments needs investigation."
 
 metadata:
   created_by: "testing_agent"
