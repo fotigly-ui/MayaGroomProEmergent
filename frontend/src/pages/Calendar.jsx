@@ -157,6 +157,15 @@ export default function CalendarPage() {
   // Scroll to current time on first load and when navigating to today
   // Using useLayoutEffect for synchronous DOM manipulation before paint
   useLayoutEffect(() => {
+    console.log('useLayoutEffect scroll check:', { 
+      loading, 
+      hasScrolled: hasScrolledToTime.current,
+      isToday: isSelectedDateToday,
+      scrollRefExists: !!scrollRef.current,
+      scrollHeight: scrollRef.current?.scrollHeight,
+      clientHeight: scrollRef.current?.clientHeight
+    });
+    
     // Only scroll if not loading and haven't scrolled yet, or if explicitly reset
     if (!loading && !hasScrolledToTime.current && isSelectedDateToday && scrollRef.current) {
       const now = new Date();
@@ -166,10 +175,13 @@ export default function CalendarPage() {
       // Calculate scroll position: account for 120px padding at top
       const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
       
+      console.log('Attempting scroll to:', scrollPosition, 'px');
+      
       // Use setTimeout(0) to ensure DOM is fully laid out
       setTimeout(() => {
         if (scrollRef.current) {
           scrollRef.current.scrollTop = scrollPosition;
+          console.log('Scroll executed. New scrollTop:', scrollRef.current.scrollTop);
           hasScrolledToTime.current = true;
         }
       }, 0);
