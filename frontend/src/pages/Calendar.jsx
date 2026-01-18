@@ -156,13 +156,6 @@ export default function CalendarPage() {
 
   // Scroll to current time on first load and when navigating to today
   useEffect(() => {
-    console.log('Scroll useEffect triggered:', { 
-      loading, 
-      hasScrolled: hasScrolledToTime.current, 
-      isToday: isSelectedDateToday,
-      scrollRefExists: !!scrollRef.current 
-    });
-    
     // Only scroll if not loading and haven't scrolled yet, or if explicitly reset
     if (!loading && !hasScrolledToTime.current && isSelectedDateToday) {
       // Wait longer for DOM to be fully rendered with all time slots
@@ -173,34 +166,21 @@ export default function CalendarPage() {
           const minutes = now.getMinutes();
           const slotIndex = hour * 4 + Math.floor(minutes / 15);
           // Calculate scroll position: account for 120px padding at top
-          const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100;
-          console.log('Scrolling to position:', scrollPosition, 'for time', `${hour}:${minutes}`);
+          const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
           
-          // Perform scroll
-          scrollRef.current.scrollTo({
-            top: Math.max(0, scrollPosition),
-            behavior: 'instant'
-          });
+          // Use scrollTop instead of scrollTo for more reliable scrolling
+          scrollRef.current.scrollTop = scrollPosition;
           
-          // Verify scroll happened, retry if needed
+          // Verify and retry if needed
           setTimeout(() => {
             if (scrollRef.current && scrollRef.current.scrollTop < 100) {
-              console.log('Scroll verification failed, retrying...');
-              scrollRef.current.scrollTo({
-                top: Math.max(0, scrollPosition),
-                behavior: 'instant'
-              });
-            } else {
-              console.log('Scroll verified at:', scrollRef.current?.scrollTop);
+              scrollRef.current.scrollTop = scrollPosition;
             }
           }, 200);
           
           hasScrolledToTime.current = true;
-          console.log('Auto-scrolled to current time');
-        } else {
-          console.log('scrollRef.current is null');
         }
-      }, 1000); // Increased from 300ms to 1000ms
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [loading, zoomLevel, isSelectedDateToday]);
