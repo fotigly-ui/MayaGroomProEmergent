@@ -813,7 +813,16 @@ export default function CalendarPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">Date</div>
-                  <div className="font-medium">{format(new Date(selectedAppointment.date_time), 'EEE, MMM d, yyyy')}</div>
+                  <button
+                    onClick={() => {
+                      setSelectedDate(new Date(selectedAppointment.date_time));
+                      setShowDetailsModal(false);
+                      hasScrolledToTime.current = false; // Trigger scroll to appointment time
+                    }}
+                    className="font-medium hover:text-primary transition-colors text-left"
+                  >
+                    {format(new Date(selectedAppointment.date_time), 'EEE, MMM d, yyyy')}
+                  </button>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">Time</div>
