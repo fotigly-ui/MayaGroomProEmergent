@@ -168,11 +168,25 @@ export default function CalendarPage() {
 
   // Scroll to current time on first load and when navigating to today
   useEffect(() => {
+    console.log('📍 SCROLL DEBUG:', {
+      loading,
+      appointmentsLength: appointments.length,
+      selectedDate: selectedDate.toString(),
+      isViewingToday: isToday(selectedDate),
+      hasScrolled: hasScrolledToTime.current,
+      scrollRefExists: !!scrollRef.current,
+      zoomLevel
+    });
+    
     // Wait for appointments to load, then scroll
     if (!loading && appointments.length >= 0) {
       const isViewingToday = isToday(selectedDate);
       
+      console.log('📍 Scroll condition check:', { isViewingToday, hasScrolled: hasScrolledToTime.current });
+      
       if (isViewingToday && !hasScrolledToTime.current && scrollRef.current) {
+        console.log('✅ Scroll condition MET - attempting scroll...');
+        
         // Small delay to ensure DOM is rendered
         setTimeout(() => {
           if (scrollRef.current) {
@@ -182,10 +196,19 @@ export default function CalendarPage() {
             const slotIndex = hour * 4 + Math.floor(minutes / 15);
             const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
             
+            console.log('📍 Scrolling to:', scrollPosition, 'px for time', `${hour}:${minutes}`);
+            console.log('📍 ScrollRef before:', scrollRef.current.scrollTop);
+            
             scrollRef.current.scrollTop = scrollPosition;
+            
+            console.log('📍 ScrollRef after:', scrollRef.current.scrollTop);
             hasScrolledToTime.current = true;
+          } else {
+            console.log('❌ scrollRef.current is NULL inside setTimeout');
           }
         }, 100);
+      } else {
+        console.log('❌ Scroll condition NOT met');
       }
     }
   }, [loading, appointments.length, selectedDate, zoomLevel]);
