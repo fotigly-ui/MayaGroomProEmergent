@@ -82,7 +82,7 @@ class MayaGroomProAPITester:
     def test_auth_login(self):
         """Test user login with provided credentials"""
         data = {
-            "email": "maya@test.com",
+            "email": "frontendtest@test.com",
             "password": "test123"
         }
         
