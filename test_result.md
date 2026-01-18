@@ -514,20 +514,9 @@ test_plan:
   test_priority: "high_first"
 
 agent_communication:
-    - agent: "testing"
-      message: "FINAL COMPREHENSIVE TESTING COMPLETED - Tested both critical issues requested: 1) ❌ CRITICAL: Calendar Auto-Scroll to Current Time is NOT WORKING - scroll position remains 0px when navigating away and back to calendar, should scroll to current time (09:42) but stays at midnight. Current time indicator is visible but auto-scroll broken. 2) ✅ CRITICAL: Recurring Appointments Editability is FULLY WORKING - created new recurring appointment successfully, datetime field is editable, status change to 'Cancelled' shows recurring dialog with 'single vs series' options. Calendar auto-scroll needs immediate fix as it's a high-priority user experience issue."
-
-  - task: "Recurring Appointments Editability"
-    implemented: true
-    working: true
-    file: "frontend/src/components/AppointmentModal.jsx"
-    stuck_count: 0
-    priority: "high"
-    needs_retesting: false
-    status_history:
-        - working: true
-          agent: "testing"
-          comment: "✅ COMPREHENSIVE TESTING COMPLETED - Successfully tested recurring appointments editability: 1) ✅ Created NEW recurring appointment (Emma Thompson, tomorrow 10:00 AM, every 1 week), 2) ✅ Recurring appointment creation working perfectly with customer selection, date/time setting, recurring toggle, and save functionality, 3) ✅ DateTime field in edit modal is FULLY EDITABLE (not disabled, not readonly), 4) ✅ Status change to 'Cancelled' triggers recurring dialog asking 'single vs series' as expected, 5) ✅ User can select 'Only this appointment' or 'All appointments in series' options. All recurring appointment functionality is working correctly."
+agent_communication:
+    - agent: "main"
+      message: "BATCH BUG FIXES IMPLEMENTED - Fixed all P0, P1, P2 bugs reported by user. P0: 1) Single occurrence edit now detaches appointment from series (removes recurring metadata), 2) Recurring fields preserved on series updates. P1: 3) Appointment layout fixed to only group same-start-time appointments, 4) Calendar scroll consolidated and fixed. P2: 5) Invoice modal made fully responsive, 6) Customer edit modal restructured with scrollable content. Ready for batch testing."
     - agent: "testing"
       message: "CRITICAL RECURRING APPOINTMENTS TESTING COMPLETE - All P0 critical tests PASSED. Recurring appointments system is working correctly: 1) Creates multiple appointments (26 for every 2 weeks over 1 year), 2) Series updates affect all future appointments correctly, 3) Series deletes remove all future appointments while preserving past ones, 4) Date math is accurate (14-day intervals), 5) All appointments maintain proper recurring_id linkage. Standard appointment CRUD and filtering also working. Backend API is fully functional with 36/36 total tests passed across all endpoints."
     - agent: "testing"
@@ -536,6 +525,10 @@ agent_communication:
       message: "CRITICAL FIXES RE-VERIFICATION COMPLETE - Performed comprehensive testing of the specific critical functionality requested: 1) ✅ CRITICAL: Update NON-recurring appointment to recurring works perfectly (converts single appointment to 53 weekly occurrences), 2) ✅ CRITICAL: Series update with update_series=true successfully updates all 53 future appointments in series, 3) ✅ CRITICAL: Series delete with delete_series=true successfully deletes all 53 future appointments while preserving past ones, 4) ✅ Standard CRUD operations (create, update, read, delete) all working correctly. All 6/6 critical tests PASSED. The previously failing recurring conversion functionality is now fully operational."
     - agent: "testing"
       message: "FINAL CRITICAL FIXES VERIFICATION COMPLETE - Comprehensive testing of all 4 requested critical fixes: 1) ✅ CRITICAL: Customer Selection Modal opens correctly (NOT navigation to /customers page) with search functionality and customer selection working, 2) ✅ CRITICAL: Calendar Headers Stay Fixed - Month header and week selector remain visible during scroll with proper sticky positioning, 3) ✅ MINOR: Customer Search Icon doesn't overlap input field and allows proper typing without interference, 4) ✅ CRITICAL: Recurring Appointment Conversion functionality exists and works without 'Appointment not found' errors. All critical UI fixes are working as expected. Authentication and navigation flows are stable."
+    - agent: "testing"
+      message: "CRITICAL FRONTEND FIXES TESTING COMPLETE - Comprehensive testing of all 4 requested critical fixes: 1) ❌ CRITICAL: Calendar Auto-Scroll has JavaScript errors preventing component from rendering (ReferenceError: Cannot access variables before initialization), fixed by moving variable definitions before useEffect, 2) ✅ VERIFIED: Appointment Layout correctly groups only same-time appointments side-by-side, different times take full width, 3) ✅ VERIFIED: Invoice Modal is fully responsive on mobile (76.6% viewport height, readable fonts, proper button sizing), 4) ✅ VERIFIED: Customer Edit Modal is scrollable on mobile (84.2% viewport height, all fields accessible). 3 out of 4 fixes working correctly. Calendar needs JavaScript error resolution."
+    - agent: "testing"
+      message: "FINAL COMPREHENSIVE TESTING COMPLETED - Tested both critical issues requested: 1) ❌ CRITICAL: Calendar Auto-Scroll to Current Time is NOT WORKING - scroll position remains 0px when navigating away and back to calendar, should scroll to current time (09:42) but stays at midnight. Current time indicator is visible but auto-scroll broken. 2) ✅ CRITICAL: Recurring Appointments Editability is FULLY WORKING - created new recurring appointment successfully, datetime field is editable, status change to 'Cancelled' shows recurring dialog with 'single vs series' options. Calendar auto-scroll needs immediate fix as it's a high-priority user experience issue."
 agent_communication:
     - agent: "main"
       message: "BATCH BUG FIXES IMPLEMENTED - Fixed all P0, P1, P2 bugs reported by user. P0: 1) Single occurrence edit now detaches appointment from series (removes recurring metadata), 2) Recurring fields preserved on series updates. P1: 3) Appointment layout fixed to only group same-start-time appointments, 4) Calendar scroll consolidated and fixed. P2: 5) Invoice modal made fully responsive, 6) Customer edit modal restructured with scrollable content. Ready for batch testing."
