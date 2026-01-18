@@ -81,6 +81,7 @@ export default function CalendarPage() {
   
   const scrollRef = useRef(null);
   const hasScrolledToTime = useRef(false);
+  const currentTimeRef = useRef(null);
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
