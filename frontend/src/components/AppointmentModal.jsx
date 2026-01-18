@@ -89,6 +89,7 @@ export function AppointmentModal({
   // Recurring dialog
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
   const [recurringAction, setRecurringAction] = useState('single');
+  const [pendingStatusChange, setPendingStatusChange] = useState(null);
 
   const isEditing = !!appointment;
   
