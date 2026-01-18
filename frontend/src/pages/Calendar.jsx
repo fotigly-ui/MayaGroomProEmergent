@@ -165,7 +165,7 @@ export default function CalendarPage() {
     
     // Only scroll if not loading and haven't scrolled yet, or if explicitly reset
     if (!loading && !hasScrolledToTime.current && isSelectedDateToday) {
-      // Wait for DOM to be fully rendered
+      // Wait longer for DOM to be fully rendered with all time slots
       const timer = setTimeout(() => {
         if (scrollRef.current) {
           const now = new Date();
@@ -175,16 +175,32 @@ export default function CalendarPage() {
           // Calculate scroll position: account for 120px padding at top
           const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100;
           console.log('Scrolling to position:', scrollPosition, 'for time', `${hour}:${minutes}`);
+          
+          // Perform scroll
           scrollRef.current.scrollTo({
             top: Math.max(0, scrollPosition),
             behavior: 'instant'
           });
+          
+          // Verify scroll happened, retry if needed
+          setTimeout(() => {
+            if (scrollRef.current && scrollRef.current.scrollTop < 100) {
+              console.log('Scroll verification failed, retrying...');
+              scrollRef.current.scrollTo({
+                top: Math.max(0, scrollPosition),
+                behavior: 'instant'
+              });
+            } else {
+              console.log('Scroll verified at:', scrollRef.current?.scrollTop);
+            }
+          }, 200);
+          
           hasScrolledToTime.current = true;
           console.log('Auto-scrolled to current time');
         } else {
           console.log('scrollRef.current is null');
         }
-      }, 300);
+      }, 1000); // Increased from 300ms to 1000ms
       return () => clearTimeout(timer);
     }
   }, [loading, zoomLevel, isSelectedDateToday]);
