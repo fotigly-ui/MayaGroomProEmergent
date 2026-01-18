@@ -381,6 +381,15 @@ export function AppointmentModal({
   const handleStatusChange = async (newStatus) => {
     setStatus(newStatus);
     
+    // For cancelled/no_show on recurring appointments, show dialog to choose single vs series
+    if (isEditing && (newStatus === 'cancelled' || newStatus === 'no_show') && appointment?.is_recurring && appointment?.recurring_id) {
+      // Set a pending status change
+      setPendingStatusChange(newStatus);
+      setShowRecurringDialog(true);
+      setRecurringAction('status'); // New action type for status changes
+      return;
+    }
+    
     if (isEditing && (newStatus === 'cancelled' || newStatus === 'no_show')) {
       setLoading(true);
       try {
