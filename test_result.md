@@ -487,13 +487,23 @@ frontend:
           agent: "testing"
           comment: "✅ MINOR TEST PASSED - Search icon on customers page doesn't overlap or block the input field. Users can click and type in the search field without any interference from the search icon. Search functionality works properly."
 
-test_plan:
-  current_focus:
-    - "Calendar Auto-Scroll to Current Time"
-  stuck_tasks:
-    - "Calendar Auto-Scroll to Current Time"
-  test_all: false
-  test_priority: "high_first"
+  - task: "Recurring Appointments Editability"
+    implemented: true
+    working: true
+    file: "frontend/src/components/AppointmentModal.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ COMPREHENSIVE TESTING COMPLETED - Successfully tested recurring appointments editability: 1) ✅ Created NEW recurring appointment (Emma Thompson, tomorrow 10:00 AM, every 1 week), 2) ✅ Recurring appointment creation working perfectly with customer selection, date/time setting, recurring toggle, and save functionality, 3) ✅ DateTime field in edit modal is FULLY EDITABLE (not disabled, not readonly), 4) ✅ Status change to 'Cancelled' triggers recurring dialog asking 'single vs series' as expected, 5) ✅ User can select 'Only this appointment' or 'All appointments in series' options. All recurring appointment functionality is working correctly."
+
+metadata:
+  created_by: "testing_agent"
+  version: "1.0"
+  test_sequence: 2
+  run_ui: true
 
     - agent: "testing"
       message: "CRITICAL FRONTEND FIXES TESTING COMPLETE - Comprehensive testing of all 4 requested critical fixes: 1) ❌ CRITICAL: Calendar Auto-Scroll has JavaScript errors preventing component from rendering (ReferenceError: Cannot access variables before initialization), fixed by moving variable definitions before useEffect, 2) ✅ VERIFIED: Appointment Layout correctly groups only same-time appointments side-by-side, different times take full width, 3) ✅ VERIFIED: Invoice Modal is fully responsive on mobile (76.6% viewport height, readable fonts, proper button sizing), 4) ✅ VERIFIED: Customer Edit Modal is scrollable on mobile (84.2% viewport height, all fields accessible). 3 out of 4 fixes working correctly. Calendar needs JavaScript error resolution."
