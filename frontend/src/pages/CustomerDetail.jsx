@@ -19,6 +19,7 @@ export default function CustomerDetail() {
   const [client, setClient] = useState(null);
   const [pets, setPets] = useState([]);
   const [appointments, setAppointments] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showPetModal, setShowPetModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
@@ -665,6 +666,8 @@ export default function CustomerDetail() {
             setSelectedAppointment(null);
           }}
           appointment={selectedAppointment}
+          clients={client ? [client] : []}
+          services={services}
         />
       )}
     </Layout>
