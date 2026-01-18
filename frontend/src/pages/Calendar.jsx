@@ -398,7 +398,6 @@ export default function CalendarPage() {
   };
 
   const currentTimePos = getCurrentTimePosition();
-  const isSelectedDateToday = isToday(selectedDate);
 
   // Appointment style
   const getAppointmentStyle = (appt, groupSize, indexInGroup) => {
