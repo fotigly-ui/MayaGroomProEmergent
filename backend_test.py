@@ -817,6 +817,13 @@ class MayaGroomProAPITester:
         self.test_invoices_update_status()
         self.test_invoices_filter_by_status()
 
+        # Test Critical Recurring Appointment Features
+        print("\n🔄 Testing Critical Recurring Appointment Features...")
+        self.test_recurring_appointments_create()
+        self.test_edit_single_occurrence_detach()
+        self.test_preserve_recurring_fields_on_series_update()
+        self.test_series_update_with_frequency_change()
+
         # Print summary
         print("\n" + "=" * 50)
         print(f"📊 Test Results: {self.tests_passed}/{self.tests_run} passed")
