@@ -81,27 +81,6 @@ export default function CalendarPage() {
   
   const scrollRef = useRef(null);
   const hasScrolledToTime = useRef(false);
-  const currentTimeRef = useRef(null);
-
-  // Function to scroll to current time
-  const scrollToCurrentTime = useCallback(() => {
-    // Try to scroll to the current time indicator element
-    if (currentTimeRef.current) {
-      currentTimeRef.current.scrollIntoView({ behavior: 'instant', block: 'center' });
-      hasScrolledToTime.current = true;
-      console.log('Scrolled to current time indicator');
-    } else if (scrollRef.current) {
-      // Fallback: calculate position manually
-      const now = new Date();
-      const hour = now.getHours();
-      const minutes = now.getMinutes();
-      const slotIndex = hour * 4 + Math.floor(minutes / 15);
-      const scrollPosition = (slotIndex * SLOT_HEIGHT * zoomLevel) - 50;
-      scrollRef.current.scrollTop = Math.max(0, scrollPosition);
-      hasScrolledToTime.current = true;
-      console.log('Scrolled manually to:', scrollPosition);
-    }
-  }, [zoomLevel]);
 
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
