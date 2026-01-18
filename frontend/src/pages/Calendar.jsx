@@ -166,33 +166,29 @@ export default function CalendarPage() {
   const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isToday(selectedDate);
 
-  // Scroll to current time on first load and when navigating to today
+  // Scroll to current time on mount - SIMPLEST POSSIBLE APPROACH
   useEffect(() => {
-    // Wait for appointments to load, then scroll
-    if (!loading && appointments.length >= 0 && isToday(selectedDate) && !hasScrolledToTime.current) {
-      // Use requestAnimationFrame for reliable scroll timing
-      requestAnimationFrame(() => {
-        if (scrollRef.current) {
+    if (!loading && scrollRef.current) {
+      const timer = setTimeout(() => {
+        if (scrollRef.current && isToday(selectedDate)) {
           const now = new Date();
           const hour = now.getHours();
           const minutes = now.getMinutes();
           const slotIndex = hour * 4 + Math.floor(minutes / 15);
-          const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
+          const targetScroll = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
           
-          scrollRef.current.scrollTop = scrollPosition;
+          // Just set it directly, multiple times to ensure it sticks
+          scrollRef.current.scrollTop = targetScroll;
+          setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = targetScroll; }, 10);
+          setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = targetScroll; }, 50);
+          setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = targetScroll; }, 100);
+          
           hasScrolledToTime.current = true;
-          
-          // Verify scroll worked
-          requestAnimationFrame(() => {
-            if (scrollRef.current && scrollRef.current.scrollTop < 100) {
-              // Retry once more
-              scrollRef.current.scrollTop = scrollPosition;
-            }
-          });
         }
-      });
+      }, 500);
+      return () => clearTimeout(timer);
     }
-  }, [loading, appointments.length, selectedDate]);
+  }, [loading]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
