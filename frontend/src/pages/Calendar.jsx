@@ -123,6 +123,8 @@ export default function CalendarPage() {
 
   useEffect(() => {
     fetchData();
+    // Reset scroll flag when navigating to a different date so calendar can re-scroll when coming back to today
+    hasScrolledToTime.current = false;
   }, [fetchData]);
 
   useEffect(() => {
