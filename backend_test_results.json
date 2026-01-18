@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-01-12T13:02:16.655797",
-  "total_tests": 29,
-  "passed_tests": 29,
-  "success_rate": 1.0,
+  "timestamp": "2026-01-18T08:13:47.735743",
+  "total_tests": 33,
+  "passed_tests": 32,
+  "success_rate": 0.9696969696969697,
   "results": [
     {
       "test": "User Login",
@@ -120,9 +120,9 @@
       "details": ""
     },
     {
-      "test": "Create Invoice (with GST calculation)",
-      "success": true,
-      "details": ""
+      "test": "Create Invoice",
+      "success": false,
+      "details": "GST calculation incorrect: subtotal=90.9090909090909, gst=9.090909090909092, total=100.0"
     },
     {
       "test": "List Invoices",
@@ -137,7 +137,7 @@
     {
       "test": "Create Invoice from Appointment",
       "success": true,
-      "details": "Invoice: INV-202601-0004"
+      "details": "Invoice: INV-202601-0006"
     },
     {
       "test": "Update Invoice Status",
@@ -148,6 +148,26 @@
       "test": "Filter Invoices by Status",
       "success": true,
       "details": ""
+    },
+    {
+      "test": "Create Recurring Appointment Series",
+      "success": true,
+      "details": "Created 27 recurring appointments"
+    },
+    {
+      "test": "Edit Single Occurrence (Detach from Series)",
+      "success": true,
+      "details": "Successfully detached appointment, 26 appointments remain in series"
+    },
+    {
+      "test": "Preserve Recurring Fields on Series Update",
+      "success": true,
+      "details": "Successfully updated 26 appointments in series while preserving recurring metadata"
+    },
+    {
+      "test": "Series Update with Frequency Change",
+      "success": true,
+      "details": "Successfully changed frequency: 53 -> 27 appointments, 14-day intervals"
     }
   ]
 }
