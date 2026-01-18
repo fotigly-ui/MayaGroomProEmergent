@@ -1038,7 +1038,17 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
             {"$set": update_data}
         )
     else:
-        # Update single appointment - with existence check
+        # Update single appointment
+        # If this is a recurring appointment and we're updating just this one occurrence,
+        # we need to "detach" it from the series by removing recurring fields and giving it independence
+        if original_appt.get("is_recurring") and original_appt.get("recurring_id"):
+            # Detach from series: remove recurring metadata so it becomes a standalone appointment
+            update_data["is_recurring"] = False
+            update_data["recurring_value"] = None
+            update_data["recurring_unit"] = None
+            update_data["recurring_id"] = None
+            logger.info(f"Detaching appointment {appointment_id} from recurring series")
+        
         # Re-verify appointment exists before update
         check_exists = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
         if not check_exists:
