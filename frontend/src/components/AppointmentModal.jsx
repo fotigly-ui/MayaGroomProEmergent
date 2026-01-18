@@ -344,10 +344,8 @@ export function AppointmentModal({
         }))
       };
 
-      // Only add date_time if it's a new appointment or date actually changed
-      if (!isEditing) {
-        data.date_time = new Date(dateTime).toISOString();
-      }
+      // ALWAYS include date_time for both create and edit (allows rescheduling)
+      data.date_time = new Date(dateTime).toISOString();
 
       if (isEditing) {
         await appointmentsAPI.update(appointment.id, { 
