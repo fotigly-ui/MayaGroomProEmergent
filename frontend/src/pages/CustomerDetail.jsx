@@ -420,61 +420,63 @@ export default function CustomerDetail() {
 
       {/* Edit Client Modal */}
       <Dialog open={showClientModal} onOpenChange={setShowClientModal}>
-        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto p-4">
-          <DialogHeader className="pb-2">
-            <DialogTitle>Edit Customer</DialogTitle>
+        <DialogContent className="max-w-md w-[95vw] max-h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-2 shrink-0">
+            <DialogTitle className="text-base sm:text-lg">Edit Customer</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleClientSubmit} className="space-y-3">
-            <div className="space-y-1">
-              <Label className="text-sm">Name *</Label>
-              <Input
-                value={clientForm.name}
-                onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
-                placeholder="Customer name"
-                data-testid="client-name-input"
-                required
-              />
+          <form onSubmit={handleClientSubmit} className="flex flex-col flex-1 min-h-0">
+            <div className="space-y-3 px-4 sm:px-6 overflow-y-auto flex-1">
+              <div className="space-y-1">
+                <Label className="text-sm">Name *</Label>
+                <Input
+                  value={clientForm.name}
+                  onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
+                  placeholder="Customer name"
+                  data-testid="client-name-input"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sm">Phone</Label>
+                <Input
+                  value={clientForm.phone}
+                  onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
+                  placeholder="Phone number"
+                  data-testid="client-phone-input"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-sm">Email</Label>
+                <Input
+                  type="email"
+                  value={clientForm.email}
+                  onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
+                  placeholder="Email address"
+                  data-testid="client-email-input"
+                />
+              </div>
+              <div className="space-y-1 pb-3">
+                <Label className="text-sm">Address</Label>
+                <Textarea
+                  value={clientForm.address}
+                  onChange={(e) => setClientForm({ ...clientForm, address: e.target.value })}
+                  placeholder="Start typing address..."
+                  data-testid="client-address-input"
+                  rows={2}
+                  className="resize-none"
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <Label className="text-sm">Phone</Label>
-              <Input
-                value={clientForm.phone}
-                onChange={(e) => setClientForm({ ...clientForm, phone: e.target.value })}
-                placeholder="Phone number"
-                data-testid="client-phone-input"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-sm">Email</Label>
-              <Input
-                type="email"
-                value={clientForm.email}
-                onChange={(e) => setClientForm({ ...clientForm, email: e.target.value })}
-                placeholder="Email address"
-                data-testid="client-email-input"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-sm">Address</Label>
-              <Textarea
-                value={clientForm.address}
-                onChange={(e) => setClientForm({ ...clientForm, address: e.target.value })}
-                placeholder="Start typing address..."
-                data-testid="client-address-input"
-                rows={2}
-                className="resize-none"
-              />
-            </div>
-            <DialogFooter className="flex-col gap-2 pt-2">
+            <DialogFooter className="flex-col gap-2 px-4 sm:px-6 py-3 sm:py-4 border-t shrink-0">
               <div className="flex gap-2 w-full">
-                <Button type="button" variant="outline" onClick={() => setShowClientModal(false)} className="flex-1">
+                <Button type="button" variant="outline" onClick={() => setShowClientModal(false)} className="flex-1 text-xs sm:text-sm">
                   Cancel
                 </Button>
-                <Button type="submit" className="btn-maya-primary flex-1" data-testid="save-client-btn">
+                <Button type="submit" className="btn-maya-primary flex-1 text-xs sm:text-sm" data-testid="save-client-btn">
                   Save
                 </Button>
               </div>
-              <Button type="button" variant="ghost" className="text-red-500 text-sm w-full" onClick={handleDeleteClient}>
+              <Button type="button" variant="ghost" className="text-red-500 text-xs sm:text-sm w-full" onClick={handleDeleteClient}>
                 Delete Customer
               </Button>
             </DialogFooter>
