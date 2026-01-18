@@ -320,7 +320,7 @@ frontend:
     implemented: true
     working: false
     file: "frontend/src/pages/Calendar.jsx"
-    stuck_count: 2
+    stuck_count: 3
     priority: "high"
     needs_retesting: false
     status_history:
@@ -330,6 +330,9 @@ frontend:
         - working: false
           agent: "testing"
           comment: "❌ CRITICAL JAVASCRIPT ERRORS FOUND - Calendar page has ReferenceError: Cannot access 'isSelectedDateToday' and 'getCurrentTimePosition' before initialization. These variables are used in useEffect before being defined, causing the entire calendar component to crash. Fixed by moving variable definitions before useEffect. Today button and current time indicator not rendering due to component crash."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE CONFIRMED - Calendar auto-scroll to current time is NOT WORKING. Tested navigation from Calendar → Customers → Calendar. Initial scroll position: 0px, Final scroll position after returning: 0px. The calendar remains at the top (midnight) instead of scrolling to current time (09:42). The current time indicator is visible (red line at 09:42) but auto-scroll functionality is broken. This is a high-priority issue affecting user experience."
 
   - task: "Appointment Layout - Full Width for Non-Overlapping"
     implemented: true
