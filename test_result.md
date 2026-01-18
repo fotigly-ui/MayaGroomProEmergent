@@ -119,15 +119,18 @@ backend:
 
   - task: "Edit Single Occurrence of Recurring Appointment (Detach from Series)"
     implemented: true
-    working: "NA"
+    working: true
     file: "backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "✨ NEW IMPLEMENTATION - When update_series=false on a recurring appointment, the backend now detaches that single appointment from the series by setting is_recurring=false and removing recurring_id, recurring_value, recurring_unit. This allows editing a single occurrence without affecting the series."
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL TEST PASSED - Successfully tested single occurrence detachment functionality. Created recurring series (27 appointments with 14-day intervals), updated one appointment with update_series=false, verified it was properly detached (is_recurring=false, recurring_id=null, recurring_value=null, recurring_unit=null) while 26 appointments remained in original series with intact recurring metadata. Detachment logic working perfectly."
 
   - task: "Preserve Recurring Fields on Series Update"
     implemented: true
