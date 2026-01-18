@@ -213,23 +213,7 @@ export default function CalendarPage() {
   
   const goToToday = () => {
     setSelectedDate(new Date());
-    hasScrolledToTime.current = false; // Reset to allow scroll
-    // Scroll to current time after state updates
-    setTimeout(() => {
-      if (scrollRef.current) {
-        const now = new Date();
-        const hour = now.getHours();
-        const minutes = now.getMinutes();
-        const slotIndex = hour * 4 + Math.floor(minutes / 15);
-        // Account for 120px padding
-        const scrollPosition = slotIndex * SLOT_HEIGHT * zoomLevel - 100 + 120;
-        scrollRef.current.scrollTo({
-          top: Math.max(0, scrollPosition),
-          behavior: 'smooth'
-        });
-        hasScrolledToTime.current = true;
-      }
-    }, 300);
+    hasScrolledToTime.current = false; // Reset to trigger auto-scroll in useEffect
   };
 
   const handleSlotClick = (hour, minute) => {
