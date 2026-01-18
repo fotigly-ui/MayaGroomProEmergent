@@ -643,7 +643,7 @@ export default function CustomerDetail() {
       {/* Appointment Modal */}
       {showAppointmentModal && (
         <AppointmentModal
-          isOpen={showAppointmentModal}
+          open={showAppointmentModal}
           onClose={() => {
             setShowAppointmentModal(false);
             setSelectedAppointment(null);
