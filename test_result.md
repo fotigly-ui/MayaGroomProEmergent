@@ -363,15 +363,18 @@ frontend:
 
   - task: "Customer Edit Modal Scrollable"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/CustomerDetail.jsx"
     stuck_count: 1
     priority: "medium"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "🔧 FIXED - Restructured modal with flexbox: DialogContent has max-h-[85vh], header and footer are shrink-0 (fixed), form content area has overflow-y-auto and flex-1 (scrollable). This ensures modal fits on screen and content is scrollable."
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL FIX VERIFIED - Customer edit modal is fully functional on mobile. Modal height is 84.2% of viewport (within 85vh limit), all form fields (Name, Phone, Email, Address) are accessible and visible, header and footer remain fixed while form content is scrollable. Flexbox structure with shrink-0 and flex-1 classes working correctly."
 
   - task: "Wider Appointment Blocks with Service Names"
     implemented: true
