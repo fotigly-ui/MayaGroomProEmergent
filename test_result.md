@@ -505,8 +505,15 @@ metadata:
   test_sequence: 2
   run_ui: true
 
-    - agent: "testing"
-      message: "CRITICAL FRONTEND FIXES TESTING COMPLETE - Comprehensive testing of all 4 requested critical fixes: 1) ❌ CRITICAL: Calendar Auto-Scroll has JavaScript errors preventing component from rendering (ReferenceError: Cannot access variables before initialization), fixed by moving variable definitions before useEffect, 2) ✅ VERIFIED: Appointment Layout correctly groups only same-time appointments side-by-side, different times take full width, 3) ✅ VERIFIED: Invoice Modal is fully responsive on mobile (76.6% viewport height, readable fonts, proper button sizing), 4) ✅ VERIFIED: Customer Edit Modal is scrollable on mobile (84.2% viewport height, all fields accessible). 3 out of 4 fixes working correctly. Calendar needs JavaScript error resolution."
+test_plan:
+  current_focus:
+    - "Calendar Auto-Scroll to Current Time"
+  stuck_tasks:
+    - "Calendar Auto-Scroll to Current Time"
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
     - agent: "testing"
       message: "FINAL COMPREHENSIVE TESTING COMPLETED - Tested both critical issues requested: 1) ❌ CRITICAL: Calendar Auto-Scroll to Current Time is NOT WORKING - scroll position remains 0px when navigating away and back to calendar, should scroll to current time (09:42) but stays at midnight. Current time indicator is visible but auto-scroll broken. 2) ✅ CRITICAL: Recurring Appointments Editability is FULLY WORKING - created new recurring appointment successfully, datetime field is editable, status change to 'Cancelled' shows recurring dialog with 'single vs series' options. Calendar auto-scroll needs immediate fix as it's a high-priority user experience issue."
 
