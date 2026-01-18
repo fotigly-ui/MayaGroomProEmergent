@@ -10,7 +10,7 @@ import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { appointmentsAPI, clientsAPI, servicesAPI, itemsAPI, invoicesAPI } from '../lib/api';
-import { cn, isToday, formatCurrency } from '../lib/utils';
+import { cn, formatCurrency } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { AppointmentModal } from '../components/AppointmentModal';
 import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
