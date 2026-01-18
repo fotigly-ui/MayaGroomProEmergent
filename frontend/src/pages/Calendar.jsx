@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
 import { format, addDays, startOfWeek, addWeeks, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight, Plus, Send, MessageSquare, Phone, Copy, MapPin, Navigation, Calendar as CalendarIcon, Edit, Trash2, DollarSign, Receipt, Percent } from 'lucide-react';
 import { Layout } from '../components/Layout';
@@ -155,33 +155,24 @@ export default function CalendarPage() {
   const isSelectedDateToday = isToday(selectedDate);
 
   // Scroll to current time on first load and when navigating to today
-  useEffect(() => {
+  // Using useLayoutEffect for synchronous DOM manipulation before paint
+  useLayoutEffect(() => {
     // Only scroll if not loading and haven't scrolled yet, or if explicitly reset
-    if (!loading && !hasScrolledToTime.current && isSelectedDateToday) {
-      // Wait longer for DOM to be fully rendered with all time slots
-      const timer = setTimeout(() => {
+    if (!loading && !hasScrolledToTime.current && isSelectedDateToday && scrollRef.current) {
+      const now = new Date();
+      const hour = now.getHours();
+      const minutes = now.getMinutes();
+      const slotIndex = hour * 4 + Math.floor(minutes / 15);
+      // Calculate scroll position: account for 120px padding at top
+      const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
+      
+      // Use setTimeout(0) to ensure DOM is fully laid out
+      setTimeout(() => {
         if (scrollRef.current) {
-          const now = new Date();
-          const hour = now.getHours();
-          const minutes = now.getMinutes();
-          const slotIndex = hour * 4 + Math.floor(minutes / 15);
-          // Calculate scroll position: account for 120px padding at top
-          const scrollPosition = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
-          
-          // Use scrollTop instead of scrollTo for more reliable scrolling
           scrollRef.current.scrollTop = scrollPosition;
-          
-          // Verify and retry if needed
-          setTimeout(() => {
-            if (scrollRef.current && scrollRef.current.scrollTop < 100) {
-              scrollRef.current.scrollTop = scrollPosition;
-            }
-          }, 200);
-          
           hasScrolledToTime.current = true;
         }
-      }, 1000);
-      return () => clearTimeout(timer);
+      }, 0);
     }
   }, [loading, zoomLevel, isSelectedDateToday]);
 
