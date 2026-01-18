@@ -310,6 +310,54 @@ frontend:
           agent: "testing"
           comment: "✅ CRITICAL TEST PASSED - Month header ('January 2026') and week selector (M T W T F S S) stay fixed at top during scroll. Headers remain visible when scrolling to 18:00 time slots. Sticky positioning working correctly with .sticky.top-0 and .sticky.top-[57px] classes."
 
+  - task: "Calendar Auto-Scroll to Current Time"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/Calendar.jsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "🔧 FIXED - Consolidated scroll logic into single useEffect. Removed conflicting scrollToCurrentTime function and separate goToToday implementation. Now uses consistent calculation: slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100. Only triggers on load when isSelectedDateToday is true."
+
+  - task: "Appointment Layout - Full Width for Non-Overlapping"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/Calendar.jsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "🔧 FIXED - Changed getOverlappingGroups() logic to only group appointments with EXACT same start time (existingStart.getTime() === apptStart.getTime()). Previously grouped any partial overlap. Non-overlapping appointments now take full width as expected."
+
+  - task: "Invoice Modal Responsive Layout"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/Invoices.jsx"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "🔧 FIXED - Made invoice view modal fully responsive: Reduced max-h to 85vh, added responsive font sizes (text-[10px] sm:text-xs), reduced padding (p-2 sm:p-3), changed layout to flex-col on mobile for header info, made buttons full-width on mobile with flex-1."
+
+  - task: "Customer Edit Modal Scrollable"
+    implemented: true
+    working: "NA"
+    file: "frontend/src/pages/CustomerDetail.jsx"
+    stuck_count: 1
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "🔧 FIXED - Restructured modal with flexbox: DialogContent has max-h-[85vh], header and footer are shrink-0 (fixed), form content area has overflow-y-auto and flex-1 (scrollable). This ensures modal fits on screen and content is scrollable."
+
   - task: "Wider Appointment Blocks with Service Names"
     implemented: true
     working: true
