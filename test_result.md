@@ -493,10 +493,8 @@ metadata:
 test_plan:
   current_focus:
     - "Calendar Auto-Scroll to Current Time"
-    - "Appointment Layout - Full Width for Non-Overlapping"
-    - "Invoice Modal Responsive Layout"
-    - "Customer Edit Modal Scrollable"
-  stuck_tasks: []
+  stuck_tasks:
+    - "Calendar Auto-Scroll to Current Time"
   test_all: false
   test_priority: "high_first"
 
