@@ -125,9 +125,11 @@ export default function CalendarPage() {
     fetchData();
   }, [fetchData]);
   
-  // Reset scroll flag when date changes so calendar can re-scroll when returning to today
+  // Reset scroll flag when returning to today's date
   useEffect(() => {
-    hasScrolledToTime.current = false;
+    if (isToday(selectedDate)) {
+      hasScrolledToTime.current = false;
+    }
   }, [selectedDate]);
 
   useEffect(() => {
