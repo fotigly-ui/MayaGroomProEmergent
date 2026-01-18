@@ -410,11 +410,6 @@ export default function CustomerDetail() {
               )}
             </div>
           </TabsContent>
-                  <p>No appointments yet</p>
-                </div>
-              )}
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
 
