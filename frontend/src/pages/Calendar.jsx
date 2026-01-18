@@ -129,6 +129,9 @@ export default function CalendarPage() {
     setPopoverMonth(selectedDate);
   }, [selectedDate]);
 
+  const currentTimePos = getCurrentTimePosition();
+  const isSelectedDateToday = isToday(selectedDate);
+
   // Scroll to current time on first load and when navigating to today
   useEffect(() => {
     // Only scroll if not loading and haven't scrolled yet, or if explicitly reset
