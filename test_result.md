@@ -333,15 +333,18 @@ frontend:
 
   - task: "Appointment Layout - Full Width for Non-Overlapping"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/pages/Calendar.jsx"
     stuck_count: 1
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "🔧 FIXED - Changed getOverlappingGroups() logic to only group appointments with EXACT same start time (existingStart.getTime() === apptStart.getTime()). Previously grouped any partial overlap. Non-overlapping appointments now take full width as expected."
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL FIX VERIFIED - Appointment layout logic is working correctly. Appointments with same start time display side-by-side (50% width each), while appointments at different times take full width. The getOverlappingGroups() function correctly groups only appointments with exact same start time."
 
   - task: "Invoice Modal Responsive Layout"
     implemented: true
