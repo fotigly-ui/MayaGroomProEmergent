@@ -320,7 +320,7 @@ frontend:
     implemented: true
     working: false
     file: "frontend/src/pages/Calendar.jsx"
-    stuck_count: 3
+    stuck_count: 4
     priority: "high"
     needs_retesting: false
     status_history:
@@ -333,6 +333,9 @@ frontend:
         - working: false
           agent: "testing"
           comment: "❌ CRITICAL ISSUE CONFIRMED - Calendar auto-scroll to current time is NOT WORKING. Tested navigation from Calendar → Customers → Calendar. Initial scroll position: 0px, Final scroll position after returning: 0px. The calendar remains at the top (midnight) instead of scrolling to current time (09:42). The current time indicator is visible (red line at 09:42) but auto-scroll functionality is broken. This is a high-priority issue affecting user experience."
+        - working: false
+          agent: "testing"
+          comment: "❌ CRITICAL ISSUE PERSISTS - Calendar auto-scroll still NOT WORKING after latest fixes. Comprehensive testing shows: Initial scroll: 0px, Final scroll after navigation: 0px, Expected scroll for current time (10:42): ~860px. Calendar remains at midnight position instead of scrolling to current time. Current time indicator (red line) is visible at 10:42, confirming calendar renders correctly but auto-scroll functionality is completely broken. This is a high-priority user experience issue."
 
   - task: "Appointment Layout - Full Width for Non-Overlapping"
     implemented: true
