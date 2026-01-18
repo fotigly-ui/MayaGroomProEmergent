@@ -312,8 +312,13 @@ export default function CustomerDetail() {
               {appointments.map((appt) => (
                 <div
                   key={appt.id}
-                  className="card-maya flex items-center justify-between"
+                  className="card-maya flex items-center justify-between cursor-pointer hover:shadow-lg transition-shadow"
                   data-testid={`appt-${appt.id}`}
+                  onClick={() => {
+                    // Navigate to calendar and set the appointment date
+                    const apptDate = new Date(appt.date_time);
+                    navigate('/', { state: { scrollToDate: apptDate, scrollToAppointment: appt.id } });
+                  }}
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-full bg-maya-primary-light flex items-center justify-center">
