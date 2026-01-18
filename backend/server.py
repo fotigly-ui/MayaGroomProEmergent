@@ -1029,6 +1029,14 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
         recurring_id = original_appt.get("recurring_id")
         current_date = datetime.now(timezone.utc).isoformat()
         
+        # CRITICAL FIX: When updating series without frequency change, preserve recurring fields
+        # This ensures recurring metadata persists in UI and database
+        if original_appt.get("is_recurring") and "is_recurring" not in update_data:
+            update_data["is_recurring"] = original_appt.get("is_recurring")
+            update_data["recurring_value"] = original_appt.get("recurring_value")
+            update_data["recurring_unit"] = original_appt.get("recurring_unit")
+            update_data["recurring_id"] = recurring_id
+        
         result = await db.appointments.update_many(
             {
                 "user_id": user_id,
