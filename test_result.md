@@ -117,6 +117,30 @@ backend:
           agent: "testing"
           comment: "✅ CRITICAL TEST PASSED - Successfully created 26 recurring appointments with correct 2-week intervals. All appointments have same recurring_id, is_recurring=true, same client_id, pets, services, and notes. Date intervals are exactly 14 days apart as expected."
 
+  - task: "Edit Single Occurrence of Recurring Appointment (Detach from Series)"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "✨ NEW IMPLEMENTATION - When update_series=false on a recurring appointment, the backend now detaches that single appointment from the series by setting is_recurring=false and removing recurring_id, recurring_value, recurring_unit. This allows editing a single occurrence without affecting the series."
+
+  - task: "Preserve Recurring Fields on Series Update"
+    implemented: true
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "🔧 FIXED - When updating a series (update_series=true) without changing frequency, recurring fields (is_recurring, recurring_value, recurring_unit, recurring_id) are now explicitly preserved in update_data to prevent data loss."
+
   - task: "Series Update Functionality"
     implemented: true
     working: true
