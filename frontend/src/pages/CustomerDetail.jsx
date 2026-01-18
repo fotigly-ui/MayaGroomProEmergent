@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { clientsAPI, petsAPI, appointmentsAPI } from '../lib/api';
 import { formatDate, formatTime, formatCurrency, cn } from '../lib/utils';
+import { AppointmentModal } from '../components/AppointmentModal';
 import { toast } from 'sonner';
 
 export default function CustomerDetail() {
@@ -21,6 +22,8 @@ export default function CustomerDetail() {
   const [loading, setLoading] = useState(true);
   const [showPetModal, setShowPetModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [editingPet, setEditingPet] = useState(null);
   const [petForm, setPetForm] = useState({
     name: '',
