@@ -155,15 +155,12 @@ export default function CalendarPage() {
     return () => clearInterval(timer);
   }, []);
 
-  const getCurrentTimePosition = () => {
-    const hour = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
-    const slotIndex = hour * 4 + Math.floor(minutes / 15);
-    const offsetInSlot = (minutes % 15) / 15;
-    return (slotIndex + offsetInSlot) * SLOT_HEIGHT * zoomLevel;
+  // Current time indicator position
+  const currentTimePosition = () => {
+    const now = new Date();
+    if (!isSameDay(now, selectedDate)) return null;  // Only show on today's date
+    return now.getHours() * 60 + now.getMinutes();   // Convert to pixels (1 minute = 1 pixel)
   };
-
-  const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isToday(selectedDate);
 
   // Auto-scroll to current time on mount
