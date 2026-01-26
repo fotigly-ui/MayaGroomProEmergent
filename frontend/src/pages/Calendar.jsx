@@ -527,21 +527,13 @@ export default function CalendarPage() {
           onTouchEnd={handleTouchEnd}
         >
           {/* Current Time Indicator */}
-          {isSelectedDateToday && (
-            <div
-              ref={currentTimeRef}
-              className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
-              style={{ top: `${currentTimePos}px` }}
+          {/* Current Time Indicator */}
+          {currentTimePosition() !== null && (
+            <div 
+              className="absolute left-0 right-0 h-0.5 bg-red-500 z-10"
+              style={{ top: `${currentTimePosition()}px` }}
             >
-              <div className="w-14 flex justify-end pr-1">
-                <span className="text-[10px] font-bold text-red-500 bg-white dark:bg-gray-900 px-1">
-                  {format(currentTime, 'HH:mm')}
-                </span>
-              </div>
-              <div className="flex-1 relative">
-                <div className="absolute left-0 w-2 h-2 bg-red-500 rounded-full -top-[3px]" />
-                <div className="h-[2px] bg-red-500" />
-              </div>
+              <div className="absolute -left-1.5 -top-1.5 w-3 h-3 rounded-full bg-red-500" />
             </div>
           )}
 
