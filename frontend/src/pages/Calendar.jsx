@@ -163,15 +163,20 @@ export default function CalendarPage() {
   };
   const isSelectedDateToday = isToday(selectedDate);
 
-  // Auto-scroll to current time on mount
+  // Auto-scroll to current time on mount - FIXED with padding offset
   useEffect(() => {
-    console.log('📍 SCROLL EFFECT:', { scrollRefExists: !!scrollRef.current, loading });
-    if (scrollRef.current && !loading) {
-      const currentHour = new Date().getHours();
-      const scrollPosition = Math.max(0, (currentHour - 2) * 60);
-      console.log('📍 Setting scroll to:', scrollPosition, 'px');
-      scrollRef.current.scrollTop = scrollPosition;
-      console.log('📍 After set, scrollTop is:', scrollRef.current.scrollTop);
+    if (!loading && scrollRef.current) {
+      // Use requestAnimationFrame to ensure DOM is fully rendered
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          if (scrollRef.current) {
+            const currentHour = new Date().getHours();
+            // Account for 120px padding at top of container
+            const scrollPosition = Math.max(0, (currentHour - 2) * 60 + 120);
+            scrollRef.current.scrollTop = scrollPosition;
+          }
+        }, 100);
+      });
     }
   }, [loading]);
 
