@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -10,7 +10,9 @@ import {
   Clock,
   LogOut,
   FileText,
-  ShoppingBag
+  ShoppingBag,
+  Moon,
+  Sun
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
@@ -37,6 +39,25 @@ export function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { settings, logout } = useAuth();
+  
+  // Dark mode state
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode');
+    if (saved !== null) return saved === 'true';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  // Apply dark mode
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', isDarkMode);
+  }, [isDarkMode]);
+
+  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   const handleLogout = () => {
     logout();
@@ -80,6 +101,13 @@ export function Layout({ children }) {
 
         {/* Bottom actions */}
         <div className="mt-auto space-y-1">
+          <button
+            onClick={toggleDarkMode}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-maya-text-muted hover:bg-maya-primary-light hover:text-primary w-full"
+          >
+            {isDarkMode ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
+            <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+          </button>
           <Link
             to="/settings"
             data-testid="nav-settings"
