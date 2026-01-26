@@ -364,7 +364,8 @@ export default function CalendarPage() {
 
   // Get appointments for selected day
   const selectedDayAppointments = appointments.filter(appt => 
-    isSameDay(new Date(appt.date_time), selectedDate)
+    isSameDay(new Date(appt.date_time), selectedDate) &&
+    !['cancelled', 'no_show'].includes(appt.status) // Hide cancelled appointments from calendar
   );
 
   // Group overlapping appointments
