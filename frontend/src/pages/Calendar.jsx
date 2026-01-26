@@ -166,27 +166,12 @@ export default function CalendarPage() {
   const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isToday(selectedDate);
 
-  // Scroll to current time on mount - SIMPLEST POSSIBLE APPROACH
+  // Auto-scroll to current time on mount
   useEffect(() => {
-    if (!loading && scrollRef.current) {
-      const timer = setTimeout(() => {
-        if (scrollRef.current && isToday(selectedDate)) {
-          const now = new Date();
-          const hour = now.getHours();
-          const minutes = now.getMinutes();
-          const slotIndex = hour * 4 + Math.floor(minutes / 15);
-          const targetScroll = Math.max(0, slotIndex * SLOT_HEIGHT * zoomLevel + 120 - 100);
-          
-          // Just set it directly, multiple times to ensure it sticks
-          scrollRef.current.scrollTop = targetScroll;
-          setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = targetScroll; }, 10);
-          setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = targetScroll; }, 50);
-          setTimeout(() => { if (scrollRef.current) scrollRef.current.scrollTop = targetScroll; }, 100);
-          
-          hasScrolledToTime.current = true;
-        }
-      }, 500);
-      return () => clearTimeout(timer);
+    if (scrollRef.current && !loading) {
+      const currentHour = new Date().getHours();
+      const scrollPosition = Math.max(0, (currentHour - 2) * 60);
+      scrollRef.current.scrollTop = scrollPosition;
     }
   }, [loading]);
 
