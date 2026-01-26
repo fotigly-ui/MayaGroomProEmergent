@@ -15,31 +15,44 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     const token = localStorage.getItem('maya_token');
+    console.log('🔐 checkAuth called, token exists:', !!token);
     if (!token) {
+      console.log('❌ No token found');
       setLoading(false);
       return;
     }
 
     try {
+      console.log('🔐 Fetching user and settings...');
       const [userRes, settingsRes] = await Promise.all([
         authAPI.getMe(),
         settingsAPI.get()
       ]);
+      console.log('✅ User data:', userRes.data);
+      console.log('✅ Settings data received');
       setUser(userRes.data);
       setSettings(settingsRes.data);
       setIsAuthenticated(true);
+      console.log('✅ Authentication successful');
     } catch (error) {
-      console.error('Auth check failed:', error);
+      console.error('❌ Auth check failed:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error status:', error.response?.status);
       localStorage.removeItem('maya_token');
+      setIsAuthenticated(false);
     } finally {
       setLoading(false);
     }
   };
 
   const login = async (email, password) => {
+    console.log('🔐 Login attempt for:', email);
     const response = await authAPI.login({ email, password });
+    console.log('✅ Login API response received');
     localStorage.setItem('maya_token', response.data.access_token);
+    console.log('✅ Token saved to localStorage');
     await checkAuth();
+    console.log('✅ checkAuth completed');
     return response.data;
   };
 
