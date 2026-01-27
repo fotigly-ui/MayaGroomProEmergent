@@ -235,46 +235,78 @@ export default function Login() {
       </div>
 
       {/* Forgot Password Modal */}
-      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+      <Dialog open={showForgotPassword} onOpenChange={(open) => {
+        setShowForgotPassword(open);
+        if (!open) {
+          setTempPassword('');
+          setForgotEmail('');
+        }
+      }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Reset Password</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleForgotPassword} className="space-y-4">
-            <p className="text-sm text-maya-text-muted">
-              Enter your email address and we'll send you a link to reset your password.
-            </p>
-            <div className="space-y-2">
-              <Label htmlFor="forgot-email">Email</Label>
-              <Input
-                id="forgot-email"
-                type="email"
-                placeholder="you@example.com"
-                value={forgotEmail}
-                onChange={(e) => setForgotEmail(e.target.value)}
-                required
-                className="input-maya"
-              />
-            </div>
-            <div className="flex gap-2">
+          {tempPassword ? (
+            <div className="space-y-4">
+              <p className="text-sm text-maya-text-muted">
+                Your password has been reset. Use this temporary password to login:
+              </p>
+              <div className="bg-maya-cream p-4 rounded-lg text-center">
+                <p className="text-lg font-mono font-bold text-maya-primary select-all">
+                  {tempPassword}
+                </p>
+              </div>
+              <p className="text-xs text-maya-text-muted">
+                Please change your password in Settings after logging in.
+              </p>
               <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowForgotPassword(false)}
-                className="flex-1"
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setTempPassword('');
+                  setForgotEmail('');
+                }}
+                className="w-full btn-maya-primary"
               >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="flex-1 btn-maya-primary"
-                disabled={forgotLoading}
-              >
-                {forgotLoading ? <Loader2 className="animate-spin mr-2" size={18} /> : null}
-                Send Reset Link
+                Got it, Login Now
               </Button>
             </div>
-          </form>
+          ) : (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <p className="text-sm text-maya-text-muted">
+                Enter your email address and we'll generate a temporary password for you.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="forgot-email">Email</Label>
+                <Input
+                  id="forgot-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                  className="input-maya"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowForgotPassword(false)}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 btn-maya-primary"
+                  disabled={forgotLoading}
+                >
+                  {forgotLoading ? <Loader2 className="animate-spin mr-2" size={18} /> : null}
+                  Reset Password
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
     </div>
