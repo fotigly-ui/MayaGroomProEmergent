@@ -1,15 +1,15 @@
 import React from 'react';
-import { Layout } from '../components/Layout';
+import { Layout, PageHeader } from '../components/Layout';
 import { ShoppingBag, Calendar, Clock, DollarSign } from 'lucide-react';
 
 export default function Checkout() {
   return (
     <Layout>
       <div className="p-4 md:p-6">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-maya-text">Checkout</h1>
-          <p className="text-maya-text-muted">Process payments for appointments</p>
-        </div>
+        <PageHeader 
+          title="Checkout" 
+          subtitle="Process payments for appointments"
+        />
 
         <div className="card-maya text-center py-12">
           <ShoppingBag className="mx-auto text-maya-text-muted mb-4" size={48} />
