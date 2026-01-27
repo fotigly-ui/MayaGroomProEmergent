@@ -155,31 +155,33 @@ export default function CalendarPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Current time indicator position - FIXED calculation
-  const currentTimePosition = () => {
+  // Current time indicator position - NO ZOOM, JUST ACTUAL TIME
+  const getCurrentTimePosition = () => {
     const now = new Date();
-    if (!isSameDay(now, selectedDate)) return null;
-    // Simple: hours * 60 (pixels per hour) + minutes
-    return now.getHours() * 60 + now.getMinutes();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+    // 1 hour = 60px, so position = hours * 60 + minutes
+    return (hours * 60 + minutes);
   };
-  const isSelectedDateToday = isToday(selectedDate);
+  const currentTimePos = getCurrentTimePosition();
+  const isSelectedDateToday = isSameDay(selectedDate, new Date());
 
-  // Auto-scroll to current time on mount
+  // Auto-scroll to current time
   useEffect(() => {
-    if (!loading && scrollRef.current && isToday(selectedDate)) {
-      setTimeout(() => {
+    if (!loading && scrollRef.current && isSelectedDateToday) {
+      const timer = setTimeout(() => {
         if (scrollRef.current) {
           const now = new Date();
-          const currentHour = now.getHours();
-          const currentMinutes = now.getMinutes();
-          // Scroll to 2 hours before current time
-          // Add 120px for top padding
-          const scrollPosition = Math.max(0, ((currentHour - 2) * 60 + currentMinutes) + 120);
-          scrollRef.current.scrollTop = scrollPosition;
+          const hours = now.getHours();
+          const minutes = now.getMinutes();
+          // Scroll to 2 hours before, accounting for 120px header
+          const scrollPos = Math.max(0, (hours - 2) * 60 + minutes + 120);
+          scrollRef.current.scrollTop = scrollPos;
         }
-      }, 200);
+      }, 300);
+      return () => clearTimeout(timer);
     }
-  }, [loading, selectedDate]);
+  }, [loading, isSelectedDateToday]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
@@ -538,12 +540,20 @@ export default function CalendarPage() {
         >
           {/* Current Time Indicator */}
           {/* Current Time Indicator */}
-          {currentTimePosition() !== null && (
-            <div 
-              className="absolute left-0 right-0 h-0.5 bg-red-500 z-10"
-              style={{ top: `${currentTimePosition()}px` }}
+          {isSelectedDateToday && (
+            <div
+              className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
+              style={{ top: `${currentTimePos}px` }}
             >
-              <div className="absolute -left-1.5 -top-1.5 w-3 h-3 rounded-full bg-red-500" />
+              <div className="w-14 flex justify-end pr-1">
+                <span className="text-[10px] font-bold text-red-500 bg-white px-1">
+                  {format(new Date(), 'HH:mm')}
+                </span>
+              </div>
+              <div className="flex-1 relative">
+                <div className="absolute left-0 w-2 h-2 bg-red-500 rounded-full -top-[3px]" />
+                <div className="h-[2px] bg-red-500" />
+              </div>
             </div>
           )}
 

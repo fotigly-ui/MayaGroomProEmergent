@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
@@ -10,75 +10,47 @@ import {
   Clock,
   LogOut,
   FileText,
-  ShoppingBag,
-  Moon,
-  Sun
+  ShoppingBag
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
-
-const LOGO_URL = "https://customer-assets.emergentagent.com/job_d578d077-528c-4967-bdf0-53c37dcde83a/artifacts/6dvktlo7_14F224AC-7591-4953-AD6C-171CC58B1D16.png";
-
-const navItems = [
-  { path: '/', icon: Calendar, label: 'Calendar' },
-  { path: '/customers', icon: Users, label: 'Customers' },
-  { path: '/services', icon: Scissors, label: 'Services' },
-  { path: '/items', icon: Package, label: 'Items' },
-  { path: '/invoices', icon: FileText, label: 'Invoices' },
-  { path: '/waitlist', icon: Clock, label: 'Waitlist' },
-];
-
-const mobileNavItems = [
-  { path: '/', icon: Calendar, label: 'Calendar' },
-  { path: '/invoices', icon: FileText, label: 'Invoices' },
-  { path: '/customers', icon: Users, label: 'Customers' },
-  { path: '/more', icon: Menu, label: 'More' },
-];
 
 export function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { settings, logout } = useAuth();
-  
-  // Dark mode state
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    if (saved !== null) return saved === 'true';
-    return window.matchMedia('(prefers-color-scheme: dark)').matches;
-  });
 
-  // Apply dark mode
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    localStorage.setItem('darkMode', isDarkMode);
-  }, [isDarkMode]);
+  const navItems = [
+    { path: '/', icon: Calendar, label: 'Calendar' },
+    { path: '/customers', icon: Users, label: 'Customers' },
+    { path: '/services', icon: Scissors, label: 'Services' },
+    { path: '/products', icon: ShoppingBag, label: 'Products' },
+    { path: '/invoices', icon: FileText, label: 'Invoices' },
+  ];
 
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const mobileNavItems = [
+    { path: '/', icon: Calendar, label: 'Calendar' },
+    { path: '/customers', icon: Users, label: 'Customers' },
+    { path: '/services', icon: Scissors, label: 'Services' },
+    { path: '/invoices', icon: FileText, label: 'Invoices' },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#F5EBE0]">
-      {/* Desktop Sidebar - Only visible on md and up */}
-      <aside className="fixed left-0 top-0 bottom-0 w-[280px] bg-white border-r border-maya-border hidden md:flex flex-col p-6 z-40">
+    <div className="min-h-screen bg-gray-50">
+      {/* Desktop Sidebar */}
+      <aside className="fixed left-0 top-0 h-screen w-64 bg-white border-r border-maya-border hidden md:flex flex-col p-6 z-40">
         {/* Logo */}
-        <div className="logo-container mb-8">
-          <img src={LOGO_URL} alt="Maya Groom Pro" />
-          <span className="logo-text">
-            {settings?.business_name || 'Maya Groom Pro'}
-          </span>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-primary">Maya Groom Pro</h1>
+          {settings?.business_name && (
+            <p className="text-sm text-maya-text-muted mt-1">{settings.business_name}</p>
+          )}
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1">
           {navItems.map((item) => {
+            const Icon = item.icon;
             const isActive = location.pathname === item.path;
             return (
               <Link
@@ -88,11 +60,11 @@ export function Layout({ children }) {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium",
                   isActive 
-                    ? "bg-primary text-white" 
+                    ? "bg-primary text-white"
                     : "text-maya-text-muted hover:bg-maya-primary-light hover:text-primary"
                 )}
               >
-                <item.icon size={20} strokeWidth={1.5} />
+                <Icon size={20} strokeWidth={1.5} />
                 <span>{item.label}</span>
               </Link>
             );
@@ -101,13 +73,6 @@ export function Layout({ children }) {
 
         {/* Bottom actions */}
         <div className="mt-auto space-y-1">
-          <button
-            onClick={toggleDarkMode}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-maya-text-muted hover:bg-maya-primary-light hover:text-primary w-full"
-          >
-            {isDarkMode ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
-            <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-          </button>
           <Link
             to="/settings"
             data-testid="nav-settings"
@@ -122,9 +87,8 @@ export function Layout({ children }) {
             <span>Settings</span>
           </Link>
           <button
-            onClick={handleLogout}
-            data-testid="logout-btn"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-maya-text-muted hover:bg-red-50 hover:text-maya-error w-full"
+            onClick={logout}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium text-maya-text-muted hover:bg-red-50 hover:text-red-600 w-full"
           >
             <LogOut size={20} strokeWidth={1.5} />
             <span>Logout</span>
@@ -132,41 +96,43 @@ export function Layout({ children }) {
         </div>
       </aside>
 
-      {/* Main Content - Offset on desktop for sidebar */}
-      <main className="min-h-screen md:ml-[280px] pb-20 md:pb-0">
+      {/* Main Content */}
+      <div className="md:ml-64">
         {children}
-      </main>
+      </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="bottom-nav md:hidden">
-        {mobileNavItems.map((item) => {
-          const isActive = location.pathname === item.path || 
-            (item.path === '/more' && ['/services', '/items', '/waitlist', '/settings'].includes(location.pathname));
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              data-testid={`mobile-nav-${item.label.toLowerCase()}`}
-              className={cn("nav-item", isActive && "active")}
-            >
-              <item.icon size={24} strokeWidth={1.5} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-maya-border z-50">
+        <div className="flex justify-around items-center h-16">
+          {mobileNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex flex-col items-center justify-center flex-1 h-full",
+                  isActive ? "text-primary" : "text-maya-text-muted"
+                )}
+              >
+                <Icon size={20} strokeWidth={1.5} />
+                <span className="text-xs mt-1">{item.label}</span>
+              </Link>
+            );
+          })}
+          <button
+            onClick={() => navigate('/settings')}
+            className={cn(
+              "flex flex-col items-center justify-center flex-1 h-full",
+              location.pathname === '/settings' ? "text-primary" : "text-maya-text-muted"
+            )}
+          >
+            <Menu size={20} strokeWidth={1.5} />
+            <span className="text-xs mt-1">More</span>
+          </button>
+        </div>
       </nav>
-    </div>
-  );
-}
-
-export function PageHeader({ title, subtitle, action }) {
-  return (
-    <div className="flex items-center justify-between mb-6">
-      <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-maya-text">{title}</h1>
-        {subtitle && <p className="text-maya-text-muted mt-1">{subtitle}</p>}
-      </div>
-      {action}
     </div>
   );
 }
