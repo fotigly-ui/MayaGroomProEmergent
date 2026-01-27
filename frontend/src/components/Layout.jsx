@@ -108,13 +108,13 @@ export function Layout({ children }) {
         </div>
       </aside>
 
-      {/* Main Content - add bottom padding for mobile nav + Emergent badge */}
-      <div className="md:ml-64 pb-24 md:pb-0">
+      {/* Main Content */}
+      <div className="md:ml-64">
         {children}
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-maya-border z-50 safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-maya-border z-50">
         <div className="flex justify-around items-center h-16">
           {mobileNavItems.map((item) => {
             const Icon = item.icon;
