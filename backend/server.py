@@ -552,6 +552,34 @@ async def forgot_password(request: ForgotPasswordRequest):
         temporary_password=temp_password
     )
 
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+@api_router.post("/auth/change-password")
+async def change_password(request: ChangePasswordRequest, user_id: str = Depends(get_current_user)):
+    # Get user
+    db_user = await db.users.find_one({"id": user_id}, {"_id": 0})
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Verify current password
+    if not verify_password(request.current_password, db_user["password_hash"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    
+    # Validate new password
+    if len(request.new_password) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters")
+    
+    # Hash and update password
+    new_hash = hash_password(request.new_password)
+    await db.users.update_one(
+        {"id": user_id},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    return {"message": "Password changed successfully"}
+
 @api_router.get("/auth/me")
 async def get_me(user_id: str = Depends(get_current_user)):
     user = await db.users.find_one({"id": user_id}, {"_id": 0, "password_hash": 0})
