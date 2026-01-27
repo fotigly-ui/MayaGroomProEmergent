@@ -172,26 +172,44 @@ class SettingsUpdate(BaseModel):
 # Client Model
 class ClientCreate(BaseModel):
     name: str
+    first_name: str = ""
+    surname: str = ""
     phone: str = ""
     email: str = ""
     address: str = ""
+    street_address: str = ""
+    suburb: str = ""
+    state: str = ""
+    postcode: str = ""
 
 class Client(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     user_id: str
     name: str
+    first_name: str = ""
+    surname: str = ""
     phone: str = ""
     email: str = ""
     address: str = ""
+    street_address: str = ""
+    suburb: str = ""
+    state: str = ""
+    postcode: str = ""
     no_show_count: int = 0
     last_no_show: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class ClientUpdate(BaseModel):
     name: Optional[str] = None
+    first_name: Optional[str] = None
+    surname: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
     address: Optional[str] = None
+    street_address: Optional[str] = None
+    suburb: Optional[str] = None
+    state: Optional[str] = None
+    postcode: Optional[str] = None
 
 # Pet Model
 class PetCreate(BaseModel):
