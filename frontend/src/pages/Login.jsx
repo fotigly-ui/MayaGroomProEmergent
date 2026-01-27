@@ -119,6 +119,13 @@ export default function Login() {
                   {loading ? <Loader2 className="animate-spin mr-2" size={18} /> : null}
                   Sign In
                 </Button>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="w-full text-sm text-maya-primary hover:underline"
+                >
+                  Forgot Password?
+                </button>
               </form>
             </TabsContent>
 
