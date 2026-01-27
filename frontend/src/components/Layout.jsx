@@ -129,21 +129,11 @@ export function Layout({ children }) {
                   isActive ? "text-primary" : "text-maya-text-muted"
                 )}
               >
-                <Icon size={20} strokeWidth={1.5} />
-                <span className="text-xs mt-1">{item.label}</span>
+                <Icon size={18} strokeWidth={1.5} />
+                <span className="text-[10px] mt-0.5">{item.label}</span>
               </Link>
             );
           })}
-          <button
-            onClick={() => navigate('/settings')}
-            className={cn(
-              "flex flex-col items-center justify-center flex-1 h-full",
-              location.pathname === '/settings' ? "text-primary" : "text-maya-text-muted"
-            )}
-          >
-            <Menu size={20} strokeWidth={1.5} />
-            <span className="text-xs mt-1">More</span>
-          </button>
         </div>
       </nav>
     </div>
