@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { toast } from 'sonner';
-import { Loader2, Building2, CreditCard, MessageSquare, Clock, Edit2, Eye, Database, CheckCircle } from 'lucide-react';
+import { Loader2, Building2, CreditCard, MessageSquare, Clock, Edit2, Eye, Database, CheckCircle, Lock } from 'lucide-react';
 import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
