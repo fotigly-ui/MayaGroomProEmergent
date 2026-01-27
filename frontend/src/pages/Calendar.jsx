@@ -170,15 +170,20 @@ export default function CalendarPage() {
   useEffect(() => {
     if (!loading && scrollRef.current && isSelectedDateToday && !hasScrolledToTime.current) {
       const timer = setTimeout(() => {
-        if (scrollRef.current) {
+        if (scrollRef.current && currentTimeRef.current) {
+          // Use scrollIntoView for more reliable scrolling
+          currentTimeRef.current.scrollIntoView({ behavior: 'instant', block: 'center' });
+          hasScrolledToTime.current = true;
+          console.log('🕐 Auto-scrolled using scrollIntoView');
+        } else if (scrollRef.current) {
+          // Fallback to manual scroll
           const now = new Date();
           const hours = now.getHours();
           const minutes = now.getMinutes();
-          // Calculate scroll position: current time in minutes, minus 2 hours offset to show context above
           const scrollPos = Math.max(0, ((hours - 2) * 60 + minutes) * zoomLevel);
           scrollRef.current.scrollTop = scrollPos;
           hasScrolledToTime.current = true;
-          console.log('🕐 Auto-scrolled to position:', scrollPos, 'for time:', hours + ':' + minutes);
+          console.log('🕐 Auto-scrolled to position:', scrollPos);
         }
       }, 500);
       return () => clearTimeout(timer);
