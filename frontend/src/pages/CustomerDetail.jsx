@@ -126,8 +126,13 @@ export default function CustomerDetail() {
 
   // Open edit client modal
   const openClientModal = () => {
+    // Parse existing name into first_name and surname
+    const nameParts = (client.name || '').split(' ');
+    const firstName = nameParts[0] || '';
+    const surname = nameParts.slice(1).join(' ') || '';
     setClientForm({
-      name: client.name,
+      first_name: client.first_name || firstName,
+      surname: client.surname || surname,
       phone: client.phone || '',
       email: client.email || '',
       street_address: client.street_address || client.address || '',
@@ -141,14 +146,15 @@ export default function CustomerDetail() {
   // Handle client update
   const handleClientSubmit = async (e) => {
     e.preventDefault();
-    if (!clientForm.name.trim()) {
-      toast.error('Name is required');
+    if (!clientForm.first_name.trim()) {
+      toast.error('First name is required');
       return;
     }
     try {
-      // Combine address fields for backward compatibility
+      // Combine name and address fields for backward compatibility
       const updateData = {
         ...clientForm,
+        name: [clientForm.first_name, clientForm.surname].filter(Boolean).join(' '),
         address: [clientForm.street_address, clientForm.suburb, clientForm.state, clientForm.postcode].filter(Boolean).join(', ')
       };
       await clientsAPI.update(id, updateData);
