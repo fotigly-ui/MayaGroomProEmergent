@@ -33,7 +33,8 @@ export default function CustomerDetail() {
     notes: ''
   });
   const [clientForm, setClientForm] = useState({
-    name: '',
+    first_name: '',
+    surname: '',
     phone: '',
     email: '',
     street_address: '',
