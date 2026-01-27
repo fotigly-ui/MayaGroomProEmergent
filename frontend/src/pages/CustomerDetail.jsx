@@ -573,15 +573,26 @@ export default function CustomerDetail() {
           </DialogHeader>
           <form onSubmit={handleClientSubmit} className="flex flex-col flex-1 min-h-0">
             <div className="space-y-3 px-4 sm:px-6 overflow-y-auto flex-1">
-              <div className="space-y-1">
-                <Label className="text-sm">Name *</Label>
-                <Input
-                  value={clientForm.name}
-                  onChange={(e) => setClientForm({ ...clientForm, name: e.target.value })}
-                  placeholder="Customer name"
-                  data-testid="client-name-input"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-sm">First Name *</Label>
+                  <Input
+                    value={clientForm.first_name}
+                    onChange={(e) => setClientForm({ ...clientForm, first_name: e.target.value })}
+                    placeholder="First name"
+                    data-testid="client-firstname-input"
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">Surname</Label>
+                  <Input
+                    value={clientForm.surname}
+                    onChange={(e) => setClientForm({ ...clientForm, surname: e.target.value })}
+                    placeholder="Surname"
+                    data-testid="client-surname-input"
+                  />
+                </div>
               </div>
               <div className="space-y-1">
                 <Label className="text-sm">Phone</Label>
