@@ -129,7 +129,10 @@ export default function CustomerDetail() {
       name: client.name,
       phone: client.phone || '',
       email: client.email || '',
-      address: client.address || ''
+      street_address: client.street_address || client.address || '',
+      suburb: client.suburb || '',
+      state: client.state || '',
+      postcode: client.postcode || ''
     });
     setShowClientModal(true);
   };
@@ -142,7 +145,12 @@ export default function CustomerDetail() {
       return;
     }
     try {
-      await clientsAPI.update(id, clientForm);
+      // Combine address fields for backward compatibility
+      const updateData = {
+        ...clientForm,
+        address: [clientForm.street_address, clientForm.suburb, clientForm.state, clientForm.postcode].filter(Boolean).join(', ')
+      };
+      await clientsAPI.update(id, updateData);
       toast.success('Customer updated');
       setShowClientModal(false);
       fetchData();
