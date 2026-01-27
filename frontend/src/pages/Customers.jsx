@@ -247,15 +247,26 @@ export default function Customers() {
             {/* Customer Info */}
             <div className="space-y-4">
               <h3 className="font-medium text-maya-text">Customer Information</h3>
-              <div className="space-y-2">
-                <Label>Name *</Label>
-                <Input
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Customer name"
-                  data-testid="customer-name-input"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-2">
+                  <Label>First Name *</Label>
+                  <Input
+                    value={formData.first_name}
+                    onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                    placeholder="First name"
+                    data-testid="customer-firstname-input"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Surname</Label>
+                  <Input
+                    value={formData.surname}
+                    onChange={(e) => setFormData({ ...formData, surname: e.target.value })}
+                    placeholder="Surname"
+                    data-testid="customer-surname-input"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Phone</Label>
