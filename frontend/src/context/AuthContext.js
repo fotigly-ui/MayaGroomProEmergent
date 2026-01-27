@@ -47,13 +47,31 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     console.log('🔐 Login attempt for:', email);
-    const response = await authAPI.login({ email, password });
-    console.log('✅ Login API response received');
-    localStorage.setItem('maya_token', response.data.access_token);
-    console.log('✅ Token saved to localStorage');
-    await checkAuth();
-    console.log('✅ checkAuth completed');
-    return response.data;
+    try {
+      const response = await authAPI.login({ email, password });
+      console.log('✅ Login API response received:', response.data);
+      
+      if (!response.data.access_token) {
+        throw new Error('No access token in response');
+      }
+      
+      // Try to save token
+      try {
+        localStorage.setItem('maya_token', response.data.access_token);
+        console.log('✅ Token saved to localStorage');
+      } catch (storageError) {
+        console.error('❌ Failed to save token:', storageError);
+        alert('Storage error: ' + storageError.message + '. Please enable cookies/storage for this site.');
+        throw storageError;
+      }
+      
+      await checkAuth();
+      console.log('✅ checkAuth completed');
+      return response.data;
+    } catch (error) {
+      console.error('❌ Login failed:', error);
+      throw error;
+    }
   };
 
   const register = async (email, password, businessName) => {
