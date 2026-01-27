@@ -200,26 +200,26 @@ export default function CustomerDetail() {
 
   // Save to native phone contacts using vCard
   const saveToContacts = () => {
-    // Parse name into first and last name
-    const nameParts = client.name.trim().split(' ');
-    const firstName = nameParts[0] || '';
-    const lastName = nameParts.slice(1).join(' ') || '';
+    // Use stored first_name/surname or parse from name
+    const firstName = client.first_name || (client.name ? client.name.split(' ')[0] : '');
+    const lastName = client.surname || (client.name ? client.name.split(' ').slice(1).join(' ') : '');
+    const fullName = [firstName, lastName].filter(Boolean).join(' ');
     
     // Get address parts
-    const streetAddress = client.street_address || client.address || '';
+    const streetAddress = client.street_address || '';
     const suburb = client.suburb || '';
     const state = client.state || '';
     const postcode = client.postcode || '';
     
     // Create vCard format - N format is: LastName;FirstName;MiddleName;Prefix;Suffix
+    // ADR format is: PO Box;Extended Address;Street;City;Region/State;PostCode;Country
     const vCard = [
       'BEGIN:VCARD',
       'VERSION:3.0',
-      `FN:${client.name}`,
+      `FN:${fullName}`,
       `N:${lastName};${firstName};;;`,
       client.phone ? `TEL;TYPE=CELL:${client.phone}` : '',
       client.email ? `EMAIL:${client.email}` : '',
-      // ADR format: PO Box;Extended;Street;City;State;PostCode;Country
       (streetAddress || suburb || state || postcode) ? 
         `ADR;TYPE=HOME:;;${streetAddress};${suburb};${state};${postcode};Australia` : '',
       'END:VCARD'
@@ -230,12 +230,12 @@ export default function CustomerDetail() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${client.name.replace(/\s+/g, '_')}.vcf`;
+    link.download = `${fullName.replace(/\s+/g, '_')}.vcf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success('Contact file downloaded - open it to save to contacts');
+    toast.success('Contact downloaded');
   };
 
   if (loading || !client) {
