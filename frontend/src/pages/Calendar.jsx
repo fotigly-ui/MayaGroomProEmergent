@@ -166,20 +166,21 @@ export default function CalendarPage() {
   const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isSameDay(selectedDate, new Date());
 
-  // Auto-scroll to current time
+  // Auto-scroll to current time on initial load
   useEffect(() => {
-    if (!loading && scrollRef.current && isSelectedDateToday) {
+    if (!loading && scrollRef.current && isSelectedDateToday && !hasScrolledToTime.current) {
       const timer = setTimeout(() => {
         if (scrollRef.current) {
           const now = new Date();
           const hours = now.getHours();
           const minutes = now.getMinutes();
           // Calculate scroll position: current time in minutes, minus 2 hours offset to show context above
-          // The 120px padding is already in the element, scroll directly to time position
           const scrollPos = Math.max(0, ((hours - 2) * 60 + minutes) * zoomLevel);
           scrollRef.current.scrollTop = scrollPos;
+          hasScrolledToTime.current = true;
+          console.log('🕐 Auto-scrolled to position:', scrollPos, 'for time:', hours + ':' + minutes);
         }
-      }, 300);
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [loading, isSelectedDateToday, zoomLevel]);
