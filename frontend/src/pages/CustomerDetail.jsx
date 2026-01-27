@@ -258,15 +258,15 @@ export default function CustomerDetail() {
         <div className="card-maya mb-6">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-2xl font-bold text-maya-text">{client.name}</h1>
-                <Button variant="outline" size="sm" onClick={openClientModal} data-testid="edit-client-btn">
-                  <Edit2 size={14} className="mr-1" />
+                <Button variant="outline" size="sm" onClick={openClientModal} className="h-7 px-2 text-xs" data-testid="edit-client-btn">
+                  <Edit2 size={12} className="mr-1" />
                   Edit
                 </Button>
-                <Button variant="outline" size="sm" onClick={saveToContacts} data-testid="save-to-contacts-btn">
-                  <UserPlus size={14} className="mr-1" />
-                  Save to Contacts
+                <Button variant="outline" size="sm" onClick={saveToContacts} className="h-7 px-2 text-xs" data-testid="save-to-contacts-btn">
+                  <UserPlus size={12} className="mr-1" />
+                  Save
                 </Button>
                 {client.no_show_count > 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 text-xs">
