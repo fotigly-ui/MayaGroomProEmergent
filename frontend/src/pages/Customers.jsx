@@ -271,19 +271,10 @@ export default function Customers() {
               </div>
               <div className="space-y-2">
                 <Label>Street Address</Label>
-                <AddressAutocomplete
+                <Input
                   value={formData.street_address}
-                  onChange={(val) => setFormData({ ...formData, street_address: val })}
-                  onAddressSelect={(parsed) => {
-                    setFormData(prev => ({
-                      ...prev,
-                      street_address: parsed.street_address,
-                      suburb: parsed.suburb,
-                      state: parsed.state,
-                      postcode: parsed.postcode
-                    }));
-                  }}
-                  placeholder="Start typing address..."
+                  onChange={(e) => setFormData({ ...formData, street_address: e.target.value })}
+                  placeholder="123 Main Street"
                   data-testid="customer-street-input"
                 />
               </div>
