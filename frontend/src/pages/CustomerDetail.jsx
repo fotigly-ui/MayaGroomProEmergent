@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Phone, Mail, MapPin, Plus, Edit2, Trash2, Calendar, Dog, MessageSquare, Copy, Navigation } from 'lucide-react';
+import { ArrowLeft, Phone, Mail, MapPin, Plus, Edit2, Trash2, Calendar, Dog, MessageSquare, Copy, Navigation, UserPlus } from 'lucide-react';
 import { Layout, PageHeader } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
