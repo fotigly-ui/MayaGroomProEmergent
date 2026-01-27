@@ -15,6 +15,18 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { cn } from '../lib/utils';
 
+export function PageHeader({ title, subtitle, actions }) {
+  return (
+    <div className="mb-6 flex items-center justify-between">
+      <div>
+        <h1 className="text-2xl font-bold text-maya-text">{title}</h1>
+        {subtitle && <p className="text-maya-text-muted">{subtitle}</p>}
+      </div>
+      {actions && <div className="flex gap-2">{actions}</div>}
+    </div>
+  );
+}
+
 export function Layout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
