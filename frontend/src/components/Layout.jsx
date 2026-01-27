@@ -36,7 +36,7 @@ export function Layout({ children }) {
     { path: '/', icon: Calendar, label: 'Calendar' },
     { path: '/customers', icon: Users, label: 'Customers' },
     { path: '/services', icon: Scissors, label: 'Services' },
-    { path: '/products', icon: ShoppingBag, label: 'Products' },
+    { path: '/items', icon: Package, label: 'Items' },
     { path: '/invoices', icon: FileText, label: 'Invoices' },
   ];
 
