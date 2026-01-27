@@ -106,13 +106,19 @@ export default function Customers() {
     try {
       let clientId;
       
+      // Combine address fields for storage
+      const clientData = {
+        ...formData,
+        address: [formData.street_address, formData.suburb, formData.state, formData.postcode].filter(Boolean).join(', ')
+      };
+      
       if (editingClient) {
-        await clientsAPI.update(editingClient.id, formData);
+        await clientsAPI.update(editingClient.id, clientData);
         clientId = editingClient.id;
         toast.success('Client updated');
       } else {
         // Create client first
-        const clientRes = await clientsAPI.create(formData);
+        const clientRes = await clientsAPI.create(clientData);
         clientId = clientRes.data.id;
         
         // Then create all pets
