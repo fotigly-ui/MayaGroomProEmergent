@@ -94,6 +94,42 @@ export default function Settings() {
   const [previewData, setPreviewData] = useState(null);
   const [backupStatus, setBackupStatus] = useState(null);
   const [backupLoading, setBackupLoading] = useState(false);
+  
+  // Password change state
+  const [passwordForm, setPasswordForm] = useState({
+    current_password: '',
+    new_password: '',
+    confirm_password: ''
+  });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (passwordForm.new_password !== passwordForm.confirm_password) {
+      toast.error('New passwords do not match');
+      return;
+    }
+    if (passwordForm.new_password.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      await axios.post(`${API_URL}/auth/change-password`, {
+        current_password: passwordForm.current_password,
+        new_password: passwordForm.new_password
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success('Password changed successfully');
+      setPasswordForm({ current_password: '', new_password: '', confirm_password: '' });
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to change password');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (settings) {
