@@ -26,28 +26,25 @@ Build a grooming appointment app with:
 - [x] Services & Items management
 - [x] Review & Checkout flow with service/product selection
 - [x] Invoice generation with discount & GST
-- [x] SMS templates (7 editable templates)
+- [x] SMS templates (6 editable templates - removed 24hr reminder)
 - [x] Settings (Business, Payment, SMS, Preferences)
 - [x] Supabase backup integration
 - [x] Mobile-responsive design
+- [x] Save contact to phone (vCard export) **ADDED 2025-01-27**
+- [x] Timeline position corrected (80px per hour) **FIXED 2025-01-27**
+- [x] Add Customer/Service buttons visibility **FIXED 2025-01-27**
+- [x] Smaller backup button **FIXED 2025-01-27**
 
 ### Pending Features
 - [ ] Dark mode completion
 - [ ] Address autocomplete (Google Places)
-- [ ] Save contact to phone (vCard export)
 - [ ] Month/List calendar views
 - [ ] Automatic SMS sending via Twilio
 - [ ] Online customer booking portal
 - [ ] Reporting & Analytics dashboard
-- [x] ~~Price shown on appointment boxes~~ **FIXED**
-- [x] ~~Pets not auto-loading from customer~~ **FIXED 2025-01-15**
-- [x] ~~Invoice discount not applied~~ **FIXED 2025-01-15**
-- [ ] Address autocomplete
-- [ ] Save contact to phone
-- [ ] Dark mode incomplete
+- [ ] Separate past/upcoming appointments in Customer Detail
 
 ## Upcoming Features (P1)
-- [x] ~~"Review & Checkout" flow modal~~ **IMPLEMENTED 2025-01-15**
 - [x] ~~Appointment Details view~~ **IMPLEMENTED 2025-01-15**
 - [ ] Individual occurrence editing (without affecting series)
 
