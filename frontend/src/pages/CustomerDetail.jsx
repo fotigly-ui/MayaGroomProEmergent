@@ -180,6 +180,33 @@ export default function CustomerDetail() {
     toast.success('Copied to clipboard');
   };
 
+  // Save to native phone contacts using vCard
+  const saveToContacts = () => {
+    // Create vCard format
+    const vCard = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN:${client.name}`,
+      `N:${client.name.split(' ').reverse().join(';')};;;`,
+      client.phone ? `TEL;TYPE=CELL:${client.phone}` : '',
+      client.email ? `EMAIL:${client.email}` : '',
+      client.address ? `ADR;TYPE=HOME:;;${client.address};;;;` : '',
+      'END:VCARD'
+    ].filter(Boolean).join('\n');
+
+    // Create blob and download
+    const blob = new Blob([vCard], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${client.name.replace(/\s+/g, '_')}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success('Contact file downloaded - open it to save to contacts');
+  };
+
   if (loading || !client) {
     return (
       <Layout>
