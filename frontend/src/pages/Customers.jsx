@@ -166,11 +166,11 @@ export default function Customers() {
           actions={
             <Button 
               onClick={() => openModal()} 
-              className="btn-maya-primary"
+              className="btn-maya-primary h-8 px-3 text-sm"
               data-testid="add-customer-btn"
             >
-              <Plus size={18} className="mr-2" />
-              Add Customer
+              <Plus size={14} className="mr-1" />
+              Add
             </Button>
           }
         />
