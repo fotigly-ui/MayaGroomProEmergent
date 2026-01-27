@@ -632,49 +632,48 @@ export default function Settings() {
             </TabsContent>
 
             <TabsContent value="backup">
-              <div className="card-maya space-y-6">
-                <h2 className="text-lg font-semibold text-maya-text">Data Backup</h2>
+              <div className="card-maya space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-maya-text">Data Backup</h2>
+                  <Button
+                    type="button"
+                    onClick={triggerBackup}
+                    disabled={backupLoading}
+                    className="btn-maya-primary h-8 px-3 text-sm"
+                    data-testid="backup-now-btn"
+                  >
+                    {backupLoading ? (
+                      <Loader2 className="animate-spin mr-1" size={14} />
+                    ) : (
+                      <Database size={14} className="mr-1" />
+                    )}
+                    Backup
+                  </Button>
+                </div>
                 <p className="text-sm text-maya-text-muted">
                   Your data is automatically backed up to Supabase when you create or modify records.
-                  You can also trigger a manual backup of all your data.
                 </p>
                 
                 {/* Backup Status */}
-                <div className="bg-maya-cream rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {backupStatus?.status === 'active' ? (
-                        <CheckCircle className="text-maya-success" size={24} />
-                      ) : (
-                        <Database className="text-maya-text-muted" size={24} />
-                      )}
-                      <div>
-                        <p className="font-medium text-maya-text">
-                          {backupStatus?.status === 'active' ? 'Backup Active' : 
-                           backupStatus?.status === 'not_configured' ? 'Not Configured' : 
-                           'No Backups Yet'}
+                <div className="bg-maya-cream rounded-lg p-3">
+                  <div className="flex items-center gap-3">
+                    {backupStatus?.status === 'active' ? (
+                      <CheckCircle className="text-maya-success" size={20} />
+                    ) : (
+                      <Database className="text-maya-text-muted" size={20} />
+                    )}
+                    <div>
+                      <p className="font-medium text-maya-text text-sm">
+                        {backupStatus?.status === 'active' ? 'Backup Active' : 
+                         backupStatus?.status === 'not_configured' ? 'Not Configured' : 
+                         'No Backups Yet'}
+                      </p>
+                      {backupStatus?.last_backup && (
+                        <p className="text-xs text-maya-text-muted">
+                          Last: {new Date(backupStatus.last_backup).toLocaleString('en-AU')}
                         </p>
-                        {backupStatus?.last_backup && (
-                          <p className="text-sm text-maya-text-muted">
-                            Last backup: {new Date(backupStatus.last_backup).toLocaleString('en-AU')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={triggerBackup}
-                      disabled={backupLoading}
-                      className="btn-maya-primary h-8 px-3 text-sm"
-                      data-testid="backup-now-btn"
-                    >
-                      {backupLoading ? (
-                        <Loader2 className="animate-spin mr-1" size={14} />
-                      ) : (
-                        <Database size={14} className="mr-1" />
                       )}
-                      Backup
-                    </Button>
+                    </div>
                   </div>
                 </div>
 
