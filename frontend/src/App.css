@@ -259,3 +259,15 @@
     margin: 0 auto 1rem;
     opacity: 0.5;
 }
+
+/* Safe area for iOS and bottom badges */
+.safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Ensure mobile nav clears external badges */
+@media (max-width: 767px) {
+    body {
+        padding-bottom: 80px;
+    }
+}
