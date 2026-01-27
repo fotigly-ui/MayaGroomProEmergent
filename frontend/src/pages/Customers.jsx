@@ -7,7 +7,6 @@ import { Input } from '../components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { AddressAutocomplete } from '../components/AddressAutocomplete';
 import { clientsAPI, petsAPI } from '../lib/api';
 import { toast } from 'sonner';
 
