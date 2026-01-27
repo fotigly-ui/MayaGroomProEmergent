@@ -30,7 +30,11 @@ export default function Login() {
       toast.success('Welcome back!');
       navigate('/');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Login failed');
+      console.error('Login error:', error);
+      const errorMsg = error.response?.data?.detail || error.message || 'Login failed';
+      toast.error(errorMsg);
+      // Show alert for iOS debugging
+      alert('Login error: ' + errorMsg);
     } finally {
       setLoading(false);
     }
