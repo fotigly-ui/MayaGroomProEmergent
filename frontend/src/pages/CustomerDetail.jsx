@@ -36,7 +36,10 @@ export default function CustomerDetail() {
     name: '',
     phone: '',
     email: '',
-    address: ''
+    street_address: '',
+    suburb: '',
+    state: '',
+    postcode: ''
   });
   
   // Contact action popups
