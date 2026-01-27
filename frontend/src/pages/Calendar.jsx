@@ -155,30 +155,31 @@ export default function CalendarPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Current time indicator position
+  // Current time indicator position - FIXED calculation
   const currentTimePosition = () => {
     const now = new Date();
-    if (!isSameDay(now, selectedDate)) return null;  // Only show on today's date
-    return now.getHours() * 60 + now.getMinutes();   // Convert to pixels (1 minute = 1 pixel)
+    if (!isSameDay(now, selectedDate)) return null;
+    // Simple: hours * 60 (pixels per hour) + minutes
+    return now.getHours() * 60 + now.getMinutes();
   };
   const isSelectedDateToday = isToday(selectedDate);
 
-  // Auto-scroll to current time on mount - FIXED with padding offset
+  // Auto-scroll to current time on mount
   useEffect(() => {
-    if (!loading && scrollRef.current) {
-      // Use requestAnimationFrame to ensure DOM is fully rendered
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          if (scrollRef.current) {
-            const currentHour = new Date().getHours();
-            // Account for 120px padding at top of container
-            const scrollPosition = Math.max(0, (currentHour - 2) * 60 + 120);
-            scrollRef.current.scrollTop = scrollPosition;
-          }
-        }, 100);
-      });
+    if (!loading && scrollRef.current && isToday(selectedDate)) {
+      setTimeout(() => {
+        if (scrollRef.current) {
+          const now = new Date();
+          const currentHour = now.getHours();
+          const currentMinutes = now.getMinutes();
+          // Scroll to 2 hours before current time
+          // Add 120px for top padding
+          const scrollPosition = Math.max(0, ((currentHour - 2) * 60 + currentMinutes) + 120);
+          scrollRef.current.scrollTop = scrollPosition;
+        }
+      }, 200);
     }
-  }, [loading]);
+  }, [loading, selectedDate]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
