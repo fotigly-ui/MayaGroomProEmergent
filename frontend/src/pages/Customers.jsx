@@ -17,7 +17,8 @@ export default function Customers() {
   const [showModal, setShowModal] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
   const [formData, setFormData] = useState({
-    name: '',
+    first_name: '',
+    surname: '',
     phone: '',
     email: '',
     street_address: '',
@@ -54,8 +55,13 @@ export default function Customers() {
   const openModal = (client = null) => {
     if (client) {
       setEditingClient(client);
+      // Parse existing name into first_name and surname
+      const nameParts = (client.name || '').split(' ');
+      const firstName = nameParts[0] || '';
+      const surname = nameParts.slice(1).join(' ') || '';
       setFormData({
-        name: client.name,
+        first_name: client.first_name || firstName,
+        surname: client.surname || surname,
         phone: client.phone || '',
         email: client.email || '',
         street_address: client.street_address || client.address || '',
@@ -66,7 +72,7 @@ export default function Customers() {
       setNewPets([]);
     } else {
       setEditingClient(null);
-      setFormData({ name: '', phone: '', email: '', street_address: '', suburb: '', state: '', postcode: '' });
+      setFormData({ first_name: '', surname: '', phone: '', email: '', street_address: '', suburb: '', state: '', postcode: '' });
       // Start with one empty pet form for new customers
       setNewPets([{ name: '', breed: '', age: '', notes: '' }]);
     }
