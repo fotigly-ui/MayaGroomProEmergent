@@ -20,7 +20,10 @@ export default function Customers() {
     name: '',
     phone: '',
     email: '',
-    address: ''
+    street_address: '',
+    suburb: '',
+    state: '',
+    postcode: ''
   });
   // Pets to add with new customer
   const [newPets, setNewPets] = useState([]);
@@ -55,12 +58,15 @@ export default function Customers() {
         name: client.name,
         phone: client.phone || '',
         email: client.email || '',
-        address: client.address || ''
+        street_address: client.street_address || client.address || '',
+        suburb: client.suburb || '',
+        state: client.state || '',
+        postcode: client.postcode || ''
       });
       setNewPets([]);
     } else {
       setEditingClient(null);
-      setFormData({ name: '', phone: '', email: '', address: '' });
+      setFormData({ name: '', phone: '', email: '', street_address: '', suburb: '', state: '', postcode: '' });
       // Start with one empty pet form for new customers
       setNewPets([{ name: '', breed: '', age: '', notes: '' }]);
     }
