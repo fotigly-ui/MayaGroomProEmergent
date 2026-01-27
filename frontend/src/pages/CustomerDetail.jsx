@@ -211,19 +211,34 @@ export default function CustomerDetail() {
     const state = client.state || '';
     const postcode = client.postcode || '';
     
-    // Create vCard format - N format is: LastName;FirstName;MiddleName;Prefix;Suffix
-    // ADR format is: PO Box;Extended Address;Street;City;Region/State;PostCode;Country
-    const vCard = [
+    // Build vCard lines
+    const vCardLines = [
       'BEGIN:VCARD',
       'VERSION:3.0',
       `FN:${fullName}`,
-      `N:${lastName};${firstName};;;`,
-      client.phone ? `TEL;TYPE=CELL:${client.phone}` : '',
-      client.email ? `EMAIL:${client.email}` : '',
-      (streetAddress || suburb || state || postcode) ? 
-        `ADR;TYPE=HOME:;;${streetAddress};${suburb};${state};${postcode};Australia` : '',
-      'END:VCARD'
-    ].filter(Boolean).join('\r\n');
+      `N:${lastName};${firstName};;;`
+    ];
+    
+    if (client.phone) {
+      vCardLines.push(`TEL;TYPE=CELL:${client.phone}`);
+    }
+    
+    if (client.email) {
+      vCardLines.push(`EMAIL:${client.email}`);
+    }
+    
+    // ADR format for iOS: ;;Street;City;State;PostCode;Country
+    // Each component on separate line with LABEL for display
+    if (streetAddress || suburb || state || postcode) {
+      vCardLines.push(`ADR;TYPE=HOME:;;${streetAddress};${suburb};${state};${postcode};Australia`);
+      // Add formatted label that iOS displays
+      const fullAddress = [streetAddress, suburb, state, postcode, 'Australia'].filter(Boolean).join(', ');
+      vCardLines.push(`LABEL;TYPE=HOME:${fullAddress}`);
+    }
+    
+    vCardLines.push('END:VCARD');
+    
+    const vCard = vCardLines.join('\r\n');
 
     // Create blob and download
     const blob = new Blob([vCard], { type: 'text/vcard;charset=utf-8' });
