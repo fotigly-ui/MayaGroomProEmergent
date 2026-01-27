@@ -87,10 +87,10 @@ export default function Items() {
         <PageHeader 
           title="Items" 
           subtitle="Retail products and add-ons"
-          action={
-            <Button onClick={() => openModal()} className="btn-maya-primary" data-testid="add-item-btn">
-              <Plus size={18} className="mr-2" />
-              Add Item
+          actions={
+            <Button onClick={() => openModal()} className="btn-maya-primary h-8 px-3 text-sm" data-testid="add-item-btn">
+              <Plus size={14} className="mr-1" />
+              Add
             </Button>
           }
         />
