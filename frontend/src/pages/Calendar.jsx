@@ -546,9 +546,9 @@ export default function CalendarPage() {
           onTouchEnd={handleTouchEnd}
         >
           {/* Current Time Indicator */}
-          {/* Current Time Indicator */}
           {isSelectedDateToday && (
             <div
+              ref={currentTimeRef}
               className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
               style={{ top: `${currentTimePos}px` }}
             >
