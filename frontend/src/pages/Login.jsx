@@ -5,8 +5,10 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import api from '../lib/api';
 
 const LOGO_URL = "https://customer-assets.emergentagent.com/job_d578d077-528c-4967-bdf0-53c37dcde83a/artifacts/6dvktlo7_14F224AC-7591-4953-AD6C-171CC58B1D16.png";
 
@@ -21,6 +23,28 @@ export default function Login() {
     confirmPassword: '',
     businessName: '' 
   });
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) {
+      toast.error('Please enter your email');
+      return;
+    }
+    setForgotLoading(true);
+    try {
+      await api.post('/auth/forgot-password', { email: forgotEmail });
+      toast.success('If an account exists with this email, you will receive a password reset link.');
+      setShowForgotPassword(false);
+      setForgotEmail('');
+    } catch (error) {
+      toast.error('Failed to send reset email. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
