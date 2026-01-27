@@ -174,14 +174,15 @@ export default function CalendarPage() {
           const now = new Date();
           const hours = now.getHours();
           const minutes = now.getMinutes();
-          // Scroll to 2 hours before, accounting for 120px header
-          const scrollPos = Math.max(0, (hours - 2) * 60 + minutes + 120);
+          // Calculate scroll position: current time in minutes, minus 2 hours offset to show context above
+          // The 120px padding is already in the element, scroll directly to time position
+          const scrollPos = Math.max(0, ((hours - 2) * 60 + minutes) * zoomLevel);
           scrollRef.current.scrollTop = scrollPos;
         }
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [loading, isSelectedDateToday]);
+  }, [loading, isSelectedDateToday, zoomLevel]);
 
   // Pinch to zoom handlers
   const handleTouchStart = (e) => {
