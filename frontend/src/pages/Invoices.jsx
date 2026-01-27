@@ -254,34 +254,26 @@ export default function Invoices() {
           {invoices.map((invoice) => (
             <div 
               key={invoice.id} 
-              className="card-maya flex items-center justify-between cursor-pointer hover:border-primary transition-colors"
+              className="card-maya cursor-pointer hover:border-primary transition-colors p-3"
               onClick={() => viewInvoice(invoice)}
               data-testid={`invoice-${invoice.id}`}
             >
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-maya-primary-light flex items-center justify-center">
-                  {getStatusIcon(invoice.status)}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-maya-text">{invoice.invoice_number}</h3>
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-sm text-maya-text">{invoice.invoice_number}</h3>
                     <span className={cn("text-xs px-2 py-0.5 rounded-full", getStatusColor(invoice.status))}>
                       {invoice.status}
                     </span>
                   </div>
-                  <p className="text-sm text-maya-text-muted">{invoice.client_name}</p>
+                  <p className="text-xs text-maya-text-muted">{invoice.client_name}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-sm text-primary">{formatCurrency(invoice.total)}</p>
                   <p className="text-xs text-maya-text-muted">
-                    {format(new Date(invoice.created_at), 'MMM d, yyyy')}
+                    {format(new Date(invoice.created_at), 'MMM d')}
                   </p>
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-lg text-primary">{formatCurrency(invoice.total)}</p>
-                {invoice.due_date && (
-                  <p className="text-xs text-maya-text-muted">
-                    Due: {format(new Date(invoice.due_date), 'MMM d')}
-                  </p>
-                )}
               </div>
             </div>
           ))}
