@@ -45,11 +45,6 @@ const DEFAULT_TEMPLATES = {
     name: "Confirmation Request",
     template: "Hi {client_name}! Reminder: You have an appointment for {pet_names} at {business_name} on {date} at {time}. Reply CONFIRM to confirm or call {business_phone} to reschedule.",
     enabled: true
-  },
-  reminder_24h: {
-    name: "24-Hour Reminder",
-    template: "Hi {client_name}! Just a reminder: {pet_names} appointment tomorrow at {time} at {business_name}. See you soon!",
-    enabled: true
   }
 };
 
