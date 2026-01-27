@@ -33,8 +33,6 @@ export default function Login() {
       console.error('Login error:', error);
       const errorMsg = error.response?.data?.detail || error.message || 'Login failed';
       toast.error(errorMsg);
-      // Show alert for iOS debugging
-      alert('Login error: ' + errorMsg);
     } finally {
       setLoading(false);
     }
