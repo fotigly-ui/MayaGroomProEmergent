@@ -92,7 +92,7 @@ export default function Services() {
         <PageHeader 
           title="Services" 
           subtitle="Manage your grooming services"
-          action={
+          actions={
             <Button onClick={() => openModal()} className="btn-maya-primary" data-testid="add-service-btn">
               <Plus size={18} className="mr-2" />
               Add Service

@@ -144,7 +144,7 @@ export default function Customers() {
         <PageHeader 
           title="Customers" 
           subtitle={`${clients.length} total clients`}
-          action={
+          actions={
             <Button 
               onClick={() => openModal()} 
               className="btn-maya-primary"
