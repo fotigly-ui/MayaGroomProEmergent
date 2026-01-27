@@ -193,17 +193,30 @@ export default function CustomerDetail() {
 
   // Save to native phone contacts using vCard
   const saveToContacts = () => {
-    // Create vCard format
+    // Parse name into first and last name
+    const nameParts = client.name.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+    
+    // Get address parts
+    const streetAddress = client.street_address || client.address || '';
+    const suburb = client.suburb || '';
+    const state = client.state || '';
+    const postcode = client.postcode || '';
+    
+    // Create vCard format - N format is: LastName;FirstName;MiddleName;Prefix;Suffix
     const vCard = [
       'BEGIN:VCARD',
       'VERSION:3.0',
       `FN:${client.name}`,
-      `N:${client.name.split(' ').reverse().join(';')};;;`,
+      `N:${lastName};${firstName};;;`,
       client.phone ? `TEL;TYPE=CELL:${client.phone}` : '',
       client.email ? `EMAIL:${client.email}` : '',
-      client.address ? `ADR;TYPE=HOME:;;${client.address};;;;` : '',
+      // ADR format: PO Box;Extended;Street;City;State;PostCode;Country
+      (streetAddress || suburb || state || postcode) ? 
+        `ADR;TYPE=HOME:;;${streetAddress};${suburb};${state};${postcode};Australia` : '',
       'END:VCARD'
-    ].filter(Boolean).join('\n');
+    ].filter(Boolean).join('\r\n');
 
     // Create blob and download
     const blob = new Blob([vCard], { type: 'text/vcard;charset=utf-8' });
