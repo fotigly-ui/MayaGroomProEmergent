@@ -27,6 +27,8 @@ export default function Login() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [forgotLoading, setForgotLoading] = useState(false);
 
+  const [tempPassword, setTempPassword] = useState('');
+
   const handleForgotPassword = async (e) => {
     e.preventDefault();
     if (!forgotEmail.trim()) {
@@ -34,13 +36,19 @@ export default function Login() {
       return;
     }
     setForgotLoading(true);
+    setTempPassword('');
     try {
-      await api.post('/auth/forgot-password', { email: forgotEmail });
-      toast.success('If an account exists with this email, you will receive a password reset link.');
-      setShowForgotPassword(false);
-      setForgotEmail('');
+      const response = await api.post('/auth/forgot-password', { email: forgotEmail });
+      if (response.data.temporary_password) {
+        setTempPassword(response.data.temporary_password);
+        toast.success('Password reset successful!');
+      } else {
+        toast.info(response.data.message);
+        setShowForgotPassword(false);
+        setForgotEmail('');
+      }
     } catch (error) {
-      toast.error('Failed to send reset email. Please try again.');
+      toast.error('Failed to reset password. Please try again.');
     } finally {
       setForgotLoading(false);
     }
