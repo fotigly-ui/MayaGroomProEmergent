@@ -595,16 +595,43 @@ export default function CustomerDetail() {
                   data-testid="client-email-input"
                 />
               </div>
-              <div className="space-y-1 pb-3">
-                <Label className="text-sm">Address</Label>
-                <Textarea
-                  value={clientForm.address}
-                  onChange={(e) => setClientForm({ ...clientForm, address: e.target.value })}
-                  placeholder="Start typing address..."
-                  data-testid="client-address-input"
-                  rows={2}
-                  className="resize-none"
+              <div className="space-y-1">
+                <Label className="text-sm">Street Address</Label>
+                <Input
+                  value={clientForm.street_address}
+                  onChange={(e) => setClientForm({ ...clientForm, street_address: e.target.value })}
+                  placeholder="123 Main Street"
+                  data-testid="client-street-input"
                 />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1">
+                  <Label className="text-sm">Suburb</Label>
+                  <Input
+                    value={clientForm.suburb}
+                    onChange={(e) => setClientForm({ ...clientForm, suburb: e.target.value })}
+                    placeholder="Suburb"
+                    data-testid="client-suburb-input"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm">State</Label>
+                  <Input
+                    value={clientForm.state}
+                    onChange={(e) => setClientForm({ ...clientForm, state: e.target.value })}
+                    placeholder="VIC"
+                    data-testid="client-state-input"
+                  />
+                </div>
+                <div className="space-y-1 pb-3">
+                  <Label className="text-sm">Postcode</Label>
+                  <Input
+                    value={clientForm.postcode}
+                    onChange={(e) => setClientForm({ ...clientForm, postcode: e.target.value })}
+                    placeholder="3000"
+                    data-testid="client-postcode-input"
+                  />
+                </div>
               </div>
             </div>
             <DialogFooter className="flex-col gap-2 px-4 sm:px-6 py-3 sm:py-4 border-t shrink-0">
