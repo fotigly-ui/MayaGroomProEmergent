@@ -240,6 +240,10 @@ export default function CustomerDetail() {
                   <Edit2 size={14} className="mr-1" />
                   Edit
                 </Button>
+                <Button variant="outline" size="sm" onClick={saveToContacts} data-testid="save-to-contacts-btn">
+                  <UserPlus size={14} className="mr-1" />
+                  Save to Contacts
+                </Button>
                 {client.no_show_count > 0 && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg px-2 py-1 text-xs">
                     <span className="text-maya-warning font-medium">{client.no_show_count}</span>
