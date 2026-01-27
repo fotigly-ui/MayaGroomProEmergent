@@ -211,7 +211,7 @@ export default function CustomerDetail() {
     const state = client.state || '';
     const postcode = client.postcode || '';
     
-    // Build vCard lines
+    // Build vCard lines - using vCard 3.0 format compatible with iOS
     const vCardLines = [
       'BEGIN:VCARD',
       'VERSION:3.0',
@@ -224,16 +224,18 @@ export default function CustomerDetail() {
     }
     
     if (client.email) {
-      vCardLines.push(`EMAIL:${client.email}`);
+      vCardLines.push(`EMAIL;TYPE=INTERNET:${client.email}`);
     }
     
-    // ADR format for iOS: ;;Street;City;State;PostCode;Country
-    // Each component on separate line with LABEL for display
+    // Build address - iOS expects specific format
+    // ADR;TYPE=HOME:PO Box;Apartment/Suite;Street;City;State;PostCode;Country
     if (streetAddress || suburb || state || postcode) {
+      // Format: ;;street;city;state;postcode;country
       vCardLines.push(`ADR;TYPE=HOME:;;${streetAddress};${suburb};${state};${postcode};Australia`);
-      // Add formatted label that iOS displays
-      const fullAddress = [streetAddress, suburb, state, postcode, 'Australia'].filter(Boolean).join(', ');
-      vCardLines.push(`LABEL;TYPE=HOME:${fullAddress}`);
+      
+      // Also add as item with X-ABADR for iOS
+      vCardLines.push(`item1.ADR;TYPE=HOME:;;${streetAddress};${suburb};${state};${postcode};Australia`);
+      vCardLines.push('item1.X-ABADR:au');
     }
     
     vCardLines.push('END:VCARD');
