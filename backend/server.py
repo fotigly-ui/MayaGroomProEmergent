@@ -504,37 +504,35 @@ async def login(user: UserLogin):
 class ForgotPasswordRequest(BaseModel):
     email: str
 
-@api_router.post("/auth/forgot-password")
+class ResetPasswordResponse(BaseModel):
+    message: str
+    temporary_password: Optional[str] = None
+
+@api_router.post("/auth/forgot-password", response_model=ResetPasswordResponse)
 async def forgot_password(request: ForgotPasswordRequest):
     # Check if user exists
     db_user = await db.users.find_one({"email": request.email}, {"_id": 0})
     
-    # Always return success to prevent email enumeration
-    # In a real implementation, you would send an email with a reset token
-    if db_user:
-        # Generate a reset token (in production, this would be sent via email)
-        import secrets
-        reset_token = secrets.token_urlsafe(32)
-        
-        # Store the reset token with expiry (1 hour)
-        await db.password_resets.update_one(
-            {"user_id": db_user["id"]},
-            {
-                "$set": {
-                    "user_id": db_user["id"],
-                    "token": reset_token,
-                    "created_at": datetime.now(timezone.utc).isoformat(),
-                    "expires_at": (datetime.now(timezone.utc) + timedelta(hours=1)).isoformat()
-                }
-            },
-            upsert=True
-        )
-        
-        # TODO: Send email with reset link
-        # For now, just log it (in production, use SendGrid/Twilio)
-        print(f"Password reset requested for {request.email}. Token: {reset_token}")
+    if not db_user:
+        # Return generic message to prevent email enumeration
+        return ResetPasswordResponse(message="If an account exists with this email, a temporary password will be generated.")
     
-    return {"message": "If an account exists with this email, you will receive a password reset link."}
+    # Generate a temporary password
+    import secrets
+    import string
+    temp_password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(10))
+    
+    # Hash and update the password
+    new_hash = hash_password(temp_password)
+    await db.users.update_one(
+        {"id": db_user["id"]},
+        {"$set": {"password_hash": new_hash}}
+    )
+    
+    return ResetPasswordResponse(
+        message="Your password has been reset. Please use the temporary password below to login, then change it in Settings.",
+        temporary_password=temp_password
+    )
 
 @api_router.get("/auth/me")
 async def get_me(user_id: str = Depends(get_current_user)):
