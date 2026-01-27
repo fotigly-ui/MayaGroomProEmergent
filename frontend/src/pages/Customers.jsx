@@ -95,8 +95,8 @@ export default function Customers() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name.trim()) {
-      toast.error('Name is required');
+    if (!formData.first_name.trim()) {
+      toast.error('First name is required');
       return;
     }
 
@@ -112,9 +112,10 @@ export default function Customers() {
     try {
       let clientId;
       
-      // Combine address fields for storage
+      // Combine name and address fields for storage
       const clientData = {
         ...formData,
+        name: [formData.first_name, formData.surname].filter(Boolean).join(' '),
         address: [formData.street_address, formData.suburb, formData.state, formData.postcode].filter(Boolean).join(', ')
       };
       
