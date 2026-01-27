@@ -270,13 +270,42 @@ export default function Customers() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Address</Label>
+                <Label>Street Address</Label>
                 <Input
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  placeholder="Street address"
-                  data-testid="customer-address-input"
+                  value={formData.street_address}
+                  onChange={(e) => setFormData({ ...formData, street_address: e.target.value })}
+                  placeholder="123 Main Street"
+                  data-testid="customer-street-input"
                 />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-2">
+                  <Label>Suburb</Label>
+                  <Input
+                    value={formData.suburb}
+                    onChange={(e) => setFormData({ ...formData, suburb: e.target.value })}
+                    placeholder="Suburb"
+                    data-testid="customer-suburb-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>State</Label>
+                  <Input
+                    value={formData.state}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    placeholder="VIC"
+                    data-testid="customer-state-input"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Postcode</Label>
+                  <Input
+                    value={formData.postcode}
+                    onChange={(e) => setFormData({ ...formData, postcode: e.target.value })}
+                    placeholder="3000"
+                    data-testid="customer-postcode-input"
+                  />
+                </div>
               </div>
             </div>
 
