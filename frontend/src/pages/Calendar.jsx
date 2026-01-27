@@ -155,13 +155,13 @@ export default function CalendarPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Current time indicator position - NO ZOOM, JUST ACTUAL TIME
+  // Current time indicator position - accounts for 120px padding and zoom level
   const getCurrentTimePosition = () => {
     const now = new Date();
     const hours = now.getHours();
     const minutes = now.getMinutes();
-    // 1 hour = 60px, so position = hours * 60 + minutes
-    return (hours * 60 + minutes);
+    // Position = time in minutes * zoomLevel + 120px padding offset
+    return (hours * 60 + minutes) * zoomLevel + 120;
   };
   const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isSameDay(selectedDate, new Date());
