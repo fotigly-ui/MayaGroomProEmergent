@@ -177,16 +177,15 @@ export default function CalendarPage() {
           // Use scrollIntoView for more reliable scrolling
           currentTimeRef.current.scrollIntoView({ behavior: 'instant', block: 'center' });
           hasScrolledToTime.current = true;
-          console.log('🕐 Auto-scrolled using scrollIntoView');
         } else if (scrollRef.current) {
-          // Fallback to manual scroll
+          // Fallback to manual scroll - 80px per hour
           const now = new Date();
           const hours = now.getHours();
           const minutes = now.getMinutes();
-          const scrollPos = Math.max(0, ((hours - 2) * 60 + minutes) * zoomLevel);
+          const pixelsPerHour = SLOT_HEIGHT * 4; // 80px
+          const scrollPos = Math.max(0, ((hours - 2) * pixelsPerHour + (minutes / 60) * pixelsPerHour) * zoomLevel);
           scrollRef.current.scrollTop = scrollPos;
           hasScrolledToTime.current = true;
-          console.log('🕐 Auto-scrolled to position:', scrollPos);
         }
       }, 500);
       return () => clearTimeout(timer);
