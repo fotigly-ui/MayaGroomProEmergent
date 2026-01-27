@@ -665,16 +665,15 @@ export default function Settings() {
                       type="button"
                       onClick={triggerBackup}
                       disabled={backupLoading}
-                      size="sm"
-                      className="btn-maya-primary text-xs px-2 py-1"
+                      className="btn-maya-primary"
                       data-testid="backup-now-btn"
                     >
                       {backupLoading ? (
-                        <Loader2 className="animate-spin mr-1" size={14} />
+                        <Loader2 className="animate-spin mr-2" size={16} />
                       ) : (
-                        <Database size={14} className="mr-1" />
+                        <Database size={16} className="mr-2" />
                       )}
-                      Backup
+                      Backup Now
                     </Button>
                   </div>
                 </div>
