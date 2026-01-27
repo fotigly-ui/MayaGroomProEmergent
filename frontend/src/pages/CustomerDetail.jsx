@@ -205,11 +205,12 @@ export default function CustomerDetail() {
     const lastName = client.surname || (client.name ? client.name.split(' ').slice(1).join(' ') : '');
     const fullName = [firstName, lastName].filter(Boolean).join(' ');
     
-    // Get address parts
+    // Get address - use new fields if available, otherwise use old address field
     const streetAddress = client.street_address || '';
     const suburb = client.suburb || '';
     const state = client.state || '';
     const postcode = client.postcode || '';
+    const oldAddress = client.address || '';
     
     // Build vCard lines - using vCard 3.0 format compatible with iOS
     const vCardLines = [
@@ -227,14 +228,13 @@ export default function CustomerDetail() {
       vCardLines.push(`EMAIL;TYPE=INTERNET:${client.email}`);
     }
     
-    // Build address - iOS expects specific format
-    // ADR;TYPE=HOME:PO Box;Apartment/Suite;Street;City;State;PostCode;Country
+    // Use new address fields if available, otherwise fall back to old address
     if (streetAddress || suburb || state || postcode) {
-      // Format: ;;street;city;state;postcode;country
-      vCardLines.push(`ADR;TYPE=HOME:;;${streetAddress};${suburb};${state};${postcode};Australia`);
-      
-      // Also add as item with X-ABADR for iOS
       vCardLines.push(`item1.ADR;TYPE=HOME:;;${streetAddress};${suburb};${state};${postcode};Australia`);
+      vCardLines.push('item1.X-ABADR:au');
+    } else if (oldAddress) {
+      // Use old address field - put full address in street field
+      vCardLines.push(`item1.ADR;TYPE=HOME:;;${oldAddress};;;;Australia`);
       vCardLines.push('item1.X-ABADR:au');
     }
     
