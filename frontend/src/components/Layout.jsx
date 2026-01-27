@@ -137,8 +137,64 @@ export function Layout({ children }) {
               </Link>
             );
           })}
+          {/* Hamburger Menu Button */}
+          <button
+            onClick={() => setShowMobileMenu(true)}
+            className="flex flex-col items-center justify-center flex-1 h-full text-maya-text-muted"
+          >
+            <Menu size={18} strokeWidth={1.5} />
+            <span className="text-[10px] mt-0.5">More</span>
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Menu Overlay */}
+      {showMobileMenu && (
+        <div className="md:hidden fixed inset-0 z-[60]">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowMobileMenu(false)} />
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4 pb-8">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-semibold text-maya-text">Menu</h3>
+              <button onClick={() => setShowMobileMenu(false)} className="p-1">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <Link
+                to="/invoices"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-maya-cream"
+              >
+                <FileText size={20} className="text-maya-primary" />
+                <span>Invoices</span>
+              </Link>
+              <Link
+                to="/checkout"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-maya-cream"
+              >
+                <CreditCard size={20} className="text-maya-primary" />
+                <span>Checkout</span>
+              </Link>
+              <Link
+                to="/settings"
+                onClick={() => setShowMobileMenu(false)}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-maya-cream"
+              >
+                <Settings size={20} className="text-maya-primary" />
+                <span>Settings</span>
+              </Link>
+              <button
+                onClick={() => { logout(); setShowMobileMenu(false); }}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-red-50 w-full text-left text-red-500"
+              >
+                <LogOut size={20} />
+                <span>Logout</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
