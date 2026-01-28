@@ -1144,6 +1144,13 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
             )
         
         logger.info(f"Updated {len(future_appts)} appointments in series with time offset of {time_offset_minutes} minutes")
+        
+        # Return the updated appointment
+        appt = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
+        if not appt:
+            raise HTTPException(status_code=404, detail="Appointment not found after update")
+        return parse_datetime_fields(appt, ["date_time", "end_time", "created_at"])
+        
     elif update_series:
         # Update all appointments with the same recurring_id (no date change)
         recurring_id = original_appt.get("recurring_id")
