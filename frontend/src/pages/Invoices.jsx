@@ -294,11 +294,33 @@ export default function Invoices() {
                   </div>
                   <p className="text-xs text-maya-text-muted">{invoice.client_name}</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-bold text-sm text-primary">{formatCurrency(invoice.total)}</p>
-                  <p className="text-xs text-maya-text-muted">
-                    {format(new Date(invoice.created_at), 'MMM d')}
-                  </p>
+                <div className="text-right flex items-center gap-2">
+                  <div>
+                    <p className="font-bold text-sm text-primary">{formatCurrency(invoice.total)}</p>
+                    <p className="text-xs text-maya-text-muted">
+                      {format(new Date(invoice.created_at), 'MMM d')}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); openEditInvoice(invoice); }}
+                      className="h-7 w-7 p-0"
+                      data-testid={`edit-invoice-${invoice.id}`}
+                    >
+                      <Edit2 size={14} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); handleDeleteInvoice(invoice); }}
+                      className="h-7 w-7 p-0 text-red-500 hover:text-red-700"
+                      data-testid={`delete-invoice-${invoice.id}`}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -314,11 +336,11 @@ export default function Invoices() {
         </div>
       </div>
 
-      {/* Create Invoice Modal */}
+      {/* Create/Edit Invoice Modal */}
       <Dialog open={showModal} onOpenChange={setShowModal}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>New Invoice</DialogTitle>
+            <DialogTitle>{editingInvoice ? 'Edit Invoice' : 'New Invoice'}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Client Selection */}
