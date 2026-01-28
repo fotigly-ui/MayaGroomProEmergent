@@ -1,0 +1,68 @@
+{
+  "summary": "Completed testing of pet grooming appointment app fixes. All 3 main issues (recurring appointment timezone, invoice check endpoint, upcoming appointments date filtering) are working correctly. Backend API tests: 13/13 passed. Frontend tests: All critical flows verified on desktop and mobile.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Login flow with foti@mayaspetgrooming.com.au / Maya2024! - PASSED",
+    "Invoice check endpoint /api/invoices/check/{appointment_id} returns correct has_invoice flag - PASSED",
+    "Appointments with invoice show 'View Invoice (INV-xxx)' button - PASSED (Roji Subedi appointment)",
+    "Appointments without invoice show 'Review & Checkout' button - PASSED (Foti Glykerdas appointment)",
+    "Upcoming appointments tab in CustomerDetail shows future appointments correctly - PASSED (Ayush: 8 upcoming)",
+    "Date filtering correctly excludes completed/cancelled/no_show appointments - PASSED",
+    "Recurring appointment fields (recurring_id, recurring_value, recurring_unit) present - PASSED",
+    "Recurring series time consistency verified - PASSED",
+    "Mobile view (iPhone 390x844) calendar and modals working - PASSED",
+    "Mobile view CustomerDetail Upcoming tab working - PASSED"
+  ],
+  "failed_tests": [],
+  "test_report_links": [
+    "/app/backend/tests/test_groompro_api.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Invoice check endpoint (/api/invoices/check/{appointment_id}) correctly returns has_invoice, invoice_id, and invoice_number",
+    "Calendar.jsx handleAppointmentClick properly calls invoice check API and sets appointmentInvoice state",
+    "CustomerDetail.jsx date filtering correctly handles UTC dates with 'Z' suffix using: new Date(apptDateStr.endsWith('Z') ? apptDateStr : apptDateStr + 'Z')",
+    "Backend recurring appointment update uses full datetime offset (time_offset_minutes) instead of just hour/minute difference"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_groompro_api.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (10/10 tests passed)"
+  },
+  "test_credentials": {
+    "email": "foti@mayaspetgrooming.com.au",
+    "password": "Maya2024!"
+  },
+  "seed_data_creation": "None - used existing data",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All 3 reported issues have been fixed and verified: 1) Recurring appointment timezone handling uses full datetime offset. 2) Invoice check endpoint returns correct has_invoice flag. 3) CustomerDetail Upcoming tab correctly filters future appointments. Test user: foti@mayaspetgrooming.com.au/Maya2024!. Customers with appointments: Ayush (8 upcoming), Foti Glykerdas (future scheduled), Roji Subedi (1 completed).",
+  "verified_fixes": [
+    {
+      "issue": "Recurring appointment rescheduling creates appointments one hour earlier (timezone issue)",
+      "fix_location": "/app/backend/server.py lines 1108-1180",
+      "verification": "Backend code now uses full datetime offset (time_offset_minutes) instead of just hour/minute difference. Recurring series time consistency test passed."
+    },
+    {
+      "issue": "'Review & Checkout' button shows 'Invoice' for recurring appointments that haven't been invoiced yet",
+      "fix_location": "/app/frontend/src/pages/Calendar.jsx lines 247-270, 968-1025",
+      "verification": "Calendar.jsx now calls /api/invoices/check/{appointment_id} and shows 'View Invoice' only when has_invoice=true. Verified with Roji Subedi (has invoice) and Foti Glykerdas (no invoice)."
+    },
+    {
+      "issue": "'Upcoming' appointments tab not showing future appointments due to date/timezone comparison bug",
+      "fix_location": "/app/frontend/src/pages/CustomerDetail.jsx lines 392-458",
+      "verification": "Date filtering now properly handles UTC dates with 'Z' suffix. Ayush customer correctly shows 8 upcoming appointments."
+    }
+  ]
+}
