@@ -454,7 +454,7 @@ export default function CustomerDetail() {
 
                   {appointments.filter(appt => {
                     const isFuture = new Date(appt.date_time) >= new Date();
-                    const isActive = !['cancelled', 'no_show'].includes(appt.status);
+                    const isActive = !['cancelled', 'no_show', 'completed'].includes(appt.status);
                     return isFuture && isActive;
                   }).length === 0 && (
                     <div className="empty-state">
@@ -469,8 +469,9 @@ export default function CustomerDetail() {
                 <div className="space-y-3">
                   {appointments.filter(appt => {
                     const isPast = new Date(appt.date_time) < new Date();
+                    const isCompleted = appt.status === 'completed';
                     const isCancelled = ['cancelled', 'no_show'].includes(appt.status);
-                    return isPast || isCancelled;
+                    return isPast || isCompleted || isCancelled;
                   }).map((appt) => (
                     <div
                       key={appt.id}
