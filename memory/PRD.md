@@ -17,23 +17,31 @@ Build a grooming appointment app with:
 ## Current Status: MVP COMPLETE ✅
 
 ### Completed Features (January 2025)
-- [x] User authentication (JWT)
+- [x] User authentication (JWT) with Change Password & Forgot Password
 - [x] Calendar with week view, current time indicator, auto-scroll
 - [x] Appointments with drag & drop, color-coded status
-- [x] Recurring appointments (daily/weekly/monthly)
+- [x] Recurring appointments (daily/weekly/monthly) with series reschedule
 - [x] Customer management with contact popups (Call/SMS/Maps)
+- [x] Customer form with separate First Name/Surname and Address fields
 - [x] Pet management linked to customers
 - [x] Services & Items management
-- [x] Review & Checkout flow with service/product selection
-- [x] Invoice generation with discount & GST
-- [x] SMS templates (6 editable templates - removed 24hr reminder)
-- [x] Settings (Business, Payment, SMS, Preferences)
+- [x] Review & Checkout flow with editable prices for services/items
+- [x] Invoice generation with GST-inclusive pricing
+- [x] Invoice edit & delete functionality
+- [x] SMS templates (6 editable templates)
+- [x] Settings (Business with Change Password, Payment, SMS, Data Backup)
 - [x] Supabase backup integration
-- [x] Mobile-responsive design
-- [x] Save contact to phone (vCard export) **ADDED 2025-01-27**
-- [x] Timeline position corrected (80px per hour) **FIXED 2025-01-27**
-- [x] Add Customer/Service buttons visibility **FIXED 2025-01-27**
-- [x] Smaller backup button **FIXED 2025-01-27**
+- [x] Mobile-responsive design with hamburger menu
+- [x] Save contact to phone (vCard export with proper address fields)
+- [x] Customer appointments tab with Upcoming/Past filter and counts
+
+### Recent Fixes (January 27, 2025)
+- [x] Timeline position corrected (80px per hour)
+- [x] Recurring series reschedule applies time offset to each appointment
+- [x] GST calculation fixed (prices are GST-inclusive)
+- [x] Checkout prices are now editable
+- [x] Edit/Save buttons moved under customer name
+- [x] Change Password moved to Business tab in Settings
 
 ### Pending Features
 - [ ] Dark mode completion
@@ -42,17 +50,14 @@ Build a grooming appointment app with:
 - [ ] Automatic SMS sending via Twilio
 - [ ] Online customer booking portal
 - [ ] Reporting & Analytics dashboard
-- [ ] Separate past/upcoming appointments in Customer Detail
 
 ## Upcoming Features (P1)
-- [x] ~~Appointment Details view~~ **IMPLEMENTED 2025-01-15**
 - [ ] Individual occurrence editing (without affecting series)
 
 ## Backlog (P2+)
 - [ ] Complete Dark Mode implementation
-- [ ] Customer appointment history view
 - [ ] Refactor backend server.py into modules
-- [ ] Refactor Calendar.jsx and AppointmentModal.jsx into smaller components
+- [ ] Refactor Calendar.jsx into smaller components
 
 ## Key Files
 - `/app/frontend/src/pages/Calendar.jsx` - Main calendar view
