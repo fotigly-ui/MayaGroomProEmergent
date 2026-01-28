@@ -244,10 +244,24 @@ export default function CalendarPage() {
     setShowModal(true);
   };
 
-  const handleAppointmentClick = (appointment, e) => {
+  const handleAppointmentClick = async (appointment, e) => {
     e.stopPropagation();
     setSelectedAppointment(appointment);
     setSelectedSlot(null);
+    setAppointmentInvoice(null); // Reset invoice state
+    
+    // Check if this appointment already has an invoice
+    try {
+      const token = localStorage.getItem('maya_token');
+      const response = await axios.get(`${API_URL}/invoices/check/${appointment.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setAppointmentInvoice(response.data);
+    } catch (error) {
+      console.error('Error checking invoice:', error);
+      setAppointmentInvoice({ has_invoice: false });
+    }
+    
     setShowDetailsModal(true); // Show details modal first
   };
 
