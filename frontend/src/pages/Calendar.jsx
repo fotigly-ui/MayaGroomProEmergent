@@ -707,7 +707,7 @@ export default function CalendarPage() {
           {pendingReschedule && (
             <div className="space-y-4">
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Move <span className="font-semibold">{pendingReschedule.appointment.client_name}</span>'s appointment?
+                Move <span className="font-semibold">{pendingReschedule.appointment.client_name}&apos;s</span> appointment?
               </p>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-3">
                 <div className="flex items-center gap-2 text-sm">
