@@ -1194,29 +1194,27 @@ export default function CalendarPage() {
                 {/* Services List */}
                 <div className="space-y-2">
                   {checkoutItems.filter(i => i.type === 'service').map((item, index) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
-                      <div className="flex-1">
-                        <p className="font-medium text-maya-text">{item.name}</p>
+                    <div key={item.id} className="flex items-center justify-between p-2 bg-blue-50 rounded-lg border border-blue-100">
+                      <div className="flex-1 min-w-0 mr-2">
+                        <p className="text-sm font-medium text-maya-text truncate">{item.name}</p>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
-                            onClick={() => {
-                              const updated = checkoutItems.map(i => 
-                                i.id === item.id ? { ...i, quantity: Math.max(1, i.quantity - 1), total: Math.max(1, i.quantity - 1) * i.unit_price } : i
-                              );
-                              setCheckoutItems(updated);
-                            }}>-</Button>
-                          <span className="w-6 text-center text-sm">{item.quantity}</span>
-                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
-                            onClick={() => {
-                              const updated = checkoutItems.map(i => 
-                                i.id === item.id ? { ...i, quantity: i.quantity + 1, total: (i.quantity + 1) * i.unit_price } : i
-                              );
-                              setCheckoutItems(updated);
-                            }}>+</Button>
-                        </div>
-                        <span className="text-xs text-gray-500">×</span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
+                          onClick={() => {
+                            const updated = checkoutItems.map(i => 
+                              i.id === item.id ? { ...i, quantity: Math.max(1, i.quantity - 1), total: Math.max(1, i.quantity - 1) * i.unit_price } : i
+                            );
+                            setCheckoutItems(updated);
+                          }}>-</Button>
+                        <span className="w-4 text-center text-xs">{item.quantity}</span>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
+                          onClick={() => {
+                            const updated = checkoutItems.map(i => 
+                              i.id === item.id ? { ...i, quantity: i.quantity + 1, total: (i.quantity + 1) * i.unit_price } : i
+                            );
+                            setCheckoutItems(updated);
+                          }}>+</Button>
+                        <span className="text-xs text-gray-400 mx-1">×</span>
                         <Input
                           type="text"
                           inputMode="decimal"
@@ -1229,26 +1227,26 @@ export default function CalendarPage() {
                             );
                             setCheckoutItems(updated);
                           }}
-                          className="w-20 h-7 text-right text-sm"
+                          className="w-16 h-6 text-right text-xs px-1"
                         />
-                        <span className="font-semibold w-20 text-right text-sm">{formatCurrency(item.total)}</span>
-                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 h-6 w-6 p-0"
+                        <span className="font-semibold w-16 text-right text-xs">{formatCurrency(item.total)}</span>
+                        <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 h-5 w-5 p-0"
                           onClick={() => setCheckoutItems(checkoutItems.filter(i => i.id !== item.id))}>
-                          <Trash2 size={14} />
+                          <Trash2 size={12} />
                         </Button>
                       </div>
                     </div>
                   ))}
                   {checkoutItems.filter(i => i.type === 'service').length === 0 && (
-                    <p className="text-sm text-maya-text-muted text-center py-3">No services added</p>
+                    <p className="text-xs text-maya-text-muted text-center py-2">No services added</p>
                   )}
                 </div>
               </div>
 
               {/* Products/Items Section */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-maya-text">Products/Items</h4>
+                  <h4 className="font-semibold text-sm text-maya-text">Products/Items</h4>
                   <Select onValueChange={(itemId) => {
                     const product = items.find(i => i.id === itemId);
                     if (product) {
