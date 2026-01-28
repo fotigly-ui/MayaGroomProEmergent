@@ -1171,11 +1171,11 @@ export default function CalendarPage() {
                 {/* Services List */}
                 <div className="space-y-2">
                   {checkoutItems.filter(i => i.type === 'service').map((item, index) => (
-                    <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+                    <div key={item.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
                       <div className="flex-1">
                         <p className="font-medium text-maya-text">{item.name}</p>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2">
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
                             onClick={() => {
@@ -1184,7 +1184,7 @@ export default function CalendarPage() {
                               );
                               setCheckoutItems(updated);
                             }}>-</Button>
-                          <span className="w-6 text-center">{item.quantity}</span>
+                          <span className="w-6 text-center text-sm">{item.quantity}</span>
                           <Button variant="ghost" size="sm" className="h-6 w-6 p-0"
                             onClick={() => {
                               const updated = checkoutItems.map(i => 
@@ -1193,7 +1193,20 @@ export default function CalendarPage() {
                               setCheckoutItems(updated);
                             }}>+</Button>
                         </div>
-                        <span className="font-semibold w-20 text-right">{formatCurrency(item.total)}</span>
+                        <span className="text-xs text-gray-500">×</span>
+                        <Input
+                          type="number"
+                          value={item.unit_price}
+                          onChange={(e) => {
+                            const newPrice = parseFloat(e.target.value) || 0;
+                            const updated = checkoutItems.map(i => 
+                              i.id === item.id ? { ...i, unit_price: newPrice, total: i.quantity * newPrice } : i
+                            );
+                            setCheckoutItems(updated);
+                          }}
+                          className="w-20 h-7 text-right text-sm"
+                        />
+                        <span className="font-semibold w-20 text-right text-sm">{formatCurrency(item.total)}</span>
                         <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 h-6 w-6 p-0"
                           onClick={() => setCheckoutItems(checkoutItems.filter(i => i.id !== item.id))}>
                           <Trash2 size={14} />
