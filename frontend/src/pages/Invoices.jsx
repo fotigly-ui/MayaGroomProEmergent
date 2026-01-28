@@ -66,6 +66,7 @@ export default function Invoices() {
   };
 
   const openNewInvoice = () => {
+    setEditingInvoice(null);
     setFormData({
       client_id: '',
       items: [{ name: '', quantity: 1, unit_price: 0, total: 0 }],
@@ -73,6 +74,30 @@ export default function Invoices() {
       due_date: ''
     });
     setShowModal(true);
+  };
+
+  const openEditInvoice = (invoice) => {
+    setEditingInvoice(invoice);
+    setFormData({
+      client_id: invoice.client_id,
+      items: invoice.items || [{ name: '', quantity: 1, unit_price: 0, total: 0 }],
+      notes: invoice.notes || '',
+      due_date: invoice.due_date ? invoice.due_date.split('T')[0] : ''
+    });
+    setShowModal(true);
+  };
+
+  const handleDeleteInvoice = async (invoice) => {
+    if (!window.confirm(`Delete invoice #${invoice.invoice_number}? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await axios.delete(`${API_URL}/invoices/${invoice.id}`, getAuthHeaders());
+      toast.success('Invoice deleted');
+      fetchData();
+    } catch (error) {
+      toast.error('Failed to delete invoice');
+    }
   };
 
   const addLineItem = () => {
