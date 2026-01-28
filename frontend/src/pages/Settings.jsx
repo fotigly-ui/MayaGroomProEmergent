@@ -352,6 +352,56 @@ export default function Settings() {
                   </div>
                 </div>
               </div>
+
+              {/* Change Password Section */}
+              <div className="card-maya space-y-4 mt-6">
+                <div className="flex items-center gap-2">
+                  <Lock size={20} className="text-maya-primary" />
+                  <h2 className="text-lg font-semibold text-maya-text">Change Password</h2>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label>Current Password</Label>
+                    <Input
+                      type="password"
+                      value={passwordForm.current_password}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, current_password: e.target.value })}
+                      placeholder="Current password"
+                      data-testid="current-password-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>New Password</Label>
+                    <Input
+                      type="password"
+                      value={passwordForm.new_password}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
+                      placeholder="New password"
+                      data-testid="new-password-input"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Confirm Password</Label>
+                    <Input
+                      type="password"
+                      value={passwordForm.confirm_password}
+                      onChange={(e) => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })}
+                      placeholder="Confirm password"
+                      data-testid="confirm-password-input"
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  onClick={handleChangePassword}
+                  disabled={passwordLoading || !passwordForm.current_password || !passwordForm.new_password}
+                  className="btn-maya-primary h-8 px-3 text-sm"
+                  data-testid="change-password-btn"
+                >
+                  {passwordLoading ? <Loader2 className="animate-spin mr-1" size={14} /> : null}
+                  Change Password
+                </Button>
+              </div>
             </TabsContent>
 
             <TabsContent value="payment">
