@@ -397,14 +397,7 @@ export default function CustomerDetail() {
                     return isFuture && isActive;
                   }).length})
                 </TabsTrigger>
-                <TabsTrigger value="past">
-                  Past ({appointments.filter(appt => {
-                    const isPast = new Date(appt.date_time) < new Date();
-                    const isCompleted = appt.status === 'completed';
-                    const isCancelled = ['cancelled', 'no_show'].includes(appt.status);
-                    return isPast || isCompleted || isCancelled;
-                  }).length})
-                </TabsTrigger>
+                <TabsTrigger value="past">Past</TabsTrigger>
               </TabsList>
 
               <TabsContent value="upcoming">
