@@ -62,7 +62,7 @@ export function AppointmentModal({
   services = [] 
 }) {
   const [loading, setLoading] = useState(false);
-  const [invoiceLoading, setInvoiceLoading] = useState(false);
+  const [existingInvoice, setExistingInvoice] = useState(null);
   const [clientId, setClientId] = useState('');
   const [clientSearch, setClientSearch] = useState('');
   const [showClientDropdown, setShowClientDropdown] = useState(false);
