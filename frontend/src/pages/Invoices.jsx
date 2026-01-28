@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { FileText, Plus, Eye, Send, DollarSign, Clock, CheckCircle, XCircle, Printer } from 'lucide-react';
+import { FileText, Plus, Eye, Send, DollarSign, Clock, CheckCircle, XCircle, Printer, Edit2, Trash2 } from 'lucide-react';
 import { Layout, PageHeader } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -30,6 +30,7 @@ export default function Invoices() {
   const [showModal, setShowModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [editingInvoice, setEditingInvoice] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
   
   // Form state
