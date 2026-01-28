@@ -278,8 +278,8 @@ export default function CustomerDetail() {
         <div className="card-maya mb-6">
           <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-bold text-maya-text">{client.name}</h1>
+              <h1 className="text-2xl font-bold text-maya-text">{client.name}</h1>
+              <div className="flex items-center gap-2 mt-2">
                 <Button variant="outline" size="sm" onClick={openClientModal} className="h-7 px-2 text-xs" data-testid="edit-client-btn">
                   <Edit2 size={12} className="mr-1" />
                   Edit
