@@ -33,18 +33,16 @@ Build a grooming appointment app with:
 - [x] Supabase backup integration
 - [x] Mobile-responsive design with hamburger menu
 - [x] Save contact to phone (vCard export with proper address fields)
-- [x] Customer appointments tab with Upcoming/Past filter and counts
+- [x] Customer appointments tab with Upcoming/Past filter
 
-### Recent Fixes (January 28, 2025)
-- [x] **Recurring appointment reschedule timezone fix** - Backend now uses full datetime offset calculation instead of just hour/minute difference
-- [x] **Invoice check endpoint** - Added `/api/invoices/check/{appointment_id}` to check if appointment has existing invoice
-- [x] **"Review & Checkout" vs "View Invoice" button** - Calendar details modal now shows correct button based on invoice existence
-- [x] **Upcoming appointments date filtering** - Fixed UTC date parsing with 'Z' suffix in CustomerDetail.jsx
-- [x] Timeline position corrected (80px per hour)
-- [x] GST calculation fixed (prices are GST-inclusive)
-- [x] Checkout prices are now editable
-- [x] Edit/Save buttons moved under customer name
-- [x] Change Password moved to Business tab in Settings
+### Recent Fixes (January 28, 2025 - Latest)
+- [x] **Removed count from Appointments tab** - Tab now just shows "Appointments" without total count
+- [x] **Mobile-friendly Review & Checkout modal** - Compact layout with smaller fonts, padding, proper scrolling
+- [x] **Invoice button in AppointmentModal** - Shows "View Invoice (INV-xxx)" only if invoice exists, hidden otherwise
+- [x] **Recurring appointment reschedule timezone fix** - Backend uses full datetime offset calculation
+- [x] **Invoice check endpoint** - `/api/invoices/check/{appointment_id}` to check invoice existence
+- [x] **"Review & Checkout" vs "View Invoice" button** - Calendar details modal shows correct button
+- [x] **Upcoming appointments date filtering** - Fixed UTC date parsing with 'Z' suffix
 
 ### Pending Features
 - [ ] Dark mode completion
