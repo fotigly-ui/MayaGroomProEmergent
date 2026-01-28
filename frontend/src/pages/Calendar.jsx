@@ -726,7 +726,65 @@ export default function CalendarPage() {
             }} className="w-full sm:w-auto">
               <Edit size={16} className="mr-2" /> Edit Details
             </Button>
-            <Button className="btn-maya-primary w-full sm:w-auto" onClick={confirmReschedule}>Confirm</Button>
+            <Button className="btn-maya-primary w-full sm:w-auto" onClick={() => confirmReschedule(false)}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Recurring Appointment Reschedule Dialog */}
+      <Dialog open={showRecurringRescheduleDialog} onOpenChange={setShowRecurringRescheduleDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Reschedule Recurring Appointment</DialogTitle>
+          </DialogHeader>
+          {pendingReschedule && (
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                This is a recurring appointment. Would you like to reschedule:
+              </p>
+              <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-500 w-16">From:</span>
+                  <span className="font-medium">{format(pendingReschedule.oldDateTime, 'HH:mm')}</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-gray-500 w-16">To:</span>
+                  <input
+                    type="time"
+                    value={format(pendingReschedule.newDateTime, 'HH:mm')}
+                    onChange={(e) => {
+                      const [hours, minutes] = e.target.value.split(':');
+                      const newDT = new Date(pendingReschedule.newDateTime);
+                      newDT.setHours(parseInt(hours), parseInt(minutes));
+                      setPendingReschedule({...pendingReschedule, newDateTime: newDT});
+                    }}
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded bg-white text-sm font-medium text-primary"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2 flex-col">
+            <Button 
+              variant="outline" 
+              onClick={() => { setShowRecurringRescheduleDialog(false); setPendingReschedule(null); }} 
+              className="w-full"
+            >
+              Cancel
+            </Button>
+            <Button 
+              className="btn-maya-primary w-full" 
+              onClick={() => confirmReschedule(false)}
+            >
+              Only This Appointment
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full border-primary text-primary hover:bg-primary/10" 
+              onClick={() => confirmReschedule(true)}
+            >
+              Entire Series
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
