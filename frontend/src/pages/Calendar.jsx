@@ -65,6 +65,7 @@ export default function CalendarPage() {
   
   // Dialogs
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [showRecurringRescheduleDialog, setShowRecurringRescheduleDialog] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showPhoneMenu, setShowPhoneMenu] = useState(false); // Added for phone popup
