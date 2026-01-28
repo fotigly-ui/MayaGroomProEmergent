@@ -182,12 +182,18 @@ export default function Invoices() {
         due_date: formData.due_date ? new Date(formData.due_date).toISOString() : null
       };
       
-      await axios.post(`${API_URL}/invoices`, data, getAuthHeaders());
-      toast.success('Invoice created');
+      if (editingInvoice) {
+        await axios.put(`${API_URL}/invoices/${editingInvoice.id}`, data, getAuthHeaders());
+        toast.success('Invoice updated');
+      } else {
+        await axios.post(`${API_URL}/invoices`, data, getAuthHeaders());
+        toast.success('Invoice created');
+      }
       setShowModal(false);
+      setEditingInvoice(null);
       fetchData();
     } catch (error) {
-      toast.error('Failed to create invoice');
+      toast.error(editingInvoice ? 'Failed to update invoice' : 'Failed to create invoice');
     }
   };
 
