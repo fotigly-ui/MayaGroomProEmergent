@@ -35,9 +35,12 @@ Build a grooming appointment app with:
 - [x] Save contact to phone (vCard export with proper address fields)
 - [x] Customer appointments tab with Upcoming/Past filter and counts
 
-### Recent Fixes (January 27, 2025)
+### Recent Fixes (January 28, 2025)
+- [x] **Recurring appointment reschedule timezone fix** - Backend now uses full datetime offset calculation instead of just hour/minute difference
+- [x] **Invoice check endpoint** - Added `/api/invoices/check/{appointment_id}` to check if appointment has existing invoice
+- [x] **"Review & Checkout" vs "View Invoice" button** - Calendar details modal now shows correct button based on invoice existence
+- [x] **Upcoming appointments date filtering** - Fixed UTC date parsing with 'Z' suffix in CustomerDetail.jsx
 - [x] Timeline position corrected (80px per hour)
-- [x] Recurring series reschedule applies time offset to each appointment
 - [x] GST calculation fixed (prices are GST-inclusive)
 - [x] Checkout prices are now editable
 - [x] Edit/Save buttons moved under customer name
@@ -45,7 +48,6 @@ Build a grooming appointment app with:
 
 ### Pending Features
 - [ ] Dark mode completion
-- [ ] Address autocomplete (Google Places)
 - [ ] Month/List calendar views
 - [ ] Automatic SMS sending via Twilio
 - [ ] Online customer booking portal
@@ -53,15 +55,18 @@ Build a grooming appointment app with:
 
 ## Upcoming Features (P1)
 - [ ] Individual occurrence editing (without affecting series)
+- [ ] Invoice deletion backend endpoint (delete button exists in UI)
 
 ## Backlog (P2+)
 - [ ] Complete Dark Mode implementation
 - [ ] Refactor backend server.py into modules
 - [ ] Refactor Calendar.jsx into smaller components
+- [ ] Remove unused AddressAutocomplete.jsx and react-google-autocomplete package
 
 ## Key Files
 - `/app/frontend/src/pages/Calendar.jsx` - Main calendar view
 - `/app/frontend/src/components/AppointmentModal.jsx` - Appointment create/edit
+- `/app/frontend/src/pages/CustomerDetail.jsx` - Customer detail with appointments
 - `/app/backend/server.py` - All backend routes and logic
 - `/app/frontend/src/lib/api.js` - API utilities
 
@@ -73,10 +78,19 @@ appointments: {
   is_recurring, recurring_id, recurring_value, recurring_unit
 }
 
+invoices: {
+  id, user_id, appointment_id, client_id, invoice_number, items,
+  subtotal, gst_amount, total, status, created_at
+}
+
 settings: {
   user_id, business_name, gst_enabled, gst_rate
 }
 ```
+
+## Test Credentials
+- Email: foti@mayaspetgrooming.com.au
+- Password: Maya2024!
 
 ## Test Credentials
 - Email: frontendtest@test.com
