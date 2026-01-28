@@ -1450,8 +1450,8 @@ export default function CalendarPage() {
                 }
               }}
             >
-              <DollarSign size={16} className="mr-2" /> 
-              {selectedAppointment?.status === 'completed' ? 'Already Completed' : 'Complete & Generate Invoice'}
+              <DollarSign size={14} className="mr-1" /> 
+              {selectedAppointment?.status === 'completed' ? 'Completed' : 'Complete & Invoice'}
             </Button>
           </DialogFooter>
         </DialogContent>
