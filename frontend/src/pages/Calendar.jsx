@@ -1279,10 +1279,12 @@ export default function CalendarPage() {
                         </div>
                         <span className="text-xs text-gray-500">×</span>
                         <Input
-                          type="number"
+                          type="text"
+                          inputMode="decimal"
                           value={item.unit_price}
                           onChange={(e) => {
-                            const newPrice = parseFloat(e.target.value) || 0;
+                            const value = e.target.value.replace(/[^0-9.]/g, '');
+                            const newPrice = parseFloat(value) || 0;
                             const updated = checkoutItems.map(i => 
                               i.id === item.id ? { ...i, unit_price: newPrice, total: i.quantity * newPrice } : i
                             );
