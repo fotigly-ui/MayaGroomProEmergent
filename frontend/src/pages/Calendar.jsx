@@ -343,16 +343,24 @@ export default function CalendarPage() {
     setDragPreview(null);
   };
 
-  const confirmReschedule = async () => {
+  const confirmReschedule = async (updateSeries = false) => {
     if (!pendingReschedule) return;
     
     try {
-      await appointmentsAPI.update(pendingReschedule.appointment.id, {
+      const updateData = {
         date_time: pendingReschedule.newDateTime.toISOString()
-      });
-      toast.success('Appointment rescheduled');
+      };
+      
+      // If updating the series, pass the flag
+      if (updateSeries && pendingReschedule.appointment.recurring_id) {
+        updateData.update_series = true;
+      }
+      
+      await appointmentsAPI.update(pendingReschedule.appointment.id, updateData);
+      toast.success(updateSeries ? 'Series rescheduled' : 'Appointment rescheduled');
       fetchData();
       setShowConfirmDialog(false);
+      setShowRecurringRescheduleDialog(false);
       setShowSmsPrompt(true);
     } catch (error) {
       toast.error('Failed to reschedule');
