@@ -1553,6 +1553,17 @@ async def create_invoice_from_appointment(appointment_id: str, user_id: str = De
     
     return new_invoice
 
+@api_router.get("/invoices/check/{appointment_id}")
+async def check_invoice_exists(appointment_id: str, user_id: str = Depends(get_current_user)):
+    """Check if an invoice already exists for an appointment"""
+    existing_invoice = await db.invoices.find_one(
+        {"appointment_id": appointment_id, "user_id": user_id}, 
+        {"_id": 0, "id": 1, "invoice_number": 1}
+    )
+    if existing_invoice:
+        return {"has_invoice": True, "invoice_id": existing_invoice["id"], "invoice_number": existing_invoice["invoice_number"]}
+    return {"has_invoice": False, "invoice_id": None, "invoice_number": None}
+
 @api_router.get("/invoices", response_model=List[Invoice])
 async def get_invoices(
     client_id: str = "",
