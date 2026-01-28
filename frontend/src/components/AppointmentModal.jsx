@@ -159,24 +159,18 @@ export function AppointmentModal({
     }
   };
 
-  const handleGenerateInvoice = async () => {
-    if (!appointment) return;
-    
-    setInvoiceLoading(true);
+  // Check for existing invoice when appointment loads
+  const checkExistingInvoice = async (appointmentId) => {
     try {
       const token = localStorage.getItem('maya_token');
-      const res = await fetch(`${API_URL}/invoices/from-appointment/${appointment.id}`, {
-        method: 'POST',
+      const res = await fetch(`${API_URL}/invoices/check/${appointmentId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      
-      toast.success(`Invoice ${data.invoice_number} created!`);
-      window.location.href = '/invoices';
+      setExistingInvoice(data);
     } catch (error) {
-      toast.error('Failed to generate invoice');
-    } finally {
-      setInvoiceLoading(false);
+      console.error('Error checking invoice:', error);
+      setExistingInvoice({ has_invoice: false });
     }
   };
 
@@ -199,8 +193,10 @@ export function AppointmentModal({
         setRecurringValue(recVal.toString());
         setRecurringUnit(appointment.recurring_unit || 'week');
         fetchClientPets(appointment.client_id);
+        checkExistingInvoice(appointment.id);
       } else {
         resetForm();
+        setExistingInvoice(null);
         if (initialDate) {
           setDateTime(format(initialDate, "yyyy-MM-dd'T'HH:mm"));
         }
