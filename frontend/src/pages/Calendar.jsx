@@ -1435,7 +1435,7 @@ export default function CalendarPage() {
               {selectedAppointment?.status === 'completed' ? 'Already Completed' : 'Complete & Generate Invoice'}
             </Button>
           </DialogFooter>
-        </DialogContent>>
+        </DialogContent>
       </Dialog>
     </Layout>
   );
