@@ -1134,10 +1134,10 @@ export default function CalendarPage() {
                 </div>
               </div>
 
-              {/* Products Section */}
+              {/* Products/Items Section */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-maya-text">Products</h4>
+                  <h4 className="font-semibold text-maya-text">Products/Items</h4>
                   <Select onValueChange={(itemId) => {
                     const product = items.find(i => i.id === itemId);
                     if (product) {
@@ -1152,7 +1152,7 @@ export default function CalendarPage() {
                     }
                   }}>
                     <SelectTrigger className="w-48">
-                      <SelectValue placeholder="+ Add Product" />
+                      <SelectValue placeholder="+ Add Item" />
                     </SelectTrigger>
                     <SelectContent>
                       {items.map(item => (
@@ -1164,7 +1164,7 @@ export default function CalendarPage() {
                   </Select>
                 </div>
 
-                {/* Products List */}
+                {/* Products/Items List */}
                 <div className="space-y-2">
                   {checkoutItems.filter(i => i.type === 'item').map((item, index) => (
                     <div key={item.id} className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-100 dark:border-green-800">
