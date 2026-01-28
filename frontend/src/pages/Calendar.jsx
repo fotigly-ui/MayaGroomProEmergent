@@ -81,6 +81,7 @@ export default function CalendarPage() {
   const [checkoutDiscount, setCheckoutDiscount] = useState({ type: 'fixed', value: 0 });
   const [checkoutNotes, setCheckoutNotes] = useState('');
   const [items, setItems] = useState([]); // Products/items for sale
+  const [appointmentInvoice, setAppointmentInvoice] = useState(null); // Track if selected appointment has invoice
   
   const scrollRef = useRef(null);
   const hasScrolledToTime = useRef(false);
