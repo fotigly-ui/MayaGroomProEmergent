@@ -1021,9 +1021,6 @@ export default function CalendarPage() {
                 <Receipt size={16} className="mr-2" /> Review & Checkout
               </Button>
             )}
-              <Receipt size={16} className="mr-2" /> 
-              {selectedAppointment?.status === 'completed' ? 'Completed' : 'Review & Checkout'}
-            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
