@@ -326,7 +326,13 @@ export default function CalendarPage() {
       newDateTime,
       oldDateTime: new Date(draggedAppointment.date_time)
     });
-    setShowConfirmDialog(true);
+    
+    // Check if it's a recurring appointment
+    if (draggedAppointment.is_recurring || draggedAppointment.recurring_id) {
+      setShowRecurringRescheduleDialog(true);
+    } else {
+      setShowConfirmDialog(true);
+    }
     
     setDraggedAppointment(null);
     setDragPreview(null);
