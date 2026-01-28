@@ -1484,10 +1484,12 @@ async def create_invoice_from_appointment(appointment_id: str, user_id: str = De
                     "total": item.get("price", 0)
                 })
     
-    # Calculate totals
-    subtotal = sum(item["total"] for item in items)
-    gst_amount = (subtotal * gst_rate / 100) if gst_enabled else 0
-    total = subtotal + gst_amount
+    # Calculate totals - prices INCLUDE GST
+    total_amount = sum(item["total"] for item in items)
+    
+    # GST is included in prices: if 10% GST, then GST = total * 10/110
+    gst_amount = (total_amount * gst_rate / (100 + gst_rate)) if gst_enabled else 0
+    subtotal = total_amount - gst_amount
     
     # Generate invoice number
     invoice_number = await generate_invoice_number(user_id)
@@ -1504,7 +1506,7 @@ async def create_invoice_from_appointment(appointment_id: str, user_id: str = De
         items=items,
         subtotal=subtotal,
         gst_amount=gst_amount,
-        total=total
+        total=total_amount
     )
     
     invoice_doc = prepare_doc_for_mongo(new_invoice.model_dump())
