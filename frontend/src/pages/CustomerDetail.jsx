@@ -390,15 +390,28 @@ export default function CustomerDetail() {
           <TabsContent value="appointments">
             <Tabs defaultValue="upcoming" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-                <TabsTrigger value="past">Past</TabsTrigger>
+                <TabsTrigger value="upcoming">
+                  Upcoming ({appointments.filter(appt => {
+                    const isFuture = new Date(appt.date_time) >= new Date();
+                    const isActive = !['cancelled', 'no_show', 'completed'].includes(appt.status);
+                    return isFuture && isActive;
+                  }).length})
+                </TabsTrigger>
+                <TabsTrigger value="past">
+                  Past ({appointments.filter(appt => {
+                    const isPast = new Date(appt.date_time) < new Date();
+                    const isCompleted = appt.status === 'completed';
+                    const isCancelled = ['cancelled', 'no_show'].includes(appt.status);
+                    return isPast || isCompleted || isCancelled;
+                  }).length})
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="upcoming">
                 <div className="space-y-3">
                   {appointments.filter(appt => {
                     const isFuture = new Date(appt.date_time) >= new Date();
-                    const isActive = !['cancelled', 'no_show'].includes(appt.status);
+                    const isActive = !['cancelled', 'no_show', 'completed'].includes(appt.status);
                     return isFuture && isActive;
                   }).map((appt) => (
                     <div
