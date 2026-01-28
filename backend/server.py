@@ -1111,14 +1111,31 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
         recurring_id = original_appt.get("recurring_id")
         current_date_str = datetime.now(timezone.utc).isoformat()
         
-        # Calculate the time offset (new time - old time, keeping the date)
-        old_datetime = datetime.fromisoformat(original_appt["date_time"].replace('Z', '+00:00')) if isinstance(original_appt["date_time"], str) else original_appt["date_time"]
-        new_datetime = update.date_time
+        # Parse the old datetime from storage (it's in UTC)
+        old_datetime_str = original_appt["date_time"]
+        if isinstance(old_datetime_str, str):
+            # Handle both 'Z' suffix and '+00:00' suffix
+            if old_datetime_str.endswith('Z'):
+                old_datetime = datetime.fromisoformat(old_datetime_str.replace('Z', '+00:00'))
+            elif '+' in old_datetime_str or old_datetime_str.endswith('+00:00'):
+                old_datetime = datetime.fromisoformat(old_datetime_str)
+            else:
+                # Assume UTC if no timezone info
+                old_datetime = datetime.fromisoformat(old_datetime_str).replace(tzinfo=timezone.utc)
+        else:
+            old_datetime = old_datetime_str
         
-        # Extract just the time difference
-        old_time_minutes = old_datetime.hour * 60 + old_datetime.minute
-        new_time_minutes = new_datetime.hour * 60 + new_datetime.minute
-        time_offset_minutes = new_time_minutes - old_time_minutes
+        # Ensure new_datetime has timezone info (treat as UTC if none)
+        new_datetime = update.date_time
+        if new_datetime.tzinfo is None:
+            new_datetime = new_datetime.replace(tzinfo=timezone.utc)
+        
+        # Calculate the total time difference (including date change for full offset)
+        # This handles both time-only changes and date+time changes
+        time_offset = new_datetime - old_datetime
+        time_offset_minutes = int(time_offset.total_seconds() / 60)
+        
+        logger.info(f"Recurring series update: old={old_datetime.isoformat()}, new={new_datetime.isoformat()}, offset={time_offset_minutes} minutes")
         
         # Get all future appointments in the series
         future_appts = await db.appointments.find({
@@ -1130,7 +1147,17 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
         # Update each appointment with the new time
         duration = original_appt.get("total_duration", 60)
         for appt in future_appts:
-            appt_datetime = datetime.fromisoformat(appt["date_time"].replace('Z', '+00:00')) if isinstance(appt["date_time"], str) else appt["date_time"]
+            appt_datetime_str = appt["date_time"]
+            if isinstance(appt_datetime_str, str):
+                if appt_datetime_str.endswith('Z'):
+                    appt_datetime = datetime.fromisoformat(appt_datetime_str.replace('Z', '+00:00'))
+                elif '+' in appt_datetime_str:
+                    appt_datetime = datetime.fromisoformat(appt_datetime_str)
+                else:
+                    appt_datetime = datetime.fromisoformat(appt_datetime_str).replace(tzinfo=timezone.utc)
+            else:
+                appt_datetime = appt_datetime_str
+            
             # Apply the time offset to this appointment
             new_appt_datetime = appt_datetime + timedelta(minutes=time_offset_minutes)
             new_end_time = new_appt_datetime + timedelta(minutes=duration)
