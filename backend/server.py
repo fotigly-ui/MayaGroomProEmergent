@@ -1572,20 +1572,22 @@ async def update_invoice(invoice_id: str, update: InvoiceUpdate, user_id: str = 
     update_data = {}
     
     if update.items is not None:
-        # Recalculate totals
+        # Recalculate totals - prices INCLUDE GST
         settings = await db.settings.find_one({"user_id": user_id}, {"_id": 0})
         gst_enabled = settings.get("gst_enabled", False) if settings else False
         gst_rate = settings.get("gst_rate", 10) if settings else 10
         
         items = [item.model_dump() for item in update.items]
-        subtotal = sum(item["total"] for item in items)
-        gst_amount = (subtotal * gst_rate / 100) if gst_enabled else 0
-        total = subtotal + gst_amount
+        total_amount = sum(item["total"] for item in items)
+        
+        # GST is included: if 10% GST, then GST = total * 10/110
+        gst_amount = (total_amount * gst_rate / (100 + gst_rate)) if gst_enabled else 0
+        subtotal = total_amount - gst_amount
         
         update_data["items"] = items
         update_data["subtotal"] = subtotal
         update_data["gst_amount"] = gst_amount
-        update_data["total"] = total
+        update_data["total"] = total_amount
     
     if update.notes is not None:
         update_data["notes"] = update.notes
