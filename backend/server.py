@@ -1106,13 +1106,50 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
                     logger.info(f"Created {len(prepared_docs)} future recurring appointments for appointment {appointment_id}")
     
     # Update single or series
-    if update_series:
-        # Update all appointments with the same recurring_id and future dates
+    if update_series and update.date_time:
+        # Update all appointments with the same recurring_id - apply time offset
+        recurring_id = original_appt.get("recurring_id")
+        current_date_str = datetime.now(timezone.utc).isoformat()
+        
+        # Calculate the time offset (new time - old time, keeping the date)
+        old_datetime = datetime.fromisoformat(original_appt["date_time"].replace('Z', '+00:00')) if isinstance(original_appt["date_time"], str) else original_appt["date_time"]
+        new_datetime = update.date_time
+        
+        # Extract just the time difference
+        old_time_minutes = old_datetime.hour * 60 + old_datetime.minute
+        new_time_minutes = new_datetime.hour * 60 + new_datetime.minute
+        time_offset_minutes = new_time_minutes - old_time_minutes
+        
+        # Get all future appointments in the series
+        future_appts = await db.appointments.find({
+            "user_id": user_id,
+            "recurring_id": recurring_id,
+            "date_time": {"$gte": current_date_str}
+        }, {"_id": 0}).to_list(1000)
+        
+        # Update each appointment with the new time
+        duration = original_appt.get("total_duration", 60)
+        for appt in future_appts:
+            appt_datetime = datetime.fromisoformat(appt["date_time"].replace('Z', '+00:00')) if isinstance(appt["date_time"], str) else appt["date_time"]
+            # Apply the time offset to this appointment
+            new_appt_datetime = appt_datetime + timedelta(minutes=time_offset_minutes)
+            new_end_time = new_appt_datetime + timedelta(minutes=duration)
+            
+            await db.appointments.update_one(
+                {"id": appt["id"], "user_id": user_id},
+                {"$set": {
+                    "date_time": new_appt_datetime.isoformat(),
+                    "end_time": new_end_time.isoformat()
+                }}
+            )
+        
+        logger.info(f"Updated {len(future_appts)} appointments in series with time offset of {time_offset_minutes} minutes")
+    elif update_series:
+        # Update all appointments with the same recurring_id (no date change)
         recurring_id = original_appt.get("recurring_id")
         current_date = datetime.now(timezone.utc).isoformat()
         
         # CRITICAL FIX: When updating series without frequency change, preserve recurring fields
-        # This ensures recurring metadata persists in UI and database
         if original_appt.get("is_recurring") and "is_recurring" not in update_data:
             update_data["is_recurring"] = original_appt.get("is_recurring")
             update_data["recurring_value"] = original_appt.get("recurring_value")
