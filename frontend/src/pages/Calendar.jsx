@@ -1354,19 +1354,19 @@ export default function CalendarPage() {
               </div>
 
               {/* Notes */}
-              <div className="space-y-2">
-                <h4 className="font-semibold text-maya-text">Notes</h4>
+              <div className="space-y-1">
+                <h4 className="font-semibold text-sm text-maya-text">Notes</h4>
                 <Textarea
                   value={checkoutNotes}
                   onChange={(e) => setCheckoutNotes(e.target.value)}
-                  placeholder="Payment notes, special instructions..."
+                  placeholder="Payment notes..."
                   rows={2}
-                  className="resize-none"
+                  className="resize-none text-sm"
                 />
               </div>
 
               {/* Totals */}
-              <div className="bg-gray-900 dark:bg-gray-800 text-white rounded-xl p-5 space-y-3">
+              <div className="bg-gray-900 dark:bg-gray-800 text-white rounded-lg p-3 space-y-2">
                 {(() => {
                   const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
                   const discountAmount = checkoutDiscount.type === 'percent' 
@@ -1377,21 +1377,21 @@ export default function CalendarPage() {
                   
                   return (
                     <>
-                      <div className="flex justify-between text-gray-300">
+                      <div className="flex justify-between text-gray-300 text-sm">
                         <span>Subtotal</span>
                         <span>{formatCurrency(subtotal)}</span>
                       </div>
                       {discountAmount > 0 && (
-                        <div className="flex justify-between text-green-400">
+                        <div className="flex justify-between text-green-400 text-sm">
                           <span>Discount</span>
                           <span>-{formatCurrency(discountAmount)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-gray-400 text-sm">
+                      <div className="flex justify-between text-gray-400 text-xs">
                         <span>GST (incl.)</span>
                         <span>{formatCurrency(gstAmount)}</span>
                       </div>
-                      <div className="flex justify-between text-2xl font-bold border-t border-gray-700 pt-3">
+                      <div className="flex justify-between text-xl font-bold border-t border-gray-700 pt-2">
                         <span>Total</span>
                         <span>{formatCurrency(total)}</span>
                       </div>
@@ -1402,12 +1402,12 @@ export default function CalendarPage() {
             </div>
           )}
 
-          <DialogFooter className="gap-2 flex-col sm:flex-row">
-            <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="w-full sm:w-auto">
+          <DialogFooter className="gap-2 px-4 py-3 border-t shrink-0">
+            <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="flex-1 text-sm">
               Cancel
             </Button>
             <Button 
-              className="btn-maya-primary w-full sm:w-auto"
+              className="btn-maya-primary flex-1 text-sm"
               disabled={checkoutItems.length === 0 || selectedAppointment?.status === 'completed'}
               onClick={async () => {
                 if (checkoutItems.length === 0) {
