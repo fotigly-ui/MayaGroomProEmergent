@@ -392,7 +392,11 @@ export default function CustomerDetail() {
               <TabsList className="grid w-full grid-cols-2 mb-4">
                 <TabsTrigger value="upcoming">
                   Upcoming ({appointments.filter(appt => {
-                    const isFuture = new Date(appt.date_time) >= new Date();
+                    // Parse appointment date properly - handle both ISO strings and UTC timestamps
+                    const apptDateStr = appt.date_time;
+                    const apptDate = new Date(apptDateStr.endsWith('Z') ? apptDateStr : apptDateStr + 'Z');
+                    const now = new Date();
+                    const isFuture = apptDate >= now;
                     const isActive = !['cancelled', 'no_show', 'completed'].includes(appt.status);
                     return isFuture && isActive;
                   }).length})
@@ -403,7 +407,11 @@ export default function CustomerDetail() {
               <TabsContent value="upcoming">
                 <div className="space-y-3">
                   {appointments.filter(appt => {
-                    const isFuture = new Date(appt.date_time) >= new Date();
+                    // Parse appointment date properly - handle both ISO strings and UTC timestamps
+                    const apptDateStr = appt.date_time;
+                    const apptDate = new Date(apptDateStr.endsWith('Z') ? apptDateStr : apptDateStr + 'Z');
+                    const now = new Date();
+                    const isFuture = apptDate >= now;
                     const isActive = !['cancelled', 'no_show', 'completed'].includes(appt.status);
                     return isFuture && isActive;
                   }).map((appt) => (
@@ -446,7 +454,10 @@ export default function CustomerDetail() {
                   ))}
 
                   {appointments.filter(appt => {
-                    const isFuture = new Date(appt.date_time) >= new Date();
+                    const apptDateStr = appt.date_time;
+                    const apptDate = new Date(apptDateStr.endsWith('Z') ? apptDateStr : apptDateStr + 'Z');
+                    const now = new Date();
+                    const isFuture = apptDate >= now;
                     const isActive = !['cancelled', 'no_show', 'completed'].includes(appt.status);
                     return isFuture && isActive;
                   }).length === 0 && (
@@ -461,7 +472,10 @@ export default function CustomerDetail() {
               <TabsContent value="past">
                 <div className="space-y-3">
                   {appointments.filter(appt => {
-                    const isPast = new Date(appt.date_time) < new Date();
+                    const apptDateStr = appt.date_time;
+                    const apptDate = new Date(apptDateStr.endsWith('Z') ? apptDateStr : apptDateStr + 'Z');
+                    const now = new Date();
+                    const isPast = apptDate < now;
                     const isCompleted = appt.status === 'completed';
                     const isCancelled = ['cancelled', 'no_show'].includes(appt.status);
                     return isPast || isCompleted || isCancelled;
@@ -507,7 +521,10 @@ export default function CustomerDetail() {
                   ))}
 
                   {appointments.filter(appt => {
-                    const isPast = new Date(appt.date_time) < new Date();
+                    const apptDateStr = appt.date_time;
+                    const apptDate = new Date(apptDateStr.endsWith('Z') ? apptDateStr : apptDateStr + 'Z');
+                    const now = new Date();
+                    const isPast = apptDate < now;
                     const isCancelled = ['cancelled', 'no_show'].includes(appt.status);
                     return isPast || isCancelled;
                   }).length === 0 && (
