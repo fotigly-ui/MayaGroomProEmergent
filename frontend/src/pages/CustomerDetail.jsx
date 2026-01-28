@@ -334,7 +334,7 @@ export default function CustomerDetail() {
               Pets ({pets.length})
             </TabsTrigger>
             <TabsTrigger value="appointments" data-testid="appointments-tab">
-              Appointments ({appointments.length})
+              Appointments
             </TabsTrigger>
           </TabsList>
 

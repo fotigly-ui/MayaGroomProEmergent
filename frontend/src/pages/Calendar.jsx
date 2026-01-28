@@ -1130,43 +1130,41 @@ export default function CalendarPage() {
 
       {/* Checkout Modal */}
       <Dialog open={showCheckoutModal} onOpenChange={setShowCheckoutModal}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Receipt className="text-primary" size={20} />
+        <DialogContent className="max-w-lg w-[95vw] max-h-[85vh] flex flex-col p-0">
+          <DialogHeader className="px-4 pt-4 pb-2 shrink-0 border-b">
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Receipt className="text-primary" size={18} />
               Review & Checkout
             </DialogTitle>
           </DialogHeader>
           
           {selectedAppointment && (
-            <div className="space-y-6">
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-4">
               {/* Client & Appointment Info */}
-              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-xl p-4 border border-primary/20">
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-3 border border-primary/20">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-maya-text">{selectedAppointment.client_name}</h3>
-                    <p className="text-sm text-maya-text-muted mt-1">
-                      {format(new Date(selectedAppointment.date_time), 'EEEE, MMMM d, yyyy')}
+                    <h3 className="font-bold text-maya-text">{selectedAppointment.client_name}</h3>
+                    <p className="text-xs text-maya-text-muted mt-1">
+                      {format(new Date(selectedAppointment.date_time), 'EEE, MMM d, yyyy')}
                     </p>
-                    <p className="text-sm text-maya-text-muted">
+                    <p className="text-xs text-maya-text-muted">
                       {format(new Date(selectedAppointment.date_time), 'h:mm a')} - {format(new Date(selectedAppointment.end_time), 'h:mm a')}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <span className={cn(
-                      "px-2 py-1 rounded-full text-xs font-medium",
-                      selectedAppointment.status === 'completed' ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
-                    )}>
-                      {selectedAppointment.status}
-                    </span>
-                  </div>
+                  <span className={cn(
+                    "px-2 py-0.5 rounded-full text-xs font-medium",
+                    selectedAppointment.status === 'completed' ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"
+                  )}>
+                    {selectedAppointment.status}
+                  </span>
                 </div>
               </div>
 
               {/* Services Section */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-maya-text">Services</h4>
+                  <h4 className="font-semibold text-sm text-maya-text">Services</h4>
                   <Select onValueChange={(serviceId) => {
                     const service = services.find(s => s.id === serviceId);
                     if (service) {
