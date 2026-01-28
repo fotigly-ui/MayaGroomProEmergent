@@ -554,7 +554,7 @@ export default function CalendarPage() {
               className="absolute left-0 right-0 z-30 pointer-events-none flex items-center"
               style={{ top: `${currentTimePos}px` }}
             >
-              <div className="w-14 flex justify-end pr-1">
+              <div className="w-14 flex-shrink-0 pr-2 text-right">
                 <span className="text-[10px] font-bold text-red-500 bg-white px-1">
                   {format(new Date(), 'HH:mm')}
                 </span>
