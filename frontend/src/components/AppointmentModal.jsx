@@ -1055,6 +1055,32 @@ export function AppointmentModal({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 size={20} />
+              Confirm Delete
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-maya-text-muted">
+            {deleteScope === 'series' 
+              ? 'Are you sure you want to delete the entire appointment series? This action cannot be undone.'
+              : 'Are you sure you want to delete this appointment? This action cannot be undone.'}
+          </p>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowDeleteConfirm(false)} disabled={loading}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={loading}>
+              {loading && <Loader2 className="animate-spin mr-2" size={16} />}
+              {deleteScope === 'series' ? 'Delete Series' : 'Delete Appointment'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
