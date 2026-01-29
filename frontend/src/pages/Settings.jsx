@@ -210,6 +210,23 @@ export default function Settings() {
     }
   };
 
+  const handleImportFromGoogle = async () => {
+    setSyncLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      const response = await axios.post(`${API_URL}/calendar/import-from-google`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(
+        `Imported ${response.data.imported} new, updated ${response.data.updated}, skipped ${response.data.skipped} events`
+      );
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to import from Google Calendar');
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (settings) {
       setFormData({
