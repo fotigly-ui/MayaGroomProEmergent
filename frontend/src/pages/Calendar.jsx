@@ -92,12 +92,34 @@ export default function CalendarPage() {
   const hasScrolledToTime = useRef(false);
   const currentTimeRef = useRef(null);
   
-  // Handle navigation from customer detail page
+  // Handle navigation from customer detail page via URL params
+  useEffect(() => {
+    const dateParam = searchParams.get('date');
+    const appointmentParam = searchParams.get('appointment');
+    
+    if (dateParam) {
+      // Parse the date and navigate to it
+      const targetDate = new Date(dateParam + 'T12:00:00');
+      if (!isNaN(targetDate.getTime())) {
+        setSelectedDate(targetDate);
+        hasScrolledToTime.current = false;
+      }
+      
+      // Store appointment ID to open after data loads
+      if (appointmentParam) {
+        pendingAppointmentId.current = appointmentParam;
+      }
+      
+      // Clear URL params after reading
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+  
+  // Handle legacy location.state navigation
   useEffect(() => {
     if (location.state?.scrollToDate) {
       setSelectedDate(new Date(location.state.scrollToDate));
       hasScrolledToTime.current = false;
-      // Clear the navigation state
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
