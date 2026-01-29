@@ -333,13 +333,26 @@ export default function CalendarPage() {
     e.preventDefault();
     if (!draggedAppointment) return;
     
+    // The calendar displays times in LOCAL timezone
+    // The hour/minute parameters are the visual position (local time)
+    // We need to calculate the UTC time that will display at this position
+    
+    // Get the old appointment's date in UTC
+    const oldDateTime = new Date(draggedAppointment.date_time);
+    
+    // Create a new date for the same day as selectedDate, but with the target time
+    // We want: when this UTC time is displayed in local timezone, it shows at hour:minute
     const newDateTime = new Date(selectedDate);
     newDateTime.setHours(hour, minute, 0, 0);
+    
+    // The newDateTime is now in local time. toISOString() will convert to UTC correctly.
+    // This means if user drops at 10:30 local, and local is UTC+11, 
+    // the UTC will be 23:30 previous day, which is correct.
     
     setPendingReschedule({
       appointment: draggedAppointment,
       newDateTime,
-      oldDateTime: new Date(draggedAppointment.date_time)
+      oldDateTime
     });
     
     // Check if it's a recurring appointment
