@@ -812,18 +812,10 @@ export function AppointmentModal({
               variant={recurringAction === 'single' ? 'default' : 'outline'}
               onClick={async () => {
                 if (recurringAction === 'delete') {
-                  // Delete only this one
-                  setLoading(true);
-                  try {
-                    await appointmentsAPI.delete(appointment.id, { delete_series: false });
-                    toast.success('Appointment deleted');
-                    setShowRecurringDialog(false);
-                    onSave();
-                  } catch (error) {
-                    toast.error('Failed to delete appointment');
-                  } finally {
-                    setLoading(false);
-                  }
+                  // Show confirmation for single delete
+                  setDeleteScope('single');
+                  setShowRecurringDialog(false);
+                  setShowDeleteConfirm(true);
                 } else if (recurringAction === 'status' && pendingStatusChange) {
                   // Update status for single appointment
                   setLoading(true);
