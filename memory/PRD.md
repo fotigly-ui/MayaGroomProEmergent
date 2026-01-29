@@ -20,44 +20,46 @@ Build a grooming appointment app with:
 - [x] User authentication (JWT) with Change Password & Forgot Password
 - [x] Calendar with week view, current time indicator, auto-scroll
 - [x] Appointments with drag & drop, color-coded status
-- [x] Recurring appointments (daily/weekly/monthly) with series reschedule
+- [x] Recurring appointments with DST-aware scheduling (Australia/Sydney timezone)
 - [x] Customer management with contact popups (Call/SMS/Maps)
-- [x] Customer form with separate First Name/Surname and Address fields
-- [x] Pet management linked to customers
+- [x] Pets shown under customer info (not in separate tab)
 - [x] Services & Items management
-- [x] Review & Checkout flow with editable prices for services/items
+- [x] Review & Checkout always available for all appointments
+- [x] Each appointment occurrence has independent invoicing
 - [x] Invoice generation with GST-inclusive pricing
-- [x] Invoice edit & delete functionality
 - [x] SMS templates (6 editable templates)
 - [x] Settings (Business with Change Password, Payment, SMS, Data Backup)
 - [x] Supabase backup integration
 - [x] Mobile-responsive design with hamburger menu
-- [x] Save contact to phone (vCard export with proper address fields)
-- [x] Customer appointments tab with Upcoming/Past filter
+- [x] Save contact to phone (vCard export)
 
-### Bug Investigation & Fixes (January 29, 2025)
+### Critical Fixes (January 29, 2025)
 
-#### Issue 1: Recurring Appointment Reschedule
-**Root Cause:** The series update functionality was working correctly all along. The issue was that some appointments had lost their `is_recurring` flag during previous operations.
-**Status:** VERIFIED WORKING - When appointment has `is_recurring: true` and `recurring_id` set, the series update applies the time offset to all future appointments correctly.
-**Test Results:** Successfully moved entire series from 04:15 to 05:15 UTC.
-
-#### Issue 2: Invoice vs Review & Checkout Button
+#### Issue 1: Recurring Appointment Times Inconsistent (DST)
+**Root Cause:** Daylight Saving Time. Appointments stored in UTC showed different local times (18:00 vs 19:00) when DST changed.
 **Fix Applied:** 
-- Added `/api/invoices/check/{appointment_id}` endpoint to check if invoice exists
-- AppointmentModal.jsx now only shows "View Invoice (INV-xxx)" if invoice exists
-- Calendar details modal shows "Review & Checkout" by default, or "View Invoice" if invoice exists
-**Status:** FIXED
+- Implemented DST-aware scheduling using `pytz` with `Australia/Sydney` timezone
+- New recurring appointments now keep the SAME local time regardless of DST
+- Series reschedule also preserves local time consistently
+**Test Result:** All 9 test appointments show 19:00 local time (UTC varies between 08:00 and 09:00)
 
-#### Issue 3: Upcoming Appointments Tab
-**Fix Applied:** Fixed UTC date parsing in CustomerDetail.jsx to properly handle dates with 'Z' suffix before comparison with current date.
-**Status:** FIXED
+#### Issue 2: Review & Checkout Button
+**User Requirement:** All appointments must show "Review & Checkout" - each occurrence independent
+**Fix Applied:** 
+- "Review & Checkout" button now ALWAYS shown for all appointments
+- If invoice exists, "View Invoice" shown as additional button (not replacement)
+- Each recurring occurrence can have its own invoice
 
-#### Issue 4: Review & Checkout Modal Mobile Layout
-**Fix Applied:** Completely redesigned modal for mobile:
-- `max-h-[85vh]` with scrollable content
-- Compact header with border separator  
-- Smaller fonts and padding
+#### Issue 3: Customer Page Layout
+**User Requirement:** Pets under customer info, remove Pets tab, keep only Appointments tab
+**Fix Applied:** 
+- Pets now displayed directly under customer contact info
+- Add Pet button next to Pets section
+- Removed Pets tab
+- Only Appointments tab remains (with Upcoming/Past sub-tabs)
+
+### Pending Features
+- [ ] Dark mode completion
 - Condensed service/item rows
 **Status:** FIXED
 
