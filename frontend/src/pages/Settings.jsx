@@ -783,6 +783,120 @@ export default function Settings() {
               </div>
             </TabsContent>
 
+            <TabsContent value="calendar">
+              <div className="card-maya space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-maya-text">Google Calendar Sync</h2>
+                    <p className="text-sm text-maya-text-muted">
+                      Sync your appointments with Google Calendar for two-way updates
+                    </p>
+                  </div>
+                  {googleStatus.connected && (
+                    <span className="flex items-center gap-1 text-sm text-green-600">
+                      <CheckCircle size={16} /> Connected
+                    </span>
+                  )}
+                </div>
+
+                {!googleStatus.configured ? (
+                  <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                    <p className="text-sm text-yellow-800">
+                      Google Calendar integration is not configured. Please contact support to enable this feature.
+                    </p>
+                  </div>
+                ) : googleStatus.connected ? (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                          <Calendar className="text-green-600" size={20} />
+                        </div>
+                        <div>
+                          <p className="font-medium text-green-800">Google Calendar Connected</p>
+                          <p className="text-sm text-green-600">
+                            Appointments will automatically sync to your Google Calendar
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Button
+                        onClick={handleSyncAll}
+                        disabled={syncLoading}
+                        className="btn-maya-primary"
+                      >
+                        {syncLoading ? (
+                          <Loader2 className="animate-spin mr-2" size={16} />
+                        ) : (
+                          <RefreshCw size={16} className="mr-2" />
+                        )}
+                        Sync All Appointments
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleGoogleDisconnect}
+                        disabled={googleLoading}
+                        className="text-red-600 border-red-200 hover:bg-red-50"
+                      >
+                        {googleLoading ? (
+                          <Loader2 className="animate-spin mr-2" size={16} />
+                        ) : (
+                          <Unlink size={16} className="mr-2" />
+                        )}
+                        Disconnect
+                      </Button>
+                    </div>
+
+                    <div className="text-sm text-maya-text-muted">
+                      <p className="font-medium mb-2">What syncs:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>New appointments are automatically added to Google Calendar</li>
+                        <li>Updated appointments are reflected in Google Calendar</li>
+                        <li>Deleted appointments are removed from Google Calendar</li>
+                        <li>Event includes: Client name, phone, address, pet & services</li>
+                      </ul>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                          <Calendar className="text-gray-500" size={20} />
+                        </div>
+                        <div>
+                          <p className="font-medium text-maya-text">Not Connected</p>
+                          <p className="text-sm text-maya-text-muted">
+                            Connect your Google account to sync appointments
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <Button
+                      onClick={handleGoogleConnect}
+                      disabled={googleLoading}
+                      className="btn-maya-primary"
+                    >
+                      {googleLoading ? (
+                        <Loader2 className="animate-spin mr-2" size={16} />
+                      ) : (
+                        <Link2 size={16} className="mr-2" />
+                      )}
+                      Connect Google Calendar
+                    </Button>
+
+                    <p className="text-xs text-maya-text-muted">
+                      You'll be redirected to Google to authorize access to your calendar.
+                      We only access your calendar to create, update, and delete appointment events.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
             <TabsContent value="preferences">
               <div className="card-maya space-y-6">
                 <h2 className="text-lg font-semibold text-maya-text">Display Preferences</h2>
