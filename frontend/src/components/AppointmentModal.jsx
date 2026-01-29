@@ -846,18 +846,10 @@ export function AppointmentModal({
               variant={recurringAction === 'series' ? 'default' : 'outline'}
               onClick={async () => {
                 if (recurringAction === 'delete') {
-                  // Delete entire series
-                  setLoading(true);
-                  try {
-                    await appointmentsAPI.delete(appointment.id, { delete_series: true });
-                    toast.success('Series deleted');
-                    setShowRecurringDialog(false);
-                    onSave();
-                  } catch (error) {
-                    toast.error('Failed to delete series');
-                  } finally {
-                    setLoading(false);
-                  }
+                  // Show confirmation for series delete
+                  setDeleteScope('series');
+                  setShowRecurringDialog(false);
+                  setShowDeleteConfirm(true);
                 } else if (recurringAction === 'status' && pendingStatusChange) {
                   // Update status for entire series
                   setLoading(true);
