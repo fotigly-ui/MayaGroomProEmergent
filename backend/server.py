@@ -2516,6 +2516,119 @@ async def sync_all_appointments_to_google(
         logger.error(f"Sync all error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@api_router.post("/calendar/import-from-google")
+async def import_from_google_calendar(
+    user_id: str = Depends(get_current_user)
+):
+    """Import events from Google Calendar to the app (two-way sync)"""
+    credentials = await get_user_google_credentials(user_id)
+    if not credentials:
+        raise HTTPException(status_code=400, detail="Google Calendar not connected")
+    
+    try:
+        service = build('calendar', 'v3', credentials=credentials)
+        
+        # Get events from Google Calendar from now onwards
+        now = datetime.now(timezone.utc).isoformat()
+        events_result = service.events().list(
+            calendarId='primary',
+            timeMin=now,
+            maxResults=100,
+            singleEvents=True,
+            orderBy='startTime'
+        ).execute()
+        
+        events = events_result.get('items', [])
+        
+        imported = 0
+        updated = 0
+        skipped = 0
+        
+        for event in events:
+            try:
+                # Skip all-day events or events without start time
+                if not event.get('start', {}).get('dateTime'):
+                    skipped += 1
+                    continue
+                
+                # Check if this event was created by our app
+                extended_props = event.get('extendedProperties', {}).get('private', {})
+                gromify_id = extended_props.get('gromify_id')
+                
+                # If this event was created by our app, skip it (already synced)
+                if gromify_id:
+                    existing = await db.appointments.find_one({"id": gromify_id, "user_id": user_id}, {"_id": 0})
+                    if existing:
+                        skipped += 1
+                        continue
+                
+                # Parse event details
+                start_time = event['start']['dateTime']
+                end_time = event['end']['dateTime']
+                summary = event.get('summary', 'Imported from Google Calendar')
+                description = event.get('description', '')
+                location = event.get('location', '')
+                
+                # Check if appointment with this google_event_id already exists
+                existing_appt = await db.appointments.find_one(
+                    {"google_event_id": event['id'], "user_id": user_id},
+                    {"_id": 0}
+                )
+                
+                if existing_appt:
+                    # Update existing appointment
+                    await db.appointments.update_one(
+                        {"id": existing_appt["id"]},
+                        {"$set": {
+                            "date_time": start_time,
+                            "end_time": end_time,
+                            "notes": description,
+                            "updated_at": datetime.now(timezone.utc).isoformat()
+                        }}
+                    )
+                    updated += 1
+                else:
+                    # Create new appointment from Google Calendar event
+                    new_appointment = {
+                        "id": str(uuid.uuid4()),
+                        "user_id": user_id,
+                        "client_id": "",
+                        "client_name": summary,
+                        "date_time": start_time,
+                        "end_time": end_time,
+                        "status": "scheduled",
+                        "notes": f"{description}\n\nImported from Google Calendar",
+                        "is_recurring": False,
+                        "recurring_value": None,
+                        "recurring_unit": None,
+                        "recurring_id": None,
+                        "pets": [],
+                        "total_duration": 60,
+                        "total_price": 0.0,
+                        "google_event_id": event['id'],
+                        "created_at": datetime.now(timezone.utc).isoformat()
+                    }
+                    
+                    await db.appointments.insert_one(new_appointment)
+                    imported += 1
+                    
+            except Exception as e:
+                logger.error(f"Failed to import event {event.get('id')}: {e}")
+                skipped += 1
+        
+        return {
+            "message": f"Import complete",
+            "imported": imported,
+            "updated": updated,
+            "skipped": skipped,
+            "total_events": len(events)
+        }
+        
+    except Exception as e:
+        logger.error(f"Import from Google error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @api_router.delete("/calendar/sync/{appointment_id}")
 async def delete_from_google_calendar(
     appointment_id: str,
