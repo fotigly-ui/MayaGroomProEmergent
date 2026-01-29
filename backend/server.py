@@ -1232,42 +1232,7 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
             raise HTTPException(status_code=404, detail="Appointment not found after update")
         return parse_datetime_fields(appt, ["date_time", "end_time", "created_at"])
         
-        # Get all future appointments in the series
-        future_appts = await db.appointments.find({
-            "user_id": user_id,
-            "recurring_id": recurring_id,
-            "date_time": {"$gte": current_date_str}
-        }, {"_id": 0}).to_list(1000)
-        
-        # Update each appointment with the new time
-        duration = original_appt.get("total_duration", 60)
-        for appt in future_appts:
-            appt_datetime_str = appt["date_time"]
-            if isinstance(appt_datetime_str, str):
-                if appt_datetime_str.endswith('Z'):
-                    appt_datetime = datetime.fromisoformat(appt_datetime_str.replace('Z', '+00:00'))
-                elif '+' in appt_datetime_str:
-                    appt_datetime = datetime.fromisoformat(appt_datetime_str)
-                else:
-                    appt_datetime = datetime.fromisoformat(appt_datetime_str).replace(tzinfo=timezone.utc)
-            else:
-                appt_datetime = appt_datetime_str
-            
-            # Apply the time offset to this appointment
-            new_appt_datetime = appt_datetime + timedelta(minutes=time_offset_minutes)
-            new_end_time = new_appt_datetime + timedelta(minutes=duration)
-            
-            await db.appointments.update_one(
-                {"id": appt["id"], "user_id": user_id},
-                {"$set": {
-                    "date_time": new_appt_datetime.isoformat(),
-                    "end_time": new_end_time.isoformat()
-                }}
-            )
-        
-        logger.info(f"Updated {len(future_appts)} appointments in series with time offset of {time_offset_minutes} minutes")
-        
-        # Return the updated appointment
+    elif update_series:
         appt = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
         if not appt:
             raise HTTPException(status_code=404, detail="Appointment not found after update")
