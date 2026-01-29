@@ -35,14 +35,31 @@ Build a grooming appointment app with:
 - [x] Save contact to phone (vCard export with proper address fields)
 - [x] Customer appointments tab with Upcoming/Past filter
 
-### Recent Fixes (January 28, 2025 - Latest)
-- [x] **Removed count from Appointments tab** - Tab now just shows "Appointments" without total count
-- [x] **Mobile-friendly Review & Checkout modal** - Compact layout with smaller fonts, padding, proper scrolling
-- [x] **Invoice button in AppointmentModal** - Shows "View Invoice (INV-xxx)" only if invoice exists, hidden otherwise
-- [x] **Recurring appointment reschedule timezone fix** - Backend uses full datetime offset calculation
-- [x] **Invoice check endpoint** - `/api/invoices/check/{appointment_id}` to check invoice existence
-- [x] **"Review & Checkout" vs "View Invoice" button** - Calendar details modal shows correct button
-- [x] **Upcoming appointments date filtering** - Fixed UTC date parsing with 'Z' suffix
+### Bug Investigation & Fixes (January 29, 2025)
+
+#### Issue 1: Recurring Appointment Reschedule
+**Root Cause:** The series update functionality was working correctly all along. The issue was that some appointments had lost their `is_recurring` flag during previous operations.
+**Status:** VERIFIED WORKING - When appointment has `is_recurring: true` and `recurring_id` set, the series update applies the time offset to all future appointments correctly.
+**Test Results:** Successfully moved entire series from 04:15 to 05:15 UTC.
+
+#### Issue 2: Invoice vs Review & Checkout Button
+**Fix Applied:** 
+- Added `/api/invoices/check/{appointment_id}` endpoint to check if invoice exists
+- AppointmentModal.jsx now only shows "View Invoice (INV-xxx)" if invoice exists
+- Calendar details modal shows "Review & Checkout" by default, or "View Invoice" if invoice exists
+**Status:** FIXED
+
+#### Issue 3: Upcoming Appointments Tab
+**Fix Applied:** Fixed UTC date parsing in CustomerDetail.jsx to properly handle dates with 'Z' suffix before comparison with current date.
+**Status:** FIXED
+
+#### Issue 4: Review & Checkout Modal Mobile Layout
+**Fix Applied:** Completely redesigned modal for mobile:
+- `max-h-[85vh]` with scrollable content
+- Compact header with border separator  
+- Smaller fonts and padding
+- Condensed service/item rows
+**Status:** FIXED
 
 ### Pending Features
 - [ ] Dark mode completion
