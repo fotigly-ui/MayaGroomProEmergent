@@ -1,5 +1,6 @@
-from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, BackgroundTasks
+from fastapi import FastAPI, APIRouter, HTTPException, Depends, status, BackgroundTasks, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.responses import RedirectResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -13,6 +14,13 @@ from datetime import datetime, timezone, timedelta
 import bcrypt
 import jwt
 import asyncio
+
+# Google Calendar imports
+from google.oauth2.credentials import Credentials
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
+import json
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -34,6 +42,12 @@ if SUPABASE_URL and SUPABASE_KEY:
         logging.info("Supabase client initialized for backups")
     except Exception as e:
         logging.warning(f"Supabase initialization failed: {e}")
+
+# Google Calendar Configuration
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+GOOGLE_REDIRECT_URI = os.environ.get('GOOGLE_REDIRECT_URI', '')
+GOOGLE_SCOPES = ['https://www.googleapis.com/auth/calendar']
 
 # JWT Configuration
 SECRET_KEY = os.environ.get('JWT_SECRET', 'maya-groom-pro-secret-key-2024')
