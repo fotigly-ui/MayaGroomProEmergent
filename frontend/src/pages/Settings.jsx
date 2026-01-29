@@ -368,6 +368,10 @@ export default function Settings() {
               <MessageSquare size={16} />
               <span className="hidden sm:inline">SMS</span>
             </TabsTrigger>
+            <TabsTrigger value="calendar" className="flex items-center gap-2">
+              <Calendar size={16} />
+              <span className="hidden sm:inline">Calendar</span>
+            </TabsTrigger>
             <TabsTrigger value="preferences" className="flex items-center gap-2">
               <Clock size={16} />
               <span className="hidden sm:inline">Preferences</span>
