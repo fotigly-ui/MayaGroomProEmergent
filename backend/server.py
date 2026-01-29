@@ -833,28 +833,70 @@ async def create_appointment(appt: AppointmentCreate, background_tasks: Backgrou
     recurring_id = str(uuid.uuid4()) if appt.is_recurring else None
     
     if appt.is_recurring and appt.recurring_value and appt.recurring_unit:
-        # Calculate time delta based on unit
-        delta_map = {
-            "day": timedelta(days=appt.recurring_value),
-            "week": timedelta(weeks=appt.recurring_value),
-            "month": timedelta(days=appt.recurring_value * 30),  # Approximate
-            "year": timedelta(days=appt.recurring_value * 365)
+        import pytz
+        
+        # Get the original datetime
+        original_dt = appt.date_time
+        
+        # We assume user is in Australia/Sydney timezone for DST handling
+        # Store the local time components to keep them consistent
+        local_tz = pytz.timezone('Australia/Sydney')
+        
+        # Convert to local time to get the "intended" hour:minute
+        if original_dt.tzinfo is None:
+            original_dt = original_dt.replace(tzinfo=timezone.utc)
+        local_dt = original_dt.astimezone(local_tz)
+        target_hour = local_dt.hour
+        target_minute = local_dt.minute
+        
+        # Calculate number of occurrences based on unit
+        delta_days = {
+            "day": appt.recurring_value,
+            "week": appt.recurring_value * 7,
+            "month": appt.recurring_value * 30,
+            "year": appt.recurring_value * 365
         }
-        delta = delta_map.get(appt.recurring_unit, timedelta(weeks=1))
+        days_between = delta_days.get(appt.recurring_unit, 7)
         
         # Generate appointments for 1 year
-        current_date = appt.date_time
-        end_date = current_date + timedelta(days=365)
+        current_local_date = local_dt.date()
+        end_local_date = current_local_date + timedelta(days=365)
         
-        while current_date < end_date:
-            end_time = current_date + timedelta(minutes=total_duration)
+        while current_local_date < end_local_date:
+            # Create datetime at the target local time for this date
+            # This handles DST automatically - same local time, different UTC offset
+            try:
+                local_datetime = local_tz.localize(
+                    datetime(current_local_date.year, current_local_date.month, current_local_date.day, 
+                            target_hour, target_minute, 0),
+                    is_dst=None
+                )
+            except pytz.exceptions.AmbiguousTimeError:
+                # During DST transition, use the standard time
+                local_datetime = local_tz.localize(
+                    datetime(current_local_date.year, current_local_date.month, current_local_date.day, 
+                            target_hour, target_minute, 0),
+                    is_dst=False
+                )
+            except pytz.exceptions.NonExistentTimeError:
+                # Time doesn't exist due to DST spring forward, skip an hour
+                local_datetime = local_tz.localize(
+                    datetime(current_local_date.year, current_local_date.month, current_local_date.day, 
+                            target_hour + 1, target_minute, 0),
+                    is_dst=True
+                )
+            
+            # Convert to UTC for storage
+            utc_datetime = local_datetime.astimezone(timezone.utc)
+            end_time = utc_datetime + timedelta(minutes=total_duration)
+            
             appointments_to_create.append({
                 "id": str(uuid.uuid4()),
                 "user_id": user_id,
                 "client_id": appt.client_id,
                 "client_name": client["name"],
-                "date_time": current_date.isoformat(),
-                "end_time": end_time.isoformat(),
+                "date_time": utc_datetime.isoformat().replace('+00:00', 'Z'),
+                "end_time": end_time.isoformat().replace('+00:00', 'Z'),
                 "notes": appt.notes,
                 "status": "scheduled",
                 "is_recurring": True,
@@ -866,7 +908,7 @@ async def create_appointment(appt: AppointmentCreate, background_tasks: Backgrou
                 "total_price": total_price,
                 "created_at": datetime.now(timezone.utc).isoformat()
             })
-            current_date += delta
+            current_local_date += timedelta(days=days_between)
     else:
         # Single appointment
         end_time = appt.date_time + timedelta(minutes=total_duration)
