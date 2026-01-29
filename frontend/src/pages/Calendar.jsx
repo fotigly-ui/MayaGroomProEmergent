@@ -989,49 +989,48 @@ export default function CalendarPage() {
             >
               <Edit size={16} className="mr-2" /> Edit
             </Button>
-            {appointmentInvoice?.has_invoice ? (
+            <Button 
+              className="btn-maya-primary w-full sm:w-auto"
+              onClick={() => {
+                // Initialize checkout items from appointment services
+                const checkoutItemsInit = [];
+                if (selectedAppointment.pets) {
+                  selectedAppointment.pets.forEach(pet => {
+                    if (pet.services) {
+                      pet.services.forEach(svc => {
+                        const service = services.find(s => s.id === svc.service_id || s.id === svc);
+                        if (service) {
+                          checkoutItemsInit.push({
+                            id: `svc-${pet.pet_id}-${service.id}`,
+                            type: 'service',
+                            name: `${service.name} (${pet.pet_name})`,
+                            quantity: 1,
+                            unit_price: svc.price || service.price,
+                            total: svc.price || service.price
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
+                setCheckoutItems(checkoutItemsInit);
+                setCheckoutDiscount({ type: 'fixed', value: 0 });
+                setCheckoutNotes('');
+                setShowDetailsModal(false);
+                setShowCheckoutModal(true);
+              }}
+            >
+              <Receipt size={16} className="mr-2" /> Review & Checkout
+            </Button>
+            {appointmentInvoice?.has_invoice && (
               <Button 
-                className="btn-maya-primary w-full sm:w-auto"
+                variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => {
                   window.location.href = '/invoices';
                 }}
               >
-                <Receipt size={16} className="mr-2" /> View Invoice ({appointmentInvoice.invoice_number})
-              </Button>
-            ) : (
-              <Button 
-                className="btn-maya-primary w-full sm:w-auto"
-                disabled={selectedAppointment?.status === 'completed'}
-                onClick={() => {
-                  // Initialize checkout items from appointment services
-                  const checkoutItemsInit = [];
-                  if (selectedAppointment.pets) {
-                    selectedAppointment.pets.forEach(pet => {
-                      if (pet.services) {
-                        pet.services.forEach(svc => {
-                          const service = services.find(s => s.id === svc.service_id || s.id === svc);
-                          if (service) {
-                            checkoutItemsInit.push({
-                              id: `svc-${pet.pet_id}-${service.id}`,
-                              type: 'service',
-                              name: `${service.name} (${pet.pet_name})`,
-                              quantity: 1,
-                              unit_price: svc.price || service.price,
-                              total: svc.price || service.price
-                            });
-                          }
-                        });
-                      }
-                    });
-                  }
-                  setCheckoutItems(checkoutItemsInit);
-                  setCheckoutDiscount({ type: 'fixed', value: 0 });
-                  setCheckoutNotes('');
-                  setShowDetailsModal(false);
-                  setShowCheckoutModal(true);
-                }}
-              >
-                <Receipt size={16} className="mr-2" /> Review & Checkout
+                View Invoice ({appointmentInvoice.invoice_number})
               </Button>
             )}
           </DialogFooter>
