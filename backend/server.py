@@ -961,6 +961,9 @@ async def create_appointment(appt: AppointmentCreate, background_tasks: Backgrou
         # Send SMS notification if automated (only for first appointment)
         background_tasks.add_task(send_appointment_sms, user_id, prepared_docs[0], "appointment_booked")
         
+        # Auto-sync to Google Calendar if connected
+        background_tasks.add_task(auto_sync_appointments_to_google, user_id, [doc["id"] for doc in prepared_docs])
+        
         # Return the first appointment
         return parse_datetime_fields(prepared_docs[0], ["date_time", "end_time", "created_at"])
     
