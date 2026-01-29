@@ -1377,7 +1377,7 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
     return parse_datetime_fields(appt, ["date_time", "end_time", "created_at"])
 
 @api_router.delete("/appointments/{appointment_id}")
-async def delete_appointment(appointment_id: str, delete_series: bool = False, user_id: str = Depends(get_current_user)):
+async def delete_appointment(appointment_id: str, delete_series: bool = False, background_tasks: BackgroundTasks = None, user_id: str = Depends(get_current_user)):
     appt = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
     
     if not appt:
@@ -1387,6 +1387,18 @@ async def delete_appointment(appointment_id: str, delete_series: bool = False, u
     if delete_series and appt.get("is_recurring") and appt.get("recurring_id"):
         recurring_id = appt.get("recurring_id")
         
+        # Get all appointments in series to delete from Google Calendar
+        series_appts = await db.appointments.find(
+            {"user_id": user_id, "recurring_id": recurring_id},
+            {"_id": 0, "google_event_id": 1}
+        ).to_list(500)
+        
+        # Delete from Google Calendar
+        if background_tasks:
+            for sa in series_appts:
+                if sa.get("google_event_id"):
+                    background_tasks.add_task(delete_from_google, user_id, sa["google_event_id"])
+        
         # Delete ALL appointments with the same recurring_id (entire series)
         result = await db.appointments.delete_many({
             "user_id": user_id,
@@ -1395,6 +1407,10 @@ async def delete_appointment(appointment_id: str, delete_series: bool = False, u
         logger.info(f"Deleted {result.deleted_count} appointments with recurring_id {recurring_id}")
         return {"message": f"Deleted {result.deleted_count} appointments in series"}
     else:
+        # Delete from Google Calendar
+        if background_tasks and appt.get("google_event_id"):
+            background_tasks.add_task(delete_from_google, user_id, appt["google_event_id"])
+        
         result = await db.appointments.delete_one({"id": appointment_id, "user_id": user_id})
         if result.deleted_count == 0:
             raise HTTPException(status_code=404, detail="Appointment not found")
