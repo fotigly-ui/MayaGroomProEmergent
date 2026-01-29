@@ -926,18 +926,12 @@ export function AppointmentModal({
                 </div>
               ) : (
                 filteredClients.map((client) => (
-                  <button
+                  <div
                     key={client.id}
-                    type="button"
-                    onClick={() => {
-                      handleClientSelect(client);
-                      setShowClientSelectionModal(false);
-                      setClientSearch('');
-                    }}
-                    className="w-full p-4 text-left hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors"
+                    className="w-full p-4 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-colors"
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex-1">
                         <div className="font-medium text-base">{client.name}</div>
                         {client.phone && (
                           <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
@@ -950,11 +944,20 @@ export function AppointmentModal({
                           </div>
                         )}
                       </div>
-                      {client.address && (
-                        <MapPin size={16} className="text-gray-400" />
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleClientSelect(client);
+                          setShowClientSelectionModal(false);
+                          setClientSearch('');
+                        }}
+                        className="flex-shrink-0 w-10 h-10 rounded-full bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors"
+                        aria-label="Select customer"
+                      >
+                        <Check size={20} />
+                      </button>
                     </div>
-                  </button>
+                  </div>
                 ))
               )}
             </div>
