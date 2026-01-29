@@ -2243,6 +2243,8 @@ async def get_user_google_credentials(user_id: str):
 
 def build_calendar_event(appointment: dict) -> dict:
     """Build a Google Calendar event from an appointment"""
+    import pytz
+    
     # Build description with client details
     pets_info = []
     for pet in appointment.get("pets", []):
@@ -2270,7 +2272,7 @@ def build_calendar_event(appointment: dict) -> dict:
     
     description = "\n".join(description_parts)
     
-    # Parse times
+    # Parse times - appointments are stored in local time (Australia/Sydney)
     start_time = appointment.get("date_time", "")
     end_time = appointment.get("end_time", "")
     
@@ -2285,12 +2287,12 @@ def build_calendar_event(appointment: dict) -> dict:
         "summary": title,
         "description": description,
         "start": {
-            "dateTime": start_time if start_time.endswith('Z') else start_time + 'Z',
-            "timeZone": "UTC"
+            "dateTime": start_time,
+            "timeZone": "Australia/Sydney"
         },
         "end": {
-            "dateTime": end_time if end_time.endswith('Z') else end_time + 'Z',
-            "timeZone": "UTC"
+            "dateTime": end_time,
+            "timeZone": "Australia/Sydney"
         },
         "extendedProperties": {
             "private": {
