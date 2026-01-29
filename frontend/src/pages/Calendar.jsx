@@ -108,6 +108,7 @@ export default function CalendarPage() {
       // Store appointment ID to open after data loads
       if (appointmentParam) {
         pendingAppointmentId.current = appointmentParam;
+        pendingDate.current = dateParam;
       }
       
       // Clear URL params after reading
