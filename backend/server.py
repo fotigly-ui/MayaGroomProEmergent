@@ -1149,35 +1149,88 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
     
     # Update single or series
     if update_series and update.date_time:
-        # Update all appointments with the same recurring_id - apply time offset
+        import pytz
+        
+        # Update all appointments with the same recurring_id
+        # We need to reschedule to the new LOCAL time for each appointment date
         recurring_id = original_appt.get("recurring_id")
         current_date_str = datetime.now(timezone.utc).isoformat()
         
-        # Parse the old datetime from storage (it's in UTC)
-        old_datetime_str = original_appt["date_time"]
-        if isinstance(old_datetime_str, str):
-            # Handle both 'Z' suffix and '+00:00' suffix
-            if old_datetime_str.endswith('Z'):
-                old_datetime = datetime.fromisoformat(old_datetime_str.replace('Z', '+00:00'))
-            elif '+' in old_datetime_str or old_datetime_str.endswith('+00:00'):
-                old_datetime = datetime.fromisoformat(old_datetime_str)
-            else:
-                # Assume UTC if no timezone info
-                old_datetime = datetime.fromisoformat(old_datetime_str).replace(tzinfo=timezone.utc)
-        else:
-            old_datetime = old_datetime_str
+        local_tz = pytz.timezone('Australia/Sydney')
         
-        # Ensure new_datetime has timezone info (treat as UTC if none)
+        # Parse the new datetime to get the target local time
         new_datetime = update.date_time
         if new_datetime.tzinfo is None:
             new_datetime = new_datetime.replace(tzinfo=timezone.utc)
         
-        # Calculate the total time difference (including date change for full offset)
-        # This handles both time-only changes and date+time changes
-        time_offset = new_datetime - old_datetime
-        time_offset_minutes = int(time_offset.total_seconds() / 60)
+        # Convert new time to local to get the intended local hour:minute
+        new_local = new_datetime.astimezone(local_tz)
+        target_hour = new_local.hour
+        target_minute = new_local.minute
         
-        logger.info(f"Recurring series update: old={old_datetime.isoformat()}, new={new_datetime.isoformat()}, offset={time_offset_minutes} minutes")
+        logger.info(f"Recurring series update: target local time = {target_hour}:{target_minute}")
+        
+        # Get all future appointments in the series
+        future_appts = await db.appointments.find({
+            "user_id": user_id,
+            "recurring_id": recurring_id,
+            "date_time": {"$gte": current_date_str}
+        }, {"_id": 0}).to_list(1000)
+        
+        # Update each appointment to have the same LOCAL time
+        duration = original_appt.get("total_duration", 60)
+        for appt in future_appts:
+            appt_datetime_str = appt["date_time"]
+            if isinstance(appt_datetime_str, str):
+                if appt_datetime_str.endswith('Z'):
+                    appt_datetime = datetime.fromisoformat(appt_datetime_str.replace('Z', '+00:00'))
+                elif '+' in appt_datetime_str:
+                    appt_datetime = datetime.fromisoformat(appt_datetime_str)
+                else:
+                    appt_datetime = datetime.fromisoformat(appt_datetime_str).replace(tzinfo=timezone.utc)
+            else:
+                appt_datetime = appt_datetime_str
+            
+            # Get the date portion in local timezone
+            appt_local = appt_datetime.astimezone(local_tz)
+            appt_date = appt_local.date()
+            
+            # Create new datetime at the target local time for this date
+            try:
+                new_local_datetime = local_tz.localize(
+                    datetime(appt_date.year, appt_date.month, appt_date.day, target_hour, target_minute, 0),
+                    is_dst=None
+                )
+            except pytz.exceptions.AmbiguousTimeError:
+                new_local_datetime = local_tz.localize(
+                    datetime(appt_date.year, appt_date.month, appt_date.day, target_hour, target_minute, 0),
+                    is_dst=False
+                )
+            except pytz.exceptions.NonExistentTimeError:
+                new_local_datetime = local_tz.localize(
+                    datetime(appt_date.year, appt_date.month, appt_date.day, target_hour + 1, target_minute, 0),
+                    is_dst=True
+                )
+            
+            # Convert to UTC for storage
+            new_appt_utc = new_local_datetime.astimezone(timezone.utc)
+            new_end_time = new_appt_utc + timedelta(minutes=duration)
+            
+            await db.appointments.update_one(
+                {"id": appt["id"], "user_id": user_id},
+                {"$set": {
+                    "date_time": new_appt_utc.isoformat().replace('+00:00', 'Z'),
+                    "end_time": new_end_time.isoformat().replace('+00:00', 'Z')
+                }}
+            )
+        
+        logger.info(f"Updated {len(future_appts)} appointments in series to local time {target_hour}:{target_minute}")
+        
+        # Return the updated appointment
+        appt = await db.appointments.find_one({"id": appointment_id}, {"_id": 0})
+        if not appt:
+            raise HTTPException(status_code=404, detail="Appointment not found after update")
+        return parse_datetime_fields(appt, ["date_time", "end_time", "created_at"])
         
         # Get all future appointments in the series
         future_appts = await db.appointments.find({
