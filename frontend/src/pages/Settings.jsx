@@ -880,12 +880,18 @@ export default function Settings() {
                     </div>
 
                     <div className="text-sm text-maya-text-muted">
-                      <p className="font-medium mb-2">What syncs:</p>
-                      <ul className="list-disc list-inside space-y-1">
+                      <p className="font-medium mb-2">Automatic Sync (App → Google Calendar):</p>
+                      <ul className="list-disc list-inside space-y-1 mb-4">
                         <li>New appointments are automatically added to Google Calendar</li>
                         <li>Updated appointments are reflected in Google Calendar</li>
                         <li>Deleted appointments are removed from Google Calendar</li>
                         <li>Event includes: Client name, phone, address, pet & services</li>
+                      </ul>
+                      <p className="font-medium mb-2">Manual Import (Google Calendar → App):</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Click "Import from Google Calendar" to pull events from your calendar</li>
+                        <li>New Google Calendar events will be imported as appointments</li>
+                        <li>Events created by this app are automatically recognized and skipped</li>
                       </ul>
                     </div>
                   </div>
