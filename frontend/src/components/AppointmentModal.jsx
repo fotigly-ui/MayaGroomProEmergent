@@ -725,12 +725,6 @@ export function AppointmentModal({
             <DialogFooter className="gap-2 flex-wrap">
               {isEditing && (
                 <>
-                  {existingInvoice?.has_invoice ? (
-                    <Button type="button" variant="outline" onClick={() => window.location.href = '/invoices'}>
-                      <FileText size={16} className="mr-2" />
-                      View Invoice ({existingInvoice.invoice_number})
-                    </Button>
-                  ) : null}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button type="button" variant="outline">
