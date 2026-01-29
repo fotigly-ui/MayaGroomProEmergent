@@ -90,6 +90,10 @@ export function AppointmentModal({
   const [showRecurringDialog, setShowRecurringDialog] = useState(false);
   const [recurringAction, setRecurringAction] = useState('single');
   const [pendingStatusChange, setPendingStatusChange] = useState(null);
+  
+  // Delete confirmation dialog
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteScope, setDeleteScope] = useState('single'); // 'single' or 'series'
 
   const isEditing = !!appointment;
   
