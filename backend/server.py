@@ -1374,6 +1374,9 @@ async def update_appointment(appointment_id: str, update: AppointmentUpdate, bac
     if sms_type:
         background_tasks.add_task(send_appointment_sms, user_id, appt, sms_type)
     
+    # Auto-sync to Google Calendar
+    background_tasks.add_task(auto_sync_appointments_to_google, user_id, [appointment_id])
+    
     return parse_datetime_fields(appt, ["date_time", "end_time", "created_at"])
 
 @api_router.delete("/appointments/{appointment_id}")
