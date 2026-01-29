@@ -166,6 +166,36 @@ export default function CalendarPage() {
     fetchData();
   }, [fetchData]);
   
+  // Open pending appointment from URL navigation (after data loads)
+  useEffect(() => {
+    if (!loading && pendingAppointmentId.current && appointments.length > 0) {
+      const targetAppt = appointments.find(a => a.id === pendingAppointmentId.current);
+      if (targetAppt) {
+        // Open the appointment details modal
+        setSelectedAppointment(targetAppt);
+        setAppointmentInvoice(null);
+        setShowDetailsModal(true);
+        
+        // Check for existing invoice
+        const checkInvoice = async () => {
+          try {
+            const token = localStorage.getItem('maya_token');
+            const response = await axios.get(`${API_URL}/invoices/check/${targetAppt.id}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            setAppointmentInvoice(response.data);
+          } catch (error) {
+            console.error('Error checking invoice:', error);
+            setAppointmentInvoice({ has_invoice: false });
+          }
+        };
+        checkInvoice();
+      }
+      // Clear pending appointment
+      pendingAppointmentId.current = null;
+    }
+  }, [loading, appointments]);
+  
   // Reset scroll flag when returning to today's date
   useEffect(() => {
     if (isToday(selectedDate)) {
