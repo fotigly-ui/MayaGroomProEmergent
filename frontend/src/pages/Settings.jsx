@@ -849,7 +849,20 @@ export default function Settings() {
                         ) : (
                           <RefreshCw size={16} className="mr-2" />
                         )}
-                        Sync All Appointments
+                        Push to Google Calendar
+                      </Button>
+                      <Button
+                        onClick={handleImportFromGoogle}
+                        disabled={syncLoading}
+                        variant="outline"
+                        className="border-primary text-primary hover:bg-primary/10"
+                      >
+                        {syncLoading ? (
+                          <Loader2 className="animate-spin mr-2" size={16} />
+                        ) : (
+                          <RefreshCw size={16} className="mr-2" />
+                        )}
+                        Import from Google Calendar
                       </Button>
                       <Button
                         variant="outline"
