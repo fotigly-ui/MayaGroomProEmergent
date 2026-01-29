@@ -409,23 +409,29 @@ export function AppointmentModal({
   const handleDelete = async () => {
     if (!appointment) return;
     
-    // If recurring, ask if delete series
+    // If recurring, ask if delete series or single
     if (appointment.is_recurring && appointment.recurring_id) {
       setShowRecurringDialog(true);
       setRecurringAction('delete'); // Mark this as a delete action
     } else {
-      if (!window.confirm('Are you sure you want to delete this appointment?')) return;
-
-      setLoading(true);
-      try {
-        await appointmentsAPI.delete(appointment.id);
-        toast.success('Appointment deleted');
-        onSave();
-      } catch (error) {
-        toast.error('Failed to delete appointment');
-      } finally {
-        setLoading(false);
-      }
+      // For non-recurring, show confirmation dialog
+      setDeleteScope('single');
+      setShowDeleteConfirm(true);
+    }
+  };
+  
+  const confirmDelete = async () => {
+    setLoading(true);
+    try {
+      await appointmentsAPI.delete(appointment.id, { delete_series: deleteScope === 'series' });
+      toast.success(deleteScope === 'series' ? 'Series deleted' : 'Appointment deleted');
+      setShowDeleteConfirm(false);
+      setShowRecurringDialog(false);
+      onSave();
+    } catch (error) {
+      toast.error('Failed to delete');
+    } finally {
+      setLoading(false);
     }
   };
 
