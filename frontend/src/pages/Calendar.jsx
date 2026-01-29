@@ -169,16 +169,37 @@ export default function CalendarPage() {
   
   // Open pending appointment from URL navigation (after data loads)
   useEffect(() => {
-    if (!loading && pendingAppointmentId.current && appointments.length > 0) {
-      const targetAppt = appointments.find(a => a.id === pendingAppointmentId.current);
-      if (targetAppt) {
-        // Open the appointment details modal
-        setSelectedAppointment(targetAppt);
-        setAppointmentInvoice(null);
-        setShowDetailsModal(true);
+    const openPendingAppointment = async () => {
+      if (!loading && pendingAppointmentId.current) {
+        // First try to find in current appointments
+        let targetAppt = appointments.find(a => a.id === pendingAppointmentId.current);
         
-        // Check for existing invoice
-        const checkInvoice = async () => {
+        // If not found, fetch directly from API (appointment might be in a different week)
+        if (!targetAppt) {
+          try {
+            const token = localStorage.getItem('maya_token');
+            const response = await axios.get(`${API_URL}/appointments/${pendingAppointmentId.current}`, {
+              headers: { Authorization: `Bearer ${token}` }
+            });
+            targetAppt = response.data;
+          } catch (error) {
+            console.error('Failed to fetch appointment:', error);
+          }
+        }
+        
+        if (targetAppt) {
+          // Navigate to the correct date if needed
+          const apptDate = new Date(targetAppt.date_time);
+          if (!isSameDay(apptDate, selectedDate)) {
+            setSelectedDate(apptDate);
+          }
+          
+          // Open the appointment details modal
+          setSelectedAppointment(targetAppt);
+          setAppointmentInvoice(null);
+          setShowDetailsModal(true);
+          
+          // Check for existing invoice
           try {
             const token = localStorage.getItem('maya_token');
             const response = await axios.get(`${API_URL}/invoices/check/${targetAppt.id}`, {
@@ -189,13 +210,16 @@ export default function CalendarPage() {
             console.error('Error checking invoice:', error);
             setAppointmentInvoice({ has_invoice: false });
           }
-        };
-        checkInvoice();
+        }
+        
+        // Clear pending appointment
+        pendingAppointmentId.current = null;
+        pendingDate.current = null;
       }
-      // Clear pending appointment
-      pendingAppointmentId.current = null;
-    }
-  }, [loading, appointments]);
+    };
+    
+    openPendingAppointment();
+  }, [loading, appointments, selectedDate]);
   
   // Reset scroll flag when returning to today's date
   useEffect(() => {
