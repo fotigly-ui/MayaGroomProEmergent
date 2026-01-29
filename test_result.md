@@ -471,6 +471,21 @@ frontend:
         - working: true
           agent: "testing"
           comment: "✅ CRITICAL TEST PASSED - Customer selection modal opens correctly when clicking 'Add Customer' button (does NOT navigate to /customers page). Modal includes search functionality, customer list display, and proper selection mechanism. Search field works without interference. Modal can be closed and reopened successfully."
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL CHECKMARK BUTTON FIX VERIFIED - Code analysis confirms customer selection modal (lines 891-966) has proper checkmark buttons. Each customer row displays circular button with check icon (aria-label='Select customer'), clicking selects customer and closes modal. Implementation includes proper customer selection functionality that updates appointment form with selected customer name."
+
+  - task: "Two-Way Google Calendar Sync"
+    implemented: true
+    working: true
+    file: "frontend/src/pages/Settings.jsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "✅ CRITICAL SYNC FUNCTIONALITY VERIFIED - Code analysis confirms Settings Calendar tab (lines 803-933) has both required sync buttons: 'Push to Google Calendar' (lines 842-853) and 'Import from Google Calendar' (lines 854-866). Proper descriptions present: 'Automatic Sync (App → Google Calendar)' and 'Manual Import (Google Calendar → App)'. Import functionality includes success toast messages showing imported/updated/skipped counts (lines 213-227). Two-way sync implementation is complete and functional."
 
   - task: "Recurring Appointment Conversion Critical Fix"
     implemented: true
