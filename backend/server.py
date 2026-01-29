@@ -2104,6 +2104,371 @@ async def get_backup_status(user_id: str = Depends(get_current_user)):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+# ==================== GOOGLE CALENDAR ROUTES ====================
+
+def get_google_flow():
+    """Create Google OAuth flow"""
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
+        raise HTTPException(status_code=500, detail="Google Calendar not configured")
+    
+    client_config = {
+        "web": {
+            "client_id": GOOGLE_CLIENT_ID,
+            "client_secret": GOOGLE_CLIENT_SECRET,
+            "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+            "token_uri": "https://oauth2.googleapis.com/token",
+            "redirect_uris": [GOOGLE_REDIRECT_URI]
+        }
+    }
+    
+    flow = Flow.from_client_config(client_config, scopes=GOOGLE_SCOPES)
+    flow.redirect_uri = GOOGLE_REDIRECT_URI
+    return flow
+
+async def get_user_google_credentials(user_id: str):
+    """Get stored Google credentials for a user"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "google_tokens": 1})
+    if not user or not user.get("google_tokens"):
+        return None
+    
+    tokens = user["google_tokens"]
+    credentials = Credentials(
+        token=tokens.get("access_token"),
+        refresh_token=tokens.get("refresh_token"),
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=GOOGLE_CLIENT_ID,
+        client_secret=GOOGLE_CLIENT_SECRET,
+        scopes=GOOGLE_SCOPES
+    )
+    
+    # Refresh if expired
+    if credentials.expired and credentials.refresh_token:
+        try:
+            from google.auth.transport.requests import Request
+            credentials.refresh(Request())
+            # Save refreshed tokens
+            await db.users.update_one(
+                {"id": user_id},
+                {"$set": {"google_tokens.access_token": credentials.token}}
+            )
+        except Exception as e:
+            logger.error(f"Failed to refresh Google token: {e}")
+            return None
+    
+    return credentials
+
+def build_calendar_event(appointment: dict) -> dict:
+    """Build a Google Calendar event from an appointment"""
+    # Build description with client details
+    pets_info = []
+    for pet in appointment.get("pets", []):
+        pet_name = pet.get("pet_name", "Unknown Pet")
+        services = pet.get("services", [])
+        service_names = [s.get("service_name", s.get("service_id", "")) for s in services] if isinstance(services, list) and services and isinstance(services[0], dict) else []
+        pets_info.append(f"{pet_name}: {', '.join(service_names) if service_names else 'No services'}")
+    
+    description_parts = []
+    if appointment.get("client_name"):
+        description_parts.append(f"Client: {appointment['client_name']}")
+    
+    # Get client phone and address
+    client_phone = appointment.get("client_phone", "")
+    client_address = appointment.get("client_address", "")
+    
+    if client_phone:
+        description_parts.append(f"Phone: {client_phone}")
+    if client_address:
+        description_parts.append(f"Address: {client_address}")
+    if pets_info:
+        description_parts.append(f"\nPets & Services:\n" + "\n".join(pets_info))
+    if appointment.get("notes"):
+        description_parts.append(f"\nNotes: {appointment['notes']}")
+    
+    description = "\n".join(description_parts)
+    
+    # Parse times
+    start_time = appointment.get("date_time", "")
+    end_time = appointment.get("end_time", "")
+    
+    # Build event title
+    client_name = appointment.get("client_name", "Appointment")
+    pet_names = [p.get("pet_name", "") for p in appointment.get("pets", [])]
+    title = f"{client_name}"
+    if pet_names:
+        title += f" ({', '.join(filter(None, pet_names))})"
+    
+    event = {
+        "summary": title,
+        "description": description,
+        "start": {
+            "dateTime": start_time if start_time.endswith('Z') else start_time + 'Z',
+            "timeZone": "UTC"
+        },
+        "end": {
+            "dateTime": end_time if end_time.endswith('Z') else end_time + 'Z',
+            "timeZone": "UTC"
+        },
+        "extendedProperties": {
+            "private": {
+                "gromify_id": appointment.get("id", ""),
+                "gromify_client_id": appointment.get("client_id", "")
+            }
+        }
+    }
+    
+    # Add location if available
+    if client_address:
+        event["location"] = client_address
+    
+    return event
+
+@api_router.get("/auth/google/connect")
+async def google_connect(user_id: str = Depends(get_current_user)):
+    """Start Google OAuth flow - returns authorization URL"""
+    try:
+        flow = get_google_flow()
+        authorization_url, state = flow.authorization_url(
+            access_type='offline',
+            include_granted_scopes='true',
+            prompt='consent'
+        )
+        
+        # Store state for validation
+        await db.users.update_one(
+            {"id": user_id},
+            {"$set": {"google_oauth_state": state}}
+        )
+        
+        return {"authorization_url": authorization_url, "state": state}
+    except Exception as e:
+        logger.error(f"Google connect error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/auth/google/callback")
+async def google_callback(code: str = Query(...), state: str = Query(None)):
+    """Handle Google OAuth callback"""
+    try:
+        flow = get_google_flow()
+        flow.fetch_token(code=code)
+        credentials = flow.credentials
+        
+        # Find user by state
+        user = await db.users.find_one({"google_oauth_state": state}, {"_id": 0, "id": 1})
+        if not user:
+            # Redirect with error
+            return RedirectResponse(url="/settings?google_error=invalid_state")
+        
+        # Save tokens
+        tokens = {
+            "access_token": credentials.token,
+            "refresh_token": credentials.refresh_token,
+            "token_uri": credentials.token_uri,
+            "scopes": list(credentials.scopes) if credentials.scopes else GOOGLE_SCOPES
+        }
+        
+        await db.users.update_one(
+            {"id": user["id"]},
+            {
+                "$set": {
+                    "google_tokens": tokens,
+                    "google_calendar_connected": True
+                },
+                "$unset": {"google_oauth_state": ""}
+            }
+        )
+        
+        logger.info(f"Google Calendar connected for user {user['id']}")
+        
+        # Redirect back to settings with success
+        return RedirectResponse(url="/settings?google_connected=true")
+    except Exception as e:
+        logger.error(f"Google callback error: {e}")
+        return RedirectResponse(url=f"/settings?google_error={str(e)}")
+
+@api_router.post("/auth/google/disconnect")
+async def google_disconnect(user_id: str = Depends(get_current_user)):
+    """Disconnect Google Calendar"""
+    await db.users.update_one(
+        {"id": user_id},
+        {
+            "$unset": {"google_tokens": "", "google_oauth_state": ""},
+            "$set": {"google_calendar_connected": False}
+        }
+    )
+    return {"message": "Google Calendar disconnected"}
+
+@api_router.get("/auth/google/status")
+async def google_status(user_id: str = Depends(get_current_user)):
+    """Check Google Calendar connection status"""
+    user = await db.users.find_one({"id": user_id}, {"_id": 0, "google_calendar_connected": 1, "google_tokens": 1})
+    
+    connected = user.get("google_calendar_connected", False) if user else False
+    has_tokens = bool(user.get("google_tokens")) if user else False
+    
+    return {
+        "connected": connected and has_tokens,
+        "configured": bool(GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET)
+    }
+
+@api_router.post("/calendar/sync/{appointment_id}")
+async def sync_appointment_to_google(
+    appointment_id: str,
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_current_user)
+):
+    """Sync a single appointment to Google Calendar"""
+    credentials = await get_user_google_credentials(user_id)
+    if not credentials:
+        raise HTTPException(status_code=400, detail="Google Calendar not connected")
+    
+    appointment = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+    
+    # Get client details for the event
+    client = await db.clients.find_one({"id": appointment.get("client_id")}, {"_id": 0})
+    if client:
+        appointment["client_phone"] = client.get("phone", "")
+        appointment["client_address"] = client.get("address", "")
+    
+    try:
+        service = build('calendar', 'v3', credentials=credentials)
+        event = build_calendar_event(appointment)
+        
+        # Check if event already exists
+        google_event_id = appointment.get("google_event_id")
+        
+        if google_event_id:
+            # Update existing event
+            result = service.events().update(
+                calendarId='primary',
+                eventId=google_event_id,
+                body=event
+            ).execute()
+        else:
+            # Create new event
+            result = service.events().insert(
+                calendarId='primary',
+                body=event
+            ).execute()
+            
+            # Save Google event ID
+            await db.appointments.update_one(
+                {"id": appointment_id},
+                {"$set": {"google_event_id": result.get("id")}}
+            )
+        
+        return {"message": "Synced to Google Calendar", "google_event_id": result.get("id")}
+    except HttpError as e:
+        logger.error(f"Google Calendar API error: {e}")
+        raise HTTPException(status_code=500, detail=f"Google Calendar error: {str(e)}")
+
+@api_router.post("/calendar/sync-all")
+async def sync_all_appointments_to_google(
+    background_tasks: BackgroundTasks,
+    user_id: str = Depends(get_current_user)
+):
+    """Sync all future appointments to Google Calendar"""
+    credentials = await get_user_google_credentials(user_id)
+    if not credentials:
+        raise HTTPException(status_code=400, detail="Google Calendar not connected")
+    
+    # Get all future appointments
+    now = datetime.now(timezone.utc).isoformat()
+    appointments = await db.appointments.find(
+        {"user_id": user_id, "date_time": {"$gte": now}, "status": {"$ne": "cancelled"}},
+        {"_id": 0}
+    ).to_list(500)
+    
+    if not appointments:
+        return {"message": "No appointments to sync", "synced": 0}
+    
+    # Get all clients for phone/address info
+    client_ids = list(set(a.get("client_id") for a in appointments if a.get("client_id")))
+    clients = await db.clients.find({"id": {"$in": client_ids}}, {"_id": 0}).to_list(100)
+    client_map = {c["id"]: c for c in clients}
+    
+    try:
+        service = build('calendar', 'v3', credentials=credentials)
+        synced = 0
+        errors = 0
+        
+        for appointment in appointments:
+            try:
+                # Add client details
+                client = client_map.get(appointment.get("client_id"), {})
+                appointment["client_phone"] = client.get("phone", "")
+                appointment["client_address"] = client.get("address", "")
+                
+                event = build_calendar_event(appointment)
+                google_event_id = appointment.get("google_event_id")
+                
+                if google_event_id:
+                    service.events().update(
+                        calendarId='primary',
+                        eventId=google_event_id,
+                        body=event
+                    ).execute()
+                else:
+                    result = service.events().insert(
+                        calendarId='primary',
+                        body=event
+                    ).execute()
+                    
+                    await db.appointments.update_one(
+                        {"id": appointment["id"]},
+                        {"$set": {"google_event_id": result.get("id")}}
+                    )
+                
+                synced += 1
+            except Exception as e:
+                logger.error(f"Failed to sync appointment {appointment.get('id')}: {e}")
+                errors += 1
+        
+        return {"message": f"Synced {synced} appointments", "synced": synced, "errors": errors}
+    except Exception as e:
+        logger.error(f"Sync all error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.delete("/calendar/sync/{appointment_id}")
+async def delete_from_google_calendar(
+    appointment_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    """Delete an appointment from Google Calendar"""
+    credentials = await get_user_google_credentials(user_id)
+    if not credentials:
+        return {"message": "Google Calendar not connected"}
+    
+    appointment = await db.appointments.find_one({"id": appointment_id, "user_id": user_id}, {"_id": 0})
+    if not appointment:
+        return {"message": "Appointment not found"}
+    
+    google_event_id = appointment.get("google_event_id")
+    if not google_event_id:
+        return {"message": "Not synced to Google Calendar"}
+    
+    try:
+        service = build('calendar', 'v3', credentials=credentials)
+        service.events().delete(calendarId='primary', eventId=google_event_id).execute()
+        
+        # Remove Google event ID
+        await db.appointments.update_one(
+            {"id": appointment_id},
+            {"$unset": {"google_event_id": ""}}
+        )
+        
+        return {"message": "Deleted from Google Calendar"}
+    except HttpError as e:
+        if e.resp.status == 404:
+            # Event already deleted
+            await db.appointments.update_one(
+                {"id": appointment_id},
+                {"$unset": {"google_event_id": ""}}
+            )
+            return {"message": "Event already deleted"}
+        raise HTTPException(status_code=500, detail=str(e))
+
 # Include router and middleware
 app.include_router(api_router)
 
