@@ -137,6 +137,79 @@ export default function Settings() {
     }
   };
 
+  // Check for Google Calendar connection result from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('google_connected') === 'true') {
+      toast.success('Google Calendar connected successfully!');
+      fetchGoogleStatus();
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (urlParams.get('google_error')) {
+      toast.error(`Google Calendar error: ${urlParams.get('google_error')}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
+  const fetchGoogleStatus = async () => {
+    try {
+      const token = localStorage.getItem('maya_token');
+      const response = await axios.get(`${API_URL}/auth/google/status`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setGoogleStatus(response.data);
+    } catch (error) {
+      console.error('Error fetching Google status:', error);
+    }
+  };
+
+  const handleGoogleConnect = async () => {
+    setGoogleLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      const response = await axios.get(`${API_URL}/auth/google/connect`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Redirect to Google OAuth
+      window.location.href = response.data.authorization_url;
+    } catch (error) {
+      toast.error('Failed to connect Google Calendar');
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleGoogleDisconnect = async () => {
+    if (!window.confirm('Disconnect Google Calendar? This will stop syncing appointments.')) return;
+    
+    setGoogleLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      await axios.post(`${API_URL}/auth/google/disconnect`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setGoogleStatus({ connected: false, configured: googleStatus.configured });
+      toast.success('Google Calendar disconnected');
+    } catch (error) {
+      toast.error('Failed to disconnect');
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleSyncAll = async () => {
+    setSyncLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      const response = await axios.post(`${API_URL}/calendar/sync-all`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(`Synced ${response.data.synced} appointments to Google Calendar`);
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to sync');
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (settings) {
       setFormData({
