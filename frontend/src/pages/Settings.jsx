@@ -251,6 +251,7 @@ export default function Settings() {
 
   useEffect(() => {
     fetchBackupStatus();
+    fetchGoogleStatus();
   }, []);
 
   const fetchBackupStatus = async () => {
