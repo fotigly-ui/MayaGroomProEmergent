@@ -95,6 +95,11 @@ export default function Settings() {
   const [backupStatus, setBackupStatus] = useState(null);
   const [backupLoading, setBackupLoading] = useState(false);
   
+  // Google Calendar state
+  const [googleStatus, setGoogleStatus] = useState({ connected: false, configured: false });
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(false);
+  
   // Password change state
   const [passwordForm, setPasswordForm] = useState({
     current_password: '',
@@ -102,6 +107,7 @@ export default function Settings() {
     confirm_password: ''
   });
   const [passwordLoading, setPasswordLoading] = useState(false);
+
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
