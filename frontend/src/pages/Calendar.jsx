@@ -45,6 +45,7 @@ const STATUS_COLORS = {
 export default function CalendarPage() {
   const { settings } = useAuth();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +55,10 @@ export default function CalendarPage() {
   const [clients, setClients] = useState([]);
   const [services, setServices] = useState([]);
   const [popoverMonth, setPopoverMonth] = useState(new Date());
+  
+  // Track if we need to open an appointment from URL
+  const pendingAppointmentId = useRef(searchParams.get('appointment'));
+  const pendingDate = useRef(searchParams.get('date'));
   
   // Zoom state
   const [zoomLevel, setZoomLevel] = useState(1);
