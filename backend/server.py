@@ -804,6 +804,68 @@ async def delete_item(item_id: str, user_id: str = Depends(get_current_user)):
 
 # ==================== APPOINTMENT ROUTES ====================
 
+async def auto_sync_appointments_to_google(user_id: str, appointment_ids: list):
+    """Background task to sync appointments to Google Calendar"""
+    try:
+        credentials = await get_user_google_credentials(user_id)
+        if not credentials:
+            return  # User not connected to Google Calendar
+        
+        service = build('calendar', 'v3', credentials=credentials)
+        
+        for appt_id in appointment_ids:
+            try:
+                appointment = await db.appointments.find_one({"id": appt_id, "user_id": user_id}, {"_id": 0})
+                if not appointment:
+                    continue
+                
+                # Get client details
+                client = await db.clients.find_one({"id": appointment.get("client_id")}, {"_id": 0})
+                if client:
+                    appointment["client_phone"] = client.get("phone", "")
+                    appointment["client_address"] = client.get("address", "")
+                
+                event = build_calendar_event(appointment)
+                google_event_id = appointment.get("google_event_id")
+                
+                if google_event_id:
+                    # Update existing
+                    service.events().update(
+                        calendarId='primary',
+                        eventId=google_event_id,
+                        body=event
+                    ).execute()
+                else:
+                    # Create new
+                    result = service.events().insert(
+                        calendarId='primary',
+                        body=event
+                    ).execute()
+                    
+                    await db.appointments.update_one(
+                        {"id": appt_id},
+                        {"$set": {"google_event_id": result.get("id")}}
+                    )
+                
+                logger.info(f"Synced appointment {appt_id} to Google Calendar")
+            except Exception as e:
+                logger.error(f"Failed to sync appointment {appt_id}: {e}")
+    except Exception as e:
+        logger.error(f"Auto-sync error: {e}")
+
+async def delete_from_google(user_id: str, google_event_id: str):
+    """Background task to delete event from Google Calendar"""
+    try:
+        credentials = await get_user_google_credentials(user_id)
+        if not credentials or not google_event_id:
+            return
+        
+        service = build('calendar', 'v3', credentials=credentials)
+        service.events().delete(calendarId='primary', eventId=google_event_id).execute()
+        logger.info(f"Deleted Google Calendar event {google_event_id}")
+    except Exception as e:
+        logger.error(f"Failed to delete from Google Calendar: {e}")
+
 @api_router.post("/appointments", response_model=Appointment)
 async def create_appointment(appt: AppointmentCreate, background_tasks: BackgroundTasks, user_id: str = Depends(get_current_user)):
     # Get client name
