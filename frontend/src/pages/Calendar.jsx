@@ -760,12 +760,12 @@ export default function CalendarPage() {
                     style={{
                       ...style,
                       left: group.length > 1 
-                        ? `calc(64px + ${apptIndex * 10}px)` 
+                        ? `calc(64px + (${apptIndex} * (100% - 64px) / ${group.length}))` 
                         : '64px',
                       width: group.length > 1 
-                        ? `calc(100% - 72px - ${(group.length - 1) * 10}px)` 
+                        ? `calc((100% - 64px) / ${group.length})` 
                         : 'calc(100% - 72px)',
-                      minWidth: '120px',
+                      minWidth: '80px',
                       zIndex: 10 + apptIndex,
                     }}
                     data-testid={`appointment-${appt.id}`}
