@@ -410,6 +410,22 @@ export default function CalendarPage() {
     setDraggedAppointment(appointment);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', appointment.id);
+    
+    // Create a custom drag image to maintain size
+    const dragImage = e.currentTarget.cloneNode(true);
+    dragImage.style.position = 'absolute';
+    dragImage.style.top = '-1000px';
+    dragImage.style.width = e.currentTarget.offsetWidth + 'px';
+    dragImage.style.height = e.currentTarget.offsetHeight + 'px';
+    dragImage.style.opacity = '0.8';
+    document.body.appendChild(dragImage);
+    
+    e.dataTransfer.setDragImage(dragImage, e.currentTarget.offsetWidth / 2, e.currentTarget.offsetHeight / 2);
+    
+    // Clean up the drag image after a short delay
+    setTimeout(() => {
+      document.body.removeChild(dragImage);
+    }, 0);
   };
 
   const handleDragOver = (e, hour, minute) => {
