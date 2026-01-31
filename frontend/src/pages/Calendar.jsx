@@ -274,9 +274,9 @@ export default function CalendarPage() {
           const hours = now.getHours();
           const minutes = now.getMinutes();
           const pixelsPerHour = SLOT_HEIGHT * 4; // 80px
-          // Scroll to show current time with some padding, but not before 00:00
-          // Show 1.5 hours before current time (or from 00:00 if that would go negative)
-          const scrollPos = Math.max(0, ((hours - 1.5) * pixelsPerHour + (minutes / 60) * pixelsPerHour) * zoomLevel);
+          // Scroll to show current time with 1 hour before context
+          // This ensures 00:00 is visible when scrolling to early morning hours
+          const scrollPos = Math.max(0, ((hours - 1) * pixelsPerHour + (minutes / 60) * pixelsPerHour) * zoomLevel);
           scrollRef.current.scrollTop = scrollPos;
           hasScrolledToTime.current = true;
         }
