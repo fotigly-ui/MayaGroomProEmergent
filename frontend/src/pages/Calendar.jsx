@@ -1263,6 +1263,18 @@ export default function CalendarPage() {
                 >
                   <Navigation size={16} className="mr-2" /> Waze
                 </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => {
+                    const address = clients.find(c => c.id === selectedAppointment.client_id)?.address || '';
+                    navigator.clipboard.writeText(address);
+                    toast.success('Address copied!');
+                    setShowAddressMenu(false);
+                  }}
+                >
+                  <Copy size={16} className="mr-2" /> Copy Address
+                </Button>
               </>
             )}
           </div>
