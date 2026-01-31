@@ -995,7 +995,7 @@ export default function CalendarPage() {
                   </div>
                 )}
                 
-                {/* Customer Contact Details - One under the other - Clickable */}
+                {/* Customer Contact Details - One under the other - Clickable but NOT underlined */}
                 {clients.find(c => c.id === selectedAppointment.client_id) && (
                   <div className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400 mb-3">
                     {clients.find(c => c.id === selectedAppointment.client_id)?.phone && (
@@ -1004,14 +1004,20 @@ export default function CalendarPage() {
                         className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer w-full text-left"
                       >
                         <Phone size={14} className="flex-shrink-0" />
-                        <span className="underline">{clients.find(c => c.id === selectedAppointment.client_id)?.phone}</span>
+                        <span>{clients.find(c => c.id === selectedAppointment.client_id)?.phone}</span>
                       </button>
                     )}
                     {clients.find(c => c.id === selectedAppointment.client_id)?.email && (
-                      <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const email = clients.find(c => c.id === selectedAppointment.client_id)?.email;
+                          window.location.href = `mailto:${email}`;
+                        }}
+                        className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer w-full text-left"
+                      >
                         <Mail size={14} className="flex-shrink-0" />
                         <span className="truncate">{clients.find(c => c.id === selectedAppointment.client_id)?.email}</span>
-                      </div>
+                      </button>
                     )}
                     {clients.find(c => c.id === selectedAppointment.client_id)?.address && (
                       <button
@@ -1019,7 +1025,7 @@ export default function CalendarPage() {
                         className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer w-full text-left"
                       >
                         <MapPin size={14} className="flex-shrink-0" />
-                        <span className="text-xs underline">{clients.find(c => c.id === selectedAppointment.client_id)?.address}</span>
+                        <span className="text-xs">{clients.find(c => c.id === selectedAppointment.client_id)?.address}</span>
                       </button>
                     )}
                   </div>
