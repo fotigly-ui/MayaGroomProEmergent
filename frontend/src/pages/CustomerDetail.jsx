@@ -681,7 +681,10 @@ export default function CustomerDetail() {
       <Dialog open={showAddressOptions} onOpenChange={setShowAddressOptions}>
         <DialogContent className="max-w-xs">
           <DialogHeader>
-            <DialogTitle>Address</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin size={18} className="text-primary" />
+              Navigate
+            </DialogTitle>
           </DialogHeader>
           <p className="text-sm text-maya-text-muted mb-3">{client?.address}</p>
           <div className="flex flex-col gap-2">
@@ -690,11 +693,33 @@ export default function CustomerDetail() {
               className="w-full justify-start"
               onClick={() => {
                 const encodedAddress = encodeURIComponent(client.address);
-                window.open(`https://maps.apple.com/?q=${encodedAddress}`, '_blank');
+                window.location.href = `maps://?q=${encodedAddress}`;
                 setShowAddressOptions(false);
               }}
             >
-              <Navigation size={16} className="mr-2" /> Open in Maps
+              <MapPin size={16} className="mr-2" /> Apple Maps
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                const encodedAddress = encodeURIComponent(client.address);
+                window.location.href = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+                setShowAddressOptions(false);
+              }}
+            >
+              <MapPin size={16} className="mr-2" /> Google Maps
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => {
+                const encodedAddress = encodeURIComponent(client.address);
+                window.location.href = `https://waze.com/ul?q=${encodedAddress}`;
+                setShowAddressOptions(false);
+              }}
+            >
+              <Navigation size={16} className="mr-2" /> Waze
             </Button>
             <Button 
               variant="outline" 
