@@ -207,7 +207,7 @@ export default function Customers() {
                     </span>
                   )}
                 </div>
-                <div className="flex flex-wrap gap-2.5 mt-0.5 text-xs text-maya-text-muted">
+                <div className="flex flex-col gap-0.5 mt-0.5 text-xs text-maya-text-muted">
                   {client.phone && (
                     <span className="flex items-center gap-1">
                       <Phone size={11} />
