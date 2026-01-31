@@ -42,6 +42,13 @@ const STATUS_COLORS = {
   no_show: { bg: 'bg-orange-100', border: 'border-orange-500', text: 'text-orange-900' }
 };
 
+// Google Calendar imported appointment color
+const GOOGLE_IMPORT_COLORS = { 
+  bg: 'bg-purple-100', 
+  border: 'border-purple-500', 
+  text: 'text-purple-900' 
+};
+
 export default function CalendarPage() {
   const { settings } = useAuth();
   const location = useLocation();
@@ -732,7 +739,9 @@ export default function CalendarPage() {
               group.map((appt, apptIndex) => {
                 const style = getAppointmentStyle(appt, group.length, apptIndex);
                 const client = clients.find(c => c.id === appt.client_id);
-                const colors = STATUS_COLORS[appt.status] || STATUS_COLORS.scheduled;
+                // Check if appointment was imported from Google Calendar
+                const isGoogleImport = appt.notes && appt.notes.includes('Imported from Google Calendar');
+                const colors = isGoogleImport ? GOOGLE_IMPORT_COLORS : (STATUS_COLORS[appt.status] || STATUS_COLORS.scheduled);
                 
                 return (
                   <div
