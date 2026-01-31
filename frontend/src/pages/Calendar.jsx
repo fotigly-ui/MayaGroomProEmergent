@@ -769,7 +769,7 @@ export default function CalendarPage() {
                     onDragEnd={handleDragEnd}
                     onClick={(e) => handleAppointmentClick(appt, e)}
                     className={cn(
-                      "absolute border-l-4 rounded-r-md px-2 py-1.5 cursor-grab active:cursor-grabbing hover:opacity-90 transition-colors shadow-md overflow-hidden",
+                      "absolute border-l-4 border-2 rounded-md px-2 py-1.5 cursor-grab active:cursor-grabbing hover:opacity-90 transition-colors shadow-md overflow-hidden",
                       colors.bg, colors.border, colors.text,
                       draggedAppointment?.id === appt.id && "opacity-50 ring-2 ring-primary",
                       draggedAppointment && draggedAppointment.id !== appt.id && "pointer-events-none"
