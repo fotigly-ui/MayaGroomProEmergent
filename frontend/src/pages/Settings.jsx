@@ -210,6 +210,23 @@ export default function Settings() {
     }
   };
 
+  const handleImportFromGoogle = async () => {
+    setSyncLoading(true);
+    try {
+      const token = localStorage.getItem('maya_token');
+      const response = await axios.post(`${API_URL}/calendar/import-from-google`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      toast.success(
+        `Imported ${response.data.imported} new, updated ${response.data.updated}, skipped ${response.data.skipped} events`
+      );
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Failed to import from Google Calendar');
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
  
 
   useEffect(() => {
@@ -834,7 +851,20 @@ export default function Settings() {
                         ) : (
                           <RefreshCw size={16} className="mr-2" />
                         )}
-                        Sync All Appointments
+                        Push to Google Calendar
+                      </Button>
+                      <Button
+                        onClick={handleImportFromGoogle}
+                        disabled={syncLoading}
+                        variant="outline"
+                        className="border-primary text-primary hover:bg-primary/10"
+                      >
+                        {syncLoading ? (
+                          <Loader2 className="animate-spin mr-2" size={16} />
+                        ) : (
+                          <RefreshCw size={16} className="mr-2" />
+                        )}
+                        Import from Google Calendar
                       </Button>
                       <Button
                         variant="outline"
@@ -852,12 +882,18 @@ export default function Settings() {
                     </div>
 
                     <div className="text-sm text-maya-text-muted">
-                      <p className="font-medium mb-2">What syncs:</p>
-                      <ul className="list-disc list-inside space-y-1">
+                      <p className="font-medium mb-2">Automatic Sync (App → Google Calendar):</p>
+                      <ul className="list-disc list-inside space-y-1 mb-4">
                         <li>New appointments are automatically added to Google Calendar</li>
                         <li>Updated appointments are reflected in Google Calendar</li>
                         <li>Deleted appointments are removed from Google Calendar</li>
                         <li>Event includes: Client name, phone, address, pet & services</li>
+                      </ul>
+                      <p className="font-medium mb-2">Manual Import (Google Calendar → App):</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Click "Import from Google Calendar" to pull events from your calendar</li>
+                        <li>New Google Calendar events will be imported as appointments</li>
+                        <li>Events created by this app are automatically recognized and skipped</li>
                       </ul>
                     </div>
                   </div>
