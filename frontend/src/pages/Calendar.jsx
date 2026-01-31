@@ -995,14 +995,17 @@ export default function CalendarPage() {
                   </div>
                 )}
                 
-                {/* Customer Contact Details - One under the other */}
+                {/* Customer Contact Details - One under the other - Clickable */}
                 {clients.find(c => c.id === selectedAppointment.client_id) && (
                   <div className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400 mb-3">
                     {clients.find(c => c.id === selectedAppointment.client_id)?.phone && (
-                      <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowPhoneMenu(true)}
+                        className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer w-full text-left"
+                      >
                         <Phone size={14} className="flex-shrink-0" />
-                        <span>{clients.find(c => c.id === selectedAppointment.client_id)?.phone}</span>
-                      </div>
+                        <span className="underline">{clients.find(c => c.id === selectedAppointment.client_id)?.phone}</span>
+                      </button>
                     )}
                     {clients.find(c => c.id === selectedAppointment.client_id)?.email && (
                       <div className="flex items-center gap-2">
@@ -1011,10 +1014,13 @@ export default function CalendarPage() {
                       </div>
                     )}
                     {clients.find(c => c.id === selectedAppointment.client_id)?.address && (
-                      <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setShowAddressMenu(true)}
+                        className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer w-full text-left"
+                      >
                         <MapPin size={14} className="flex-shrink-0" />
-                        <span className="text-xs">{clients.find(c => c.id === selectedAppointment.client_id)?.address}</span>
-                      </div>
+                        <span className="text-xs underline">{clients.find(c => c.id === selectedAppointment.client_id)?.address}</span>
+                      </button>
                     )}
                   </div>
                 )}
