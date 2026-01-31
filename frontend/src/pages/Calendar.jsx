@@ -995,6 +995,30 @@ export default function CalendarPage() {
                   </div>
                 )}
                 
+                {/* Customer Contact Details - One under the other */}
+                {clients.find(c => c.id === selectedAppointment.client_id) && (
+                  <div className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    {clients.find(c => c.id === selectedAppointment.client_id)?.phone && (
+                      <div className="flex items-center gap-2">
+                        <Phone size={14} className="flex-shrink-0" />
+                        <span>{clients.find(c => c.id === selectedAppointment.client_id)?.phone}</span>
+                      </div>
+                    )}
+                    {clients.find(c => c.id === selectedAppointment.client_id)?.email && (
+                      <div className="flex items-center gap-2">
+                        <Mail size={14} className="flex-shrink-0" />
+                        <span className="truncate">{clients.find(c => c.id === selectedAppointment.client_id)?.email}</span>
+                      </div>
+                    )}
+                    {clients.find(c => c.id === selectedAppointment.client_id)?.address && (
+                      <div className="flex items-center gap-2">
+                        <MapPin size={14} className="flex-shrink-0" />
+                        <span className="text-xs">{clients.find(c => c.id === selectedAppointment.client_id)?.address}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 {/* Contact Actions */}
                 {clients.find(c => c.id === selectedAppointment.client_id) && (
                   <div className="flex gap-2 mt-2">
