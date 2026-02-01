@@ -637,6 +637,22 @@ export default function CalendarPage() {
           </Popover>
           <div className="flex items-center gap-2">
             <Button
+              variant={viewMode === 'calendar' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('calendar')}
+              className="text-xs"
+            >
+              Calendar
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setViewMode('list')}
+              className="text-xs"
+            >
+              List
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={goToToday}
