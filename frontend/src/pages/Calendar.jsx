@@ -71,6 +71,9 @@ export default function CalendarPage() {
   const [zoomLevel, setZoomLevel] = useState(1);
   const [initialPinchDistance, setInitialPinchDistance] = useState(null);
   
+  // View mode state
+  const [viewMode, setViewMode] = useState('calendar'); // 'calendar' or 'list'
+  
   // Drag state
   const [draggedAppointment, setDraggedAppointment] = useState(null);
   const [dragPreview, setDragPreview] = useState(null);
