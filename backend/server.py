@@ -457,10 +457,12 @@ def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 def verify_password(password: str, hashed: str) -> bool:
-    # Handle both string and bytes type for hashed password
-    if isinstance(hashed, bytes):
-        return bcrypt.checkpw(password.encode(), hashed)
-    return bcrypt.checkpw(password.encode(), hashed.encode())
+    try:
+        # MongoDB stores hashes as strings, bcrypt expects bytes
+        # Simply encode both the password and the stored hash
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except Exception:
+        return False
 
 def create_access_token(user_id: str) -> str:
     expire = datetime.now(timezone.utc) + timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS)
