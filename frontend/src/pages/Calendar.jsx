@@ -830,6 +830,102 @@ export default function CalendarPage() {
             ))}
           </div>
         </div>
+        ) : (
+        // LIST VIEW
+        <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900" style={{paddingTop: '120px'}}>
+          <div className="max-w-4xl mx-auto p-4">
+            <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+              {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+            </h2>
+            {filteredAppointments.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                No appointments scheduled for this day
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredAppointments
+                  .sort((a, b) => new Date(a.date_time) - new Date(b.date_time))
+                  .map((appt) => {
+                    const client = clients.find(c => c.id === appt.client_id);
+                    const isGoogleImport = appt.notes && appt.notes.includes('Imported from Google Calendar');
+                    const colors = isGoogleImport ? GOOGLE_IMPORT_COLORS : (STATUS_COLORS[appt.status] || STATUS_COLORS.scheduled);
+                    
+                    return (
+                      <div
+                        key={appt.id}
+                        onClick={() => {
+                          setSelectedAppointment(appt);
+                          setShowDetailsModal(true);
+                        }}
+                        className={cn(
+                          "border-l-4 border-2 rounded-md p-4 cursor-pointer hover:shadow-lg transition-shadow",
+                          colors.bg, colors.border, colors.text
+                        )}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="text-sm font-semibold">
+                              {format(new Date(appt.date_time), 'h:mm a')} - {format(new Date(appt.end_time), 'h:mm a')}
+                            </div>
+                            <div className="text-xs px-2 py-0.5 rounded-full bg-gray-200 dark:bg-gray-700">
+                              {appt.total_duration} min
+                            </div>
+                          </div>
+                          <div className={cn(
+                            "text-xs px-2 py-1 rounded-full capitalize",
+                            appt.status === 'confirmed' && "bg-green-100 text-green-700",
+                            appt.status === 'scheduled' && "bg-blue-100 text-blue-700",
+                            appt.status === 'completed' && "bg-gray-100 text-gray-700",
+                            appt.status === 'cancelled' && "bg-red-100 text-red-700"
+                          )}>
+                            {appt.status}
+                          </div>
+                        </div>
+                        <div className="font-semibold text-base mb-1">
+                          {appt.client_name}
+                        </div>
+                        {appt.pets?.length > 0 && (
+                          <div className="text-sm mb-2 flex flex-wrap gap-1">
+                            {appt.pets.map((pet, idx) => (
+                              <span key={idx} className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
+                                {pet.pet_name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {client && (
+                          <div className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                            {client.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone size={12} />
+                                <span>{client.phone}</span>
+                              </div>
+                            )}
+                            {client.address && (
+                              <div className="flex items-center gap-2">
+                                <MapPin size={12} />
+                                <span className="text-xs">{client.address}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {appt.pets?.some(p => p.services?.length > 0) && (
+                          <div className="text-xs mt-2 text-gray-600 dark:text-gray-400">
+                            Services: {appt.pets.flatMap(p => 
+                              (p.services || []).map(s => 
+                                typeof s === 'string' ? services.find(srv => srv.id === s)?.name : s.service_name
+                              )
+                            ).filter(Boolean).join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+          </div>
+        </div>
+        )}
       </div>
 
       {/* Modals */}
