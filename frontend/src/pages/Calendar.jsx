@@ -708,6 +708,7 @@ export default function CalendarPage() {
         </div>
 
         {/* SCROLLABLE Calendar Grid - ADD TOP PADDING FOR FIXED HEADERS */}
+        {viewMode === 'calendar' ? (
         <div 
           className="flex-1 overflow-y-auto relative touch-pan-y bg-white dark:bg-gray-900"
           style={{paddingTop: '120px'}}
