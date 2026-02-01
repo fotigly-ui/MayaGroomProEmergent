@@ -533,6 +533,11 @@ export default function CalendarPage() {
     !['cancelled', 'no_show'].includes(appt.status) // Hide cancelled appointments from calendar
   );
 
+  // Get filtered appointments for list view (includes cancelled/no_show)
+  const filteredAppointments = appointments.filter(appt => 
+    isSameDay(new Date(appt.date_time), selectedDate)
+  );
+
   // Group overlapping appointments
   const getOverlappingGroups = () => {
     const sorted = [...selectedDayAppointments].sort((a, b) => 
