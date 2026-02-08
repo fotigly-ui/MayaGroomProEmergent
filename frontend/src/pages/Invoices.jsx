@@ -607,7 +607,15 @@ export default function Invoices() {
                     size="sm" 
                     onClick={() => setShowSendInvoiceDialog(true)}
                     className="text-xs flex-1 sm:flex-none border-primary text-primary hover:bg-primary/10"
-
+                  >
+                    <Send size={14} className="mr-1" /> Send Invoice
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Send Invoice Dialog - SMS or Email with text summary */}
       <Dialog open={showSendInvoiceDialog} onOpenChange={setShowSendInvoiceDialog}>
