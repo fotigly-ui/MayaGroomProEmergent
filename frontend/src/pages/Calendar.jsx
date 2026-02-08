@@ -645,7 +645,7 @@ export default function CalendarPage() {
             <select 
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value)}
-              className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="text-sm font-medium border border-gray-300 dark:border-gray-600 rounded px-2.5 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
               <option value="calendar">Calendar</option>
               <option value="list">List</option>
@@ -655,17 +655,17 @@ export default function CalendarPage() {
               variant="outline"
               size="sm"
               onClick={goToToday}
-              className="text-xs px-2 py-1 h-7"
+              className="text-sm font-medium px-3 py-1.5 h-8"
               data-testid="today-btn"
             >
               Today
             </Button>
             <button
               onClick={() => { setSelectedSlot(new Date()); setSelectedAppointment(null); setShowModal(true); }}
-              className="w-7 h-7 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary-hover"
+              className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary-hover"
               data-testid="new-appointment-btn"
             >
-              <Plus size={16} />
+              <Plus size={18} />
             </button>
           </div>
         </div>
