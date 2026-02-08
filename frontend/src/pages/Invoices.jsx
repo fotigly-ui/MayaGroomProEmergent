@@ -653,7 +653,15 @@ ${selectedInvoice.invoice.discount_amount > 0 ? `Discount: -$${selectedInvoice.i
 ${selectedInvoice.invoice.notes ? `Notes: ${selectedInvoice.invoice.notes}\n\n` : ''}Thank you for your business!`;
 
                   const phone = client.phone.replace(/\D/g, '');
-                  window.location.href = `sms:${phone}?&body=${encodeURIComponent(message)}`;
+                  const smsLink = `sms:${phone}&body=${encodeURIComponent(message)}`;
+                  
+                  // Create a temporary link and click it
+                  const link = document.createElement('a');
+                  link.href = smsLink;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  
                   setShowSendInvoiceDialog(false);
                   toast.success('Opening SMS app...');
                 } catch (error) {
@@ -703,7 +711,15 @@ ${settings?.business_name || 'Business'}
 ${settings?.business_phone ? `Phone: ${settings.business_phone}` : ''}
 ${settings?.business_email ? `Email: ${settings.business_email}` : ''}`;
 
-                  window.location.href = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  const mailtoLink = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  
+                  // Create a temporary link and click it
+                  const link = document.createElement('a');
+                  link.href = mailtoLink;
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
+                  
                   setShowSendInvoiceDialog(false);
                   toast.success('Opening email app...');
                 } catch (error) {
