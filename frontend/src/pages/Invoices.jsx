@@ -723,16 +723,6 @@ ${settings?.business_email ? `Email: ${settings.business_email}` : ''}`;
           </div>
         </DialogContent>
       </Dialog>
-
-                  >
-                    <Send size={14} className="mr-1" /> Send Invoice
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
     </Layout>
   );
 }
