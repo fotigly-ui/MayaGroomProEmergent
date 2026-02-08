@@ -785,7 +785,7 @@ ${settings?.business_phone || ''}`;
         </DialogContent>
       </Dialog>
 
-      {/* Send Invoice Dialog - SMS or Email with text summary */}
+      {/* Send Invoice Dialog - Share PDF or Email */}
       <Dialog open={showSendInvoiceDialog} onOpenChange={setShowSendInvoiceDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -795,94 +795,31 @@ ${settings?.business_phone || ''}`;
             How would you like to send this invoice?
           </p>
           <div className="flex flex-col gap-3">
+            {/* Share PDF - Primary option for iOS */}
             <Button
-              onClick={() => {
-                try {
-                  if (!selectedInvoice) return;
-                  const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
-                  if (!client?.phone) {
-                    toast.error('Client phone number not available');
-                    return;
-                  }
-                  
-                  // SHORT message for iOS SMS length limit (~100-150 chars)
-                  const message = `Invoice #${selectedInvoice.invoice.invoice_number} - Total: $${selectedInvoice.invoice.total.toFixed(2)} - ${settings?.business_name || 'Business'}. Thank you!`;
-
-                  const phone = client.phone.replace(/\D/g, '');
-                  
-                  // Simple direct approach - works on iOS
-                  window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
-                  
-                  setTimeout(() => {
-                    setShowSendInvoiceDialog(false);
-                    toast.success('Opening SMS app...');
-                  }, 100);
-                } catch (error) {
-                  console.error('SMS error:', error);
-                  toast.error('Failed to open SMS');
-                }
-              }}
-              className="w-full justify-start h-auto py-4"
+              onClick={shareInvoicePDF}
+              className="w-full justify-start h-auto py-4 border-primary"
               variant="outline"
+              data-testid="share-pdf-btn"
             >
-              <Send size={20} className="mr-3" />
+              <Share2 size={20} className="mr-3 text-primary" />
               <div className="text-left">
-                <div className="font-medium">Send via SMS</div>
-                <div className="text-xs text-gray-500">Send invoice details as text message</div>
+                <div className="font-medium">Share PDF</div>
+                <div className="text-xs text-gray-500">Share invoice as PDF via SMS, WhatsApp, etc.</div>
               </div>
             </Button>
             
+            {/* Email option */}
             <Button
-              onClick={() => {
-                try {
-                  if (!selectedInvoice) return;
-                  const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
-                  if (!client?.email) {
-                    toast.error('Client email not available');
-                    return;
-                  }
-                  
-                  const subject = `Invoice #${selectedInvoice.invoice.invoice_number} from ${settings?.business_name || 'Business'}`;
-                  const body = `Dear ${client.name},
-
-Please find your invoice details below:
-
-Invoice #${selectedInvoice.invoice.invoice_number}
-Date: ${format(new Date(selectedInvoice.invoice.created_at), 'MMM d, yyyy')}
-Due Date: ${format(new Date(selectedInvoice.invoice.due_date), 'MMM d, yyyy')}
-
-Items:
-${selectedInvoice.items.map(item => `${item.name} x${item.quantity}: $${item.price.toFixed(2)}`).join('\n')}
-
-Subtotal: $${selectedInvoice.invoice.subtotal.toFixed(2)}
-${selectedInvoice.invoice.discount_amount > 0 ? `Discount: -$${selectedInvoice.invoice.discount_amount.toFixed(2)}\n` : ''}Total Amount: $${selectedInvoice.invoice.total.toFixed(2)}
-
-${selectedInvoice.invoice.notes ? `Notes: ${selectedInvoice.invoice.notes}\n\n` : ''}Thank you for your business!
-
-Best regards,
-${settings?.business_name || 'Business'}
-${settings?.business_phone ? `Phone: ${settings.business_phone}` : ''}
-${settings?.business_email ? `Email: ${settings.business_email}` : ''}`;
-
-                  // Direct approach - works on iOS
-                  window.location.href = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                  
-                  setTimeout(() => {
-                    setShowSendInvoiceDialog(false);
-                    toast.success('Opening email app...');
-                  }, 100);
-                } catch (error) {
-                  console.error('Email error:', error);
-                  toast.error('Failed to open email');
-                }
-              }}
+              onClick={sendInvoiceEmail}
               className="w-full justify-start h-auto py-4"
               variant="outline"
+              data-testid="send-email-btn"
             >
-              <FileText size={20} className="mr-3" />
+              <Mail size={20} className="mr-3" />
               <div className="text-left">
                 <div className="font-medium">Send via Email</div>
-                <div className="text-xs text-gray-500">Send invoice details via email</div>
+                <div className="text-xs text-gray-500">Open email app with invoice details</div>
               </div>
             </Button>
           </div>
