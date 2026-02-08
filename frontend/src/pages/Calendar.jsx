@@ -693,10 +693,10 @@ export default function CalendarPage() {
               )}
             >
               <div className={cn(
-                "text-xs font-medium uppercase",
+                "text-xs font-medium",
                 isSameDay(date, selectedDate) ? "text-primary" : "text-gray-500 dark:text-gray-400"
               )}>
-                {format(date, 'EEE').charAt(0)}
+                {format(date, 'EEE')}
               </div>
               <div className={cn(
                 "text-sm font-semibold mt-1 w-8 h-8 mx-auto flex items-center justify-center rounded-full",
