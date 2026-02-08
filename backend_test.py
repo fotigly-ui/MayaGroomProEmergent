@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import uuid
 
 class MayaGroomProAPITester:
-    def __init__(self, base_url="https://petapptracker.preview.emergentagent.com"):
+    def __init__(self, base_url="https://groome.preview.emergentagent.com"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
