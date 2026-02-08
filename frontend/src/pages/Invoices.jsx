@@ -601,6 +601,14 @@ export default function Invoices() {
                       Mark Paid
                     </Button>
                   )}
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowSendInvoiceDialog(true)}
+                    className="text-xs flex-1 sm:flex-none border-primary text-primary hover:bg-primary/10"
+                  >
+                    <Send size={14} className="mr-1" /> Send Invoice
+                  </Button>
                 </div>
               </div>
             </>
