@@ -708,6 +708,10 @@ export default function Invoices() {
                     <p className="font-semibold text-xs sm:text-sm">{selectedInvoice.invoice.client_name}</p>
                     {selectedInvoice.invoice.client_address && <p className="text-[10px] sm:text-xs">{selectedInvoice.invoice.client_address}</p>}
                     {selectedInvoice.invoice.client_phone && <p className="text-[10px] sm:text-xs">{selectedInvoice.invoice.client_phone}</p>}
+                    {(() => {
+                      const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
+                      return client?.email && <p className="text-[10px] sm:text-xs">{client.email}</p>;
+                    })()}
                   </div>
                   <div className="text-left sm:text-right">
                     <p className="font-bold text-xs sm:text-sm">{selectedInvoice.invoice.invoice_number}</p>
