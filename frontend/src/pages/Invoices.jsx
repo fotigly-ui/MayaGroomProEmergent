@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { FileText, Plus, Eye, Send, DollarSign, Clock, CheckCircle, XCircle, Printer, Edit2, Trash2 } from 'lucide-react';
+import { FileText, Plus, Eye, Send, DollarSign, Clock, CheckCircle, XCircle, Printer, Edit2, Trash2, Mail, Share2 } from 'lucide-react';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 import { Layout, PageHeader } from '../components/Layout';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
