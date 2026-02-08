@@ -637,25 +637,13 @@ export default function Invoices() {
                     return;
                   }
                   
-                  const message = `Invoice #${selectedInvoice.invoice.invoice_number}
-From: ${settings?.business_name || 'Business'}
-To: ${client.name}
-
-Date: ${format(new Date(selectedInvoice.invoice.created_at), 'MMM d, yyyy')}
-Due: ${format(new Date(selectedInvoice.invoice.due_date), 'MMM d, yyyy')}
-
-Items:
-${selectedInvoice.items.map(item => `${item.name} x${item.quantity}: $${item.price.toFixed(2)}`).join('\n')}
-
-Subtotal: $${selectedInvoice.invoice.subtotal.toFixed(2)}
-${selectedInvoice.invoice.discount_amount > 0 ? `Discount: -$${selectedInvoice.invoice.discount_amount.toFixed(2)}\n` : ''}Total: $${selectedInvoice.invoice.total.toFixed(2)}
-
-${selectedInvoice.invoice.notes ? `Notes: ${selectedInvoice.invoice.notes}\n\n` : ''}Thank you for your business!`;
+                  // SHORT message for iOS SMS length limit (~100-150 chars)
+                  const message = `Invoice #${selectedInvoice.invoice.invoice_number} - Total: $${selectedInvoice.invoice.total.toFixed(2)} - ${settings?.business_name || 'Business'}. Thank you!`;
 
                   const phone = client.phone.replace(/\D/g, '');
                   
-                  // Direct approach - works on iOS
-                  window.location.href = `sms:${phone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${encodeURIComponent(message)}`;
+                  // Simple direct approach - works on iOS
+                  window.location.href = `sms:${phone}?body=${encodeURIComponent(message)}`;
                   
                   setTimeout(() => {
                     setShowSendInvoiceDialog(false);
