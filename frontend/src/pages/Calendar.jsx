@@ -252,16 +252,16 @@ export default function CalendarPage() {
     return () => clearInterval(timer);
   }, []);
 
-  // Current time indicator position - accounts for 120px padding and zoom level
+  // Current time indicator position - accounts for 100px padding and zoom level
   // Time grid: SLOT_HEIGHT (20px) × 4 slots per hour = 80px per hour
   const getCurrentTimePosition = () => {
     const now = new Date();
     const hours = now.getHours();
     const minutes = now.getMinutes();
     // Each hour = 4 slots × SLOT_HEIGHT = 80px at zoom 1
-    // Position = (hours × 80 + minutes/60 × 80) × zoomLevel + 120px padding
+    // Position = (hours × 80 + minutes/60 × 80) × zoomLevel + 100px padding
     const pixelsPerHour = SLOT_HEIGHT * 4; // 80px
-    return (hours * pixelsPerHour + (minutes / 60) * pixelsPerHour) * zoomLevel + 120;
+    return (hours * pixelsPerHour + (minutes / 60) * pixelsPerHour) * zoomLevel + 100;
   };
   const currentTimePos = getCurrentTimePosition();
   const isSelectedDateToday = isSameDay(selectedDate, new Date());
