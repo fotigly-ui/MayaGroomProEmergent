@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popove
 import { toast } from 'sonner';
 import axios from 'axios';
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL + '/api';
 
