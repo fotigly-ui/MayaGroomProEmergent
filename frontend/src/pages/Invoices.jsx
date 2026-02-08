@@ -29,6 +29,7 @@ export default function Invoices() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showSendInvoiceDialog, setShowSendInvoiceDialog] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [editingInvoice, setEditingInvoice] = useState(null);
   const [statusFilter, setStatusFilter] = useState('');
@@ -606,6 +607,115 @@ export default function Invoices() {
                     size="sm" 
                     onClick={() => setShowSendInvoiceDialog(true)}
                     className="text-xs flex-1 sm:flex-none border-primary text-primary hover:bg-primary/10"
+
+
+      {/* Send Invoice Dialog - SMS or Email with text summary */}
+      <Dialog open={showSendInvoiceDialog} onOpenChange={setShowSendInvoiceDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Send Invoice</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            How would you like to send this invoice?
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => {
+                try {
+                  if (!selectedInvoice) return;
+                  const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
+                  if (!client?.phone) {
+                    toast.error('Client phone number not available');
+                    return;
+                  }
+                  
+                  const message = `Invoice #${selectedInvoice.invoice.invoice_number}
+From: ${settings?.business_name || 'Business'}
+To: ${client.name}
+
+Date: ${format(new Date(selectedInvoice.invoice.created_at), 'MMM d, yyyy')}
+Due: ${format(new Date(selectedInvoice.invoice.due_date), 'MMM d, yyyy')}
+
+Items:
+${selectedInvoice.items.map(item => `${item.name} x${item.quantity}: $${item.price.toFixed(2)}`).join('\n')}
+
+Subtotal: $${selectedInvoice.invoice.subtotal.toFixed(2)}
+${selectedInvoice.invoice.discount_amount > 0 ? `Discount: -$${selectedInvoice.invoice.discount_amount.toFixed(2)}\n` : ''}Total: $${selectedInvoice.invoice.total.toFixed(2)}
+
+${selectedInvoice.invoice.notes ? `Notes: ${selectedInvoice.invoice.notes}\n\n` : ''}Thank you for your business!`;
+
+                  const phone = client.phone.replace(/\D/g, '');
+                  window.location.href = `sms:${phone}?&body=${encodeURIComponent(message)}`;
+                  setShowSendInvoiceDialog(false);
+                  toast.success('Opening SMS app...');
+                } catch (error) {
+                  console.error('SMS error:', error);
+                  toast.error('Failed to open SMS');
+                }
+              }}
+              className="w-full justify-start h-auto py-4"
+              variant="outline"
+            >
+              <Send size={20} className="mr-3" />
+              <div className="text-left">
+                <div className="font-medium">Send via SMS</div>
+                <div className="text-xs text-gray-500">Send invoice details as text message</div>
+              </div>
+            </Button>
+            
+            <Button
+              onClick={() => {
+                try {
+                  if (!selectedInvoice) return;
+                  const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
+                  if (!client?.email) {
+                    toast.error('Client email not available');
+                    return;
+                  }
+                  
+                  const subject = `Invoice #${selectedInvoice.invoice.invoice_number} from ${settings?.business_name || 'Business'}`;
+                  const body = `Dear ${client.name},
+
+Please find your invoice details below:
+
+Invoice #${selectedInvoice.invoice.invoice_number}
+Date: ${format(new Date(selectedInvoice.invoice.created_at), 'MMM d, yyyy')}
+Due Date: ${format(new Date(selectedInvoice.invoice.due_date), 'MMM d, yyyy')}
+
+Items:
+${selectedInvoice.items.map(item => `${item.name} x${item.quantity}: $${item.price.toFixed(2)}`).join('\n')}
+
+Subtotal: $${selectedInvoice.invoice.subtotal.toFixed(2)}
+${selectedInvoice.invoice.discount_amount > 0 ? `Discount: -$${selectedInvoice.invoice.discount_amount.toFixed(2)}\n` : ''}Total Amount: $${selectedInvoice.invoice.total.toFixed(2)}
+
+${selectedInvoice.invoice.notes ? `Notes: ${selectedInvoice.invoice.notes}\n\n` : ''}Thank you for your business!
+
+Best regards,
+${settings?.business_name || 'Business'}
+${settings?.business_phone ? `Phone: ${settings.business_phone}` : ''}
+${settings?.business_email ? `Email: ${settings.business_email}` : ''}`;
+
+                  window.location.href = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  setShowSendInvoiceDialog(false);
+                  toast.success('Opening email app...');
+                } catch (error) {
+                  console.error('Email error:', error);
+                  toast.error('Failed to open email');
+                }
+              }}
+              className="w-full justify-start h-auto py-4"
+              variant="outline"
+            >
+              <FileText size={20} className="mr-3" />
+              <div className="text-left">
+                <div className="font-medium">Send via Email</div>
+                <div className="text-xs text-gray-500">Send invoice details via email</div>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
                   >
                     <Send size={14} className="mr-1" /> Send Invoice
                   </Button>
