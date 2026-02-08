@@ -1754,15 +1754,34 @@ export default function CalendarPage() {
           <DialogHeader>
             <DialogTitle>Send Invoice</DialogTitle>
           </DialogHeader>
+          
+          {/* Show customer contact info */}
+          {selectedAppointment && (() => {
+            const client = clients.find(c => c.id === selectedAppointment.client_id);
+            return (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-4">
+                <p className="font-medium text-sm">{client?.name || selectedAppointment.client_name}</p>
+                {client?.phone && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Phone: {client.phone}</p>
+                )}
+                {client?.email && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Email: {client.email}</p>
+                )}
+              </div>
+            );
+          })()}
+          
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            How would you like to send the invoice to {selectedAppointment?.client_name}?
+            Choose how to send the PDF invoice:
           </p>
           <div className="flex flex-col gap-3">
             {/* SMS Invoice - Share PDF via Messages */}
             <Button
               onClick={async () => {
                 try {
-                  // Generate PDF
+                  const client = clients.find(c => c.id === selectedAppointment?.client_id);
+                  
+                  // Generate PDF with customer details
                   const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
                   const discountAmount = checkoutDiscount.type === 'percent' 
                     ? subtotal * (checkoutDiscount.value || 0) / 100 
@@ -1775,14 +1794,32 @@ export default function CalendarPage() {
                   doc.setFontSize(20);
                   doc.text(settings?.business_name || 'Maya Pet Grooming', 20, 25);
                   
-                  // Invoice details
+                  // Bill To - include customer details
                   doc.setFontSize(12);
-                  doc.text(`Invoice for ${selectedAppointment?.client_name}`, 20, 40);
+                  doc.text('Bill To:', 20, 40);
                   doc.setFontSize(10);
-                  doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 20, 48);
-                  doc.text(`Time: ${format(new Date(selectedAppointment?.date_time), 'h:mm a')}`, 20, 54);
+                  let billToY = 47;
+                  doc.text(client?.name || selectedAppointment?.client_name || 'Customer', 20, billToY);
+                  billToY += 6;
+                  if (client?.address) {
+                    doc.text(client.address, 20, billToY);
+                    billToY += 6;
+                  }
+                  if (client?.phone) {
+                    doc.text(`Phone: ${client.phone}`, 20, billToY);
+                    billToY += 6;
+                  }
+                  if (client?.email) {
+                    doc.text(`Email: ${client.email}`, 20, billToY);
+                    billToY += 6;
+                  }
                   
-                  // Items table using correct autoTable syntax
+                  // Invoice details on right side
+                  doc.setFontSize(10);
+                  doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 140, 40);
+                  doc.text(`Time: ${format(new Date(selectedAppointment?.date_time), 'h:mm a')}`, 140, 46);
+                  
+                  // Items table
                   const tableData = checkoutItems.map(item => [
                     item.name,
                     item.quantity,
@@ -1791,7 +1828,7 @@ export default function CalendarPage() {
                   ]);
                   
                   autoTable(doc, {
-                    startY: 65,
+                    startY: Math.max(billToY + 10, 70),
                     head: [['Description', 'Qty', 'Price', 'Total']],
                     body: tableData,
                     theme: 'striped',
@@ -1828,7 +1865,6 @@ export default function CalendarPage() {
                     toast.success('Invoice shared!');
                     setShowSendInvoiceDialog(false);
                   } else {
-                    // Fallback: download the PDF
                     doc.save(fileName);
                     toast.success('PDF downloaded - you can share it manually');
                     setShowSendInvoiceDialog(false);
@@ -1854,7 +1890,9 @@ export default function CalendarPage() {
             <Button
               onClick={async () => {
                 try {
-                  // Generate PDF
+                  const client = clients.find(c => c.id === selectedAppointment?.client_id);
+                  
+                  // Generate PDF with customer details
                   const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
                   const discountAmount = checkoutDiscount.type === 'percent' 
                     ? subtotal * (checkoutDiscount.value || 0) / 100 
@@ -1867,14 +1905,32 @@ export default function CalendarPage() {
                   doc.setFontSize(20);
                   doc.text(settings?.business_name || 'Maya Pet Grooming', 20, 25);
                   
-                  // Invoice details
+                  // Bill To - include customer details
                   doc.setFontSize(12);
-                  doc.text(`Invoice for ${selectedAppointment?.client_name}`, 20, 40);
+                  doc.text('Bill To:', 20, 40);
                   doc.setFontSize(10);
-                  doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 20, 48);
-                  doc.text(`Time: ${format(new Date(selectedAppointment?.date_time), 'h:mm a')}`, 20, 54);
+                  let billToY = 47;
+                  doc.text(client?.name || selectedAppointment?.client_name || 'Customer', 20, billToY);
+                  billToY += 6;
+                  if (client?.address) {
+                    doc.text(client.address, 20, billToY);
+                    billToY += 6;
+                  }
+                  if (client?.phone) {
+                    doc.text(`Phone: ${client.phone}`, 20, billToY);
+                    billToY += 6;
+                  }
+                  if (client?.email) {
+                    doc.text(`Email: ${client.email}`, 20, billToY);
+                    billToY += 6;
+                  }
                   
-                  // Items table using correct autoTable syntax
+                  // Invoice details on right side
+                  doc.setFontSize(10);
+                  doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 140, 40);
+                  doc.text(`Time: ${format(new Date(selectedAppointment?.date_time), 'h:mm a')}`, 140, 46);
+                  
+                  // Items table
                   const tableData = checkoutItems.map(item => [
                     item.name,
                     item.quantity,
@@ -1883,7 +1939,7 @@ export default function CalendarPage() {
                   ]);
                   
                   autoTable(doc, {
-                    startY: 65,
+                    startY: Math.max(billToY + 10, 70),
                     head: [['Description', 'Qty', 'Price', 'Total']],
                     body: tableData,
                     theme: 'striped',
@@ -1920,7 +1976,6 @@ export default function CalendarPage() {
                     toast.success('Invoice shared!');
                     setShowSendInvoiceDialog(false);
                   } else {
-                    // Fallback: download the PDF
                     doc.save(fileName);
                     toast.success('PDF downloaded - you can share it manually');
                     setShowSendInvoiceDialog(false);
