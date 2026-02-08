@@ -1699,6 +1699,16 @@ export default function CalendarPage() {
             <Button variant="outline" onClick={() => setShowCheckoutModal(false)} className="flex-1 text-sm">
               Cancel
             </Button>
+            {selectedAppointment?.status === 'completed' && (
+              <Button 
+                variant="outline"
+                onClick={() => setShowSendInvoiceDialog(true)}
+                className="flex-1 text-sm border-primary text-primary hover:bg-primary/10"
+              >
+                <Send size={14} className="mr-1" />
+                Send Invoice
+              </Button>
+            )}
             <Button 
               className="btn-maya-primary flex-1 text-sm"
               disabled={checkoutItems.length === 0 || selectedAppointment?.status === 'completed'}
