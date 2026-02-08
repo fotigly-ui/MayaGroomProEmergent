@@ -1756,6 +1756,128 @@ export default function CalendarPage() {
               <DollarSign size={14} className="mr-1" /> 
               {selectedAppointment?.status === 'completed' ? 'Completed' : 'Complete & Invoice'}
             </Button>
+
+
+      {/* Send Invoice Dialog */}
+      <Dialog open={showSendInvoiceDialog} onOpenChange={setShowSendInvoiceDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Send Invoice</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            How would you like to send the invoice to {selectedAppointment?.client_name}?
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={async () => {
+                try {
+                  const client = clients.find(c => c.id === selectedAppointment?.client_id);
+                  if (!client?.phone) {
+                    toast.error('Client phone number not available');
+                    return;
+                  }
+                  
+                  // Generate invoice summary
+                  const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
+                  const discountAmount = checkoutDiscount.type === 'percent' 
+                    ? subtotal * (checkoutDiscount.value || 0) / 100 
+                    : (checkoutDiscount.value || 0);
+                  const total = subtotal - discountAmount;
+                  
+                  const message = `Invoice from ${settings?.business_name || 'Maya Pet Grooming'}
+
+Date: ${format(new Date(selectedAppointment.date_time), 'MMM d, yyyy')}
+
+Items:
+${checkoutItems.map(item => `${item.name} x${item.quantity}: $${item.total.toFixed(2)}`).join('\n')}
+
+Subtotal: $${subtotal.toFixed(2)}
+${discountAmount > 0 ? `Discount: -$${discountAmount.toFixed(2)}\n` : ''}Total: $${total.toFixed(2)}
+
+Thank you for your business!`;
+                  
+                  // Open SMS with message
+                  const phone = client.phone.replace(/\D/g, '');
+                  const encodedMessage = encodeURIComponent(message);
+                  window.location.href = `sms:${phone}?&body=${encodedMessage}`;
+                  
+                  setShowSendInvoiceDialog(false);
+                  toast.success('Opening SMS app...');
+                } catch (error) {
+                  console.error('Send SMS error:', error);
+                  toast.error('Failed to send SMS');
+                }
+              }}
+              className="w-full justify-start h-auto py-4"
+              variant="outline"
+            >
+              <MessageSquare size={20} className="mr-3" />
+              <div className="text-left">
+                <div className="font-medium">Send via SMS</div>
+                <div className="text-xs text-gray-500">Send invoice details via text message</div>
+              </div>
+            </Button>
+            
+            <Button
+              onClick={async () => {
+                try {
+                  const client = clients.find(c => c.id === selectedAppointment?.client_id);
+                  if (!client?.email) {
+                    toast.error('Client email not available');
+                    return;
+                  }
+                  
+                  // Generate invoice summary
+                  const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
+                  const discountAmount = checkoutDiscount.type === 'percent' 
+                    ? subtotal * (checkoutDiscount.value || 0) / 100 
+                    : (checkoutDiscount.value || 0);
+                  const total = subtotal - discountAmount;
+                  
+                  const subject = `Invoice from ${settings?.business_name || 'Maya Pet Grooming'}`;
+                  const body = `Dear ${selectedAppointment.client_name},
+
+Thank you for choosing ${settings?.business_name || 'Maya Pet Grooming'}!
+
+Invoice Details:
+Date: ${format(new Date(selectedAppointment.date_time), 'MMM d, yyyy')}
+Time: ${format(new Date(selectedAppointment.date_time), 'h:mm a')}
+
+Items:
+${checkoutItems.map(item => `${item.name} x${item.quantity}: $${item.total.toFixed(2)}`).join('\n')}
+
+Subtotal: $${subtotal.toFixed(2)}
+${discountAmount > 0 ? `Discount: -$${discountAmount.toFixed(2)}\n` : ''}Total: $${total.toFixed(2)}
+
+${checkoutNotes ? `Notes: ${checkoutNotes}\n\n` : ''}Thank you for your business!
+
+Best regards,
+${settings?.business_name || 'Maya Pet Grooming'}
+${settings?.business_phone ? `Phone: ${settings.business_phone}` : ''}`;
+                  
+                  // Open email client
+                  window.location.href = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  
+                  setShowSendInvoiceDialog(false);
+                  toast.success('Opening email app...');
+                } catch (error) {
+                  console.error('Send email error:', error);
+                  toast.error('Failed to send email');
+                }
+              }}
+              className="w-full justify-start h-auto py-4"
+              variant="outline"
+            >
+              <Mail size={20} className="mr-3" />
+              <div className="text-left">
+                <div className="font-medium">Send via Email</div>
+                <div className="text-xs text-gray-500">Send invoice details via email</div>
+              </div>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
           </DialogFooter>
         </DialogContent>
       </Dialog>
