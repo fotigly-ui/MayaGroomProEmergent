@@ -705,11 +705,11 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        {/* SCROLLABLE Calendar Grid - Adjusted padding for new header */}
+        {/* SCROLLABLE Calendar Grid */}
         {viewMode === 'calendar' ? (
         <div 
           className="flex-1 overflow-y-auto relative touch-pan-y bg-white dark:bg-gray-900"
-          style={{paddingTop: '110px'}}
+          style={{paddingTop: '120px'}}
           ref={scrollRef}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
