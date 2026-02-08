@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { FileText, Plus, Eye, Send, DollarSign, Clock, CheckCircle, XCircle, Printer, Edit2, Trash2, Mail, Share2, MessageSquare } from 'lucide-react';
+import { FileText, Plus, Eye, Send, DollarSign, Clock, CheckCircle, XCircle, Printer, Edit2, Trash2, Mail, Share2, MessageSquare, Copy } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Layout, PageHeader } from '../components/Layout';
