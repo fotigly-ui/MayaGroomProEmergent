@@ -802,13 +802,30 @@ export default function Invoices() {
           <DialogHeader>
             <DialogTitle>Send Invoice</DialogTitle>
           </DialogHeader>
+          
+          {/* Show customer contact info */}
+          {selectedInvoice && (() => {
+            const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
+            return (
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-4">
+                <p className="font-medium text-sm">{client?.name || selectedInvoice.invoice.client_name}</p>
+                {client?.phone && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Phone: {client.phone}</p>
+                )}
+                {client?.email && (
+                  <p className="text-xs text-gray-600 dark:text-gray-400">Email: {client.email}</p>
+                )}
+              </div>
+            );
+          })()}
+          
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            How would you like to send this invoice?
+            Choose how to send the PDF invoice:
           </p>
           <div className="flex flex-col gap-3">
             {/* SMS Invoice - Share PDF via Messages */}
             <Button
-              onClick={shareInvoicePDF}
+              onClick={shareInvoiceSMS}
               className="w-full justify-start h-auto py-4 border-primary"
               variant="outline"
               data-testid="sms-invoice-btn"
@@ -822,7 +839,7 @@ export default function Invoices() {
             
             {/* Email Invoice - Share PDF via Mail */}
             <Button
-              onClick={shareInvoicePDF}
+              onClick={shareInvoiceEmail}
               className="w-full justify-start h-auto py-4"
               variant="outline"
               data-testid="email-invoice-btn"
