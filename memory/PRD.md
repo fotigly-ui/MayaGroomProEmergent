@@ -1,114 +1,134 @@
-# Gromify - Pet Grooming Appointment App
+# Maya Pet Grooming App - Product Requirements Document
 
 ## Original Problem Statement
-Build a grooming appointment app with:
-- User Authentication
-- Unique design using logo colors (terracotta/orange), inspired by "Square Appointments"
-- Calendar with month, list, and week views
-- Recurring appointments with series management
-- Client & Pet management
-- SMS notifications (Twilio)
-- Invoicing & Checkout with GST calculation
-- Dark mode
+Build a pet grooming appointment application with features including:
+- User authentication with forgot/change password
+- Calendar with multiple views (day, week, month, list)
+- Appointment management including recurring appointments
+- Client and pet management
+- Invoicing and checkout system
+- Two-way Google Calendar sync
+- Mobile-optimized UI with unique terracotta/orange design
 
-## Build Documentation
-**See `/app/BUILD_SUMMARY.md` for complete technical documentation**
+## User Personas
+- **Primary User**: Pet grooming business owner (Maya's Pet Grooming)
+- **Platform**: Primarily uses iPhone for daily operations
 
-## Current Status: MVP COMPLETE ✅
+## Core Requirements
+### Authentication
+- [x] Login/Logout
+- [x] JWT-based auth
+- [x] Password reset (MOCKED - shows temp password on screen)
+- [ ] Real email-based password reset
 
-### Completed Features (January 2025)
-- [x] User authentication (JWT) with Change Password & Forgot Password
-- [x] Calendar with week view, current time indicator, auto-scroll
-- [x] Appointments with drag & drop, color-coded status
-- [x] Recurring appointments with DST-aware scheduling (Australia/Sydney timezone)
-- [x] Customer management with contact popups (Call/SMS/Maps)
-- [x] Pets shown under customer info (not in separate tab)
-- [x] Services & Items management
-- [x] Review & Checkout always available for all appointments
-- [x] Each appointment occurrence has independent invoicing
-- [x] Invoice generation with GST-inclusive pricing
-- [x] SMS templates (6 editable templates)
-- [x] Settings (Business with Change Password, Payment, SMS, Data Backup)
-- [x] Supabase backup integration
-- [x] Mobile-responsive design with hamburger menu
-- [x] Save contact to phone (vCard export)
+### Calendar
+- [x] Day view with week navigation
+- [x] Week view with pinned header
+- [x] Month view popover
+- [x] List view
+- [x] 24-hour time slots (00:00-23:59, 15-min intervals)
+- [x] Current time indicator (red line)
+- [x] "Today" button navigation
+- [x] Drag and drop rescheduling
+- [x] Recurring appointment support
+- [x] Staggered layout for overlapping appointments
+- [ ] Text overflow fix when zooming out
 
-### Critical Fixes (January 29, 2025)
+### Appointments
+- [x] Create/Edit/Delete appointments
+- [x] Recurring appointments (daily, weekly, monthly)
+- [x] Appointment detail view
+- [x] Review & Checkout flow
+- [x] Google Calendar two-way sync
 
-#### Issue 1: Recurring Appointment Times Inconsistent (DST)
-**Root Cause:** Daylight Saving Time. Appointments stored in UTC showed different local times (18:00 vs 19:00) when DST changed.
-**Fix Applied:** 
-- Implemented DST-aware scheduling using `pytz` with `Australia/Sydney` timezone
-- New recurring appointments now keep the SAME local time regardless of DST
-- Series reschedule also preserves local time consistently
-**Test Result:** All 9 test appointments show 19:00 local time (UTC varies between 08:00 and 09:00)
+### Clients & Pets
+- [x] Client management (CRUD)
+- [x] Pet management linked to clients
+- [x] Past/future appointments view
+- [x] Contact info display (phone, email, address)
+- [x] Clickable phone/email links
+- [x] Copy address & Waze navigation
 
-#### Issue 2: Review & Checkout Button
-**User Requirement:** All appointments must show "Review & Checkout" - each occurrence independent
-**Fix Applied:** 
-- "Review & Checkout" button now ALWAYS shown for all appointments
-- If invoice exists, "View Invoice" shown as additional button (not replacement)
-- Each recurring occurrence can have its own invoice
+### Invoicing
+- [x] Invoice creation from appointments
+- [x] Line items with services/products
+- [x] Discount support
+- [x] GST calculation
+- [x] PDF invoice generation
+- [x] Share invoice via iOS Share Sheet (PDF)
+- [x] Send invoice via email
 
-#### Issue 3: Customer Page Layout
-**User Requirement:** Pets under customer info, remove Pets tab, keep only Appointments tab
-**Fix Applied:** 
-- Pets now displayed directly under customer contact info
-- Add Pet button next to Pets section
-- Removed Pets tab
-- Only Appointments tab remains (with Upcoming/Past sub-tabs)
+## Technology Stack
+- **Frontend**: React 19, TailwindCSS, Shadcn/UI, date-fns, jspdf, jspdf-autotable
+- **Backend**: FastAPI, Pydantic, Motor (MongoDB async driver)
+- **Database**: MongoDB
+- **Authentication**: JWT tokens with bcrypt password hashing
 
-### Pending Features
-- [ ] Dark mode completion
-- Condensed service/item rows
-**Status:** FIXED
+## What's Been Implemented (December 2024)
 
-### Pending Features
-- [ ] Dark mode completion
-- [ ] Month/List calendar views
-- [ ] Automatic SMS sending via Twilio
-- [ ] Online customer booking portal
-- [ ] Reporting & Analytics dashboard
+### Latest Session
+- Fixed "Send Invoice" feature for iOS compatibility
+- Added jsPDF for PDF generation
+- Implemented Web Share API for sharing PDF invoices via SMS/WhatsApp
+- Fixed email sending with simplified body for iOS Mail compatibility
+- Fixed login stability (bcrypt string encoding issue)
+- Added list view for calendar
+- Implemented staggered layout for overlapping appointments
+- Added "Send Invoice" button to invoices page and checkout modal
 
-## Upcoming Features (P1)
-- [ ] Individual occurrence editing (without affecting series)
-- [ ] Invoice deletion backend endpoint (delete button exists in UI)
+### Previous Sessions
+- Full authentication system
+- Calendar with all views
+- Appointment CRUD with recurring support
+- Client/Pet management
+- Invoicing system
+- Google Calendar two-way sync
+- Mobile-optimized UI
 
-## Backlog (P2+)
-- [ ] Complete Dark Mode implementation
-- [ ] Refactor backend server.py into modules
-- [ ] Refactor Calendar.jsx into smaller components
-- [ ] Remove unused AddressAutocomplete.jsx and react-google-autocomplete package
+## Known Issues
+- **MOCKED**: Forgot Password shows temp password on screen instead of sending email
+- **P2 BUG**: Text overflow in appointment boxes when zooming out calendar
 
-## Key Files
-- `/app/frontend/src/pages/Calendar.jsx` - Main calendar view
-- `/app/frontend/src/components/AppointmentModal.jsx` - Appointment create/edit
-- `/app/frontend/src/pages/CustomerDetail.jsx` - Customer detail with appointments
-- `/app/backend/server.py` - All backend routes and logic
-- `/app/frontend/src/lib/api.js` - API utilities
+## Prioritized Backlog
 
-## Database Schema
+### P0 (Critical)
+- None currently
+
+### P1 (High)
+- None currently
+
+### P2 (Medium)
+- Text overflow fix on calendar zoom
+
+### P3 (Low/Future)
+- Convert to native mobile app
+- Dark mode implementation
+- Backend refactoring (decompose server.py into modules)
+- Analytics dashboard
+- Remove unused packages (react-google-autocomplete)
+- Implement real email-based password reset
+
+## File Structure
 ```
-appointments: {
-  id, user_id, client_id, date_time, end_time, notes,
-  pets: [{pet_id, services: [{service_id, price}]}],
-  is_recurring, recurring_id, recurring_value, recurring_unit
-}
-
-invoices: {
-  id, user_id, appointment_id, client_id, invoice_number, items,
-  subtotal, gst_amount, total, status, created_at
-}
-
-settings: {
-  user_id, business_name, gst_enabled, gst_rate
-}
+/app/
+├── backend/
+│   ├── server.py          # Monolithic FastAPI app (needs refactoring)
+│   ├── requirements.txt
+│   └── .env
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── Calendar.jsx    # Main calendar (1800+ lines)
+│   │   │   ├── Invoices.jsx    # Invoice management
+│   │   │   ├── Customers.jsx
+│   │   │   └── CustomerDetail.jsx
+│   │   └── components/
+│   ├── package.json
+│   └── .env
+└── memory/
+    └── PRD.md
 ```
 
 ## Test Credentials
 - Email: foti@mayaspetgrooming.com.au
 - Password: Maya2024!
-
-## Test Credentials
-- Email: frontendtest@test.com
-- Password: test123
