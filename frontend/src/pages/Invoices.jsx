@@ -653,14 +653,13 @@ ${selectedInvoice.invoice.discount_amount > 0 ? `Discount: -$${selectedInvoice.i
 ${selectedInvoice.invoice.notes ? `Notes: ${selectedInvoice.invoice.notes}\n\n` : ''}Thank you for your business!`;
 
                   const phone = client.phone.replace(/\D/g, '');
-                  const smsLink = `sms:${phone}&body=${encodeURIComponent(message)}`;
                   
-                  // Create a temporary link and click it
-                  const link = document.createElement('a');
-                  link.href = smsLink;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                  // iOS Safari specific - use window.open instead
+                  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                    window.open(`sms:${phone}&body=${encodeURIComponent(message)}`, '_self');
+                  } else {
+                    window.location.href = `sms:${phone}&body=${encodeURIComponent(message)}`;
+                  }
                   
                   setShowSendInvoiceDialog(false);
                   toast.success('Opening SMS app...');
@@ -713,12 +712,12 @@ ${settings?.business_email ? `Email: ${settings.business_email}` : ''}`;
 
                   const mailtoLink = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                   
-                  // Create a temporary link and click it
-                  const link = document.createElement('a');
-                  link.href = mailtoLink;
-                  document.body.appendChild(link);
-                  link.click();
-                  document.body.removeChild(link);
+                  // iOS Safari specific - use window.open instead
+                  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
+                    window.open(mailtoLink, '_self');
+                  } else {
+                    window.location.href = mailtoLink;
+                  }
                   
                   setShowSendInvoiceDialog(false);
                   toast.success('Opening email app...');
