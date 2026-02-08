@@ -678,10 +678,9 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* FIXED Week Day Selector - POSITION FIXED */}
-        <div className="fixed top-[57px] left-0 right-0 flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20">
-
-          <button onClick={navigatePrev} className="px-2 flex items-center text-gray-400 hover:text-primary">
+        {/* FIXED Week Day Selector - More Visible */}
+        <div className="fixed top-[52px] left-0 right-0 flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 py-2">
+          <button onClick={navigatePrev} className="px-3 flex items-center text-gray-400 hover:text-primary">
             <ChevronLeft size={20} />
           </button>
           {weekDates.map((date, i) => (
@@ -689,26 +688,26 @@ export default function CalendarPage() {
               key={i}
               onClick={() => setSelectedDate(date)}
               className={cn(
-                "flex-1 py-3 text-center transition-colors",
+                "flex-1 text-center transition-colors py-1",
                 isSameDay(date, selectedDate) && "bg-gray-50 dark:bg-gray-800"
               )}
             >
               <div className={cn(
-                "text-xs font-medium mb-1",
-                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-500 dark:text-gray-400"
+                "text-[11px] font-semibold uppercase tracking-wide mb-1",
+                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-600 dark:text-gray-400"
               )}>
                 {format(date, 'EEE')}
               </div>
               <div className={cn(
-                "text-sm font-semibold mt-1 w-8 h-8 mx-auto flex items-center justify-center rounded-full",
-                isSameDay(date, selectedDate) && "bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900",
-                isToday(date) && !isSameDay(date, selectedDate) && "text-primary"
+                "text-sm font-bold w-7 h-7 mx-auto flex items-center justify-center rounded-full",
+                isSameDay(date, selectedDate) && "bg-primary text-white",
+                isToday(date) && !isSameDay(date, selectedDate) && "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
               )}>
                 {format(date, 'd')}
               </div>
             </button>
           ))}
-          <button onClick={navigateNext} className="px-2 flex items-center text-gray-400 hover:text-primary">
+          <button onClick={navigateNext} className="px-3 flex items-center text-gray-400 hover:text-primary">
             <ChevronRight size={20} />
           </button>
         </div>
