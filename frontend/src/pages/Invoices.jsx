@@ -785,7 +785,7 @@ ${settings?.business_phone || ''}`;
         </DialogContent>
       </Dialog>
 
-      {/* Send Invoice Dialog - Share PDF or Email */}
+      {/* Send Invoice Dialog - SMS and Email both share PDF */}
       <Dialog open={showSendInvoiceDialog} onOpenChange={setShowSendInvoiceDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -795,31 +795,31 @@ ${settings?.business_phone || ''}`;
             How would you like to send this invoice?
           </p>
           <div className="flex flex-col gap-3">
-            {/* Share PDF - Primary option for iOS */}
+            {/* SMS Invoice - Share PDF via Messages */}
             <Button
               onClick={shareInvoicePDF}
               className="w-full justify-start h-auto py-4 border-primary"
               variant="outline"
-              data-testid="share-pdf-btn"
+              data-testid="sms-invoice-btn"
             >
-              <Share2 size={20} className="mr-3 text-primary" />
+              <MessageSquare size={20} className="mr-3 text-primary" />
               <div className="text-left">
-                <div className="font-medium">Share PDF</div>
-                <div className="text-xs text-gray-500">Share invoice as PDF via SMS, WhatsApp, etc.</div>
+                <div className="font-medium">SMS Invoice</div>
+                <div className="text-xs text-gray-500">Share PDF via Messages, WhatsApp, etc.</div>
               </div>
             </Button>
             
-            {/* Email option */}
+            {/* Email Invoice - Share PDF via Mail */}
             <Button
-              onClick={sendInvoiceEmail}
+              onClick={shareInvoicePDF}
               className="w-full justify-start h-auto py-4"
               variant="outline"
-              data-testid="send-email-btn"
+              data-testid="email-invoice-btn"
             >
               <Mail size={20} className="mr-3" />
               <div className="text-left">
-                <div className="font-medium">Send via Email</div>
-                <div className="text-xs text-gray-500">Open email app with invoice details</div>
+                <div className="font-medium">Email Invoice</div>
+                <div className="text-xs text-gray-500">Share PDF via email</div>
               </div>
             </Button>
           </div>
