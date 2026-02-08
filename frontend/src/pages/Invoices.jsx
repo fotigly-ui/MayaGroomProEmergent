@@ -654,15 +654,13 @@ ${selectedInvoice.invoice.notes ? `Notes: ${selectedInvoice.invoice.notes}\n\n` 
 
                   const phone = client.phone.replace(/\D/g, '');
                   
-                  // iOS Safari specific - use window.open instead
-                  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-                    window.open(`sms:${phone}&body=${encodeURIComponent(message)}`, '_self');
-                  } else {
-                    window.location.href = `sms:${phone}&body=${encodeURIComponent(message)}`;
-                  }
+                  // Direct approach - works on iOS
+                  window.location.href = `sms:${phone}${/iPhone|iPad|iPod/.test(navigator.userAgent) ? '&' : '?'}body=${encodeURIComponent(message)}`;
                   
-                  setShowSendInvoiceDialog(false);
-                  toast.success('Opening SMS app...');
+                  setTimeout(() => {
+                    setShowSendInvoiceDialog(false);
+                    toast.success('Opening SMS app...');
+                  }, 100);
                 } catch (error) {
                   console.error('SMS error:', error);
                   toast.error('Failed to open SMS');
@@ -710,17 +708,13 @@ ${settings?.business_name || 'Business'}
 ${settings?.business_phone ? `Phone: ${settings.business_phone}` : ''}
 ${settings?.business_email ? `Email: ${settings.business_email}` : ''}`;
 
-                  const mailtoLink = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                  // Direct approach - works on iOS
+                  window.location.href = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                   
-                  // iOS Safari specific - use window.open instead
-                  if (/iPhone|iPad|iPod/.test(navigator.userAgent)) {
-                    window.open(mailtoLink, '_self');
-                  } else {
-                    window.location.href = mailtoLink;
-                  }
-                  
-                  setShowSendInvoiceDialog(false);
-                  toast.success('Opening email app...');
+                  setTimeout(() => {
+                    setShowSendInvoiceDialog(false);
+                    toast.success('Opening email app...');
+                  }, 100);
                 } catch (error) {
                   console.error('Email error:', error);
                   toast.error('Failed to open email');
