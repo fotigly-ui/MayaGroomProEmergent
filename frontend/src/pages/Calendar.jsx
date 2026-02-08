@@ -85,6 +85,7 @@ export default function CalendarPage() {
   const [showCheckoutModal, setShowCheckoutModal] = useState(false);
   const [showPhoneMenu, setShowPhoneMenu] = useState(false); // Added for phone popup
   const [showAddressMenu, setShowAddressMenu] = useState(false); // Added for address popup
+  const [showSendInvoiceDialog, setShowSendInvoiceDialog] = useState(false); // For send invoice popup
   const [pendingReschedule, setPendingReschedule] = useState(null);
   const [showSmsPrompt, setShowSmsPrompt] = useState(false);
   const [showPhoneOptions, setShowPhoneOptions] = useState(false);
