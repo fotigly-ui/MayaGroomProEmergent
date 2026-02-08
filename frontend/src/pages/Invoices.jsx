@@ -270,7 +270,7 @@ export default function Invoices() {
       doc.text(invoice.client_phone, 20, 69);
     }
     
-    // Items table
+    // Items table using new autoTable syntax
     const tableData = invoice.items.map(item => [
       item.name,
       item.quantity,
@@ -278,7 +278,7 @@ export default function Invoices() {
       `$${item.total.toFixed(2)}`
     ]);
     
-    doc.autoTable({
+    autoTable(doc, {
       startY: 80,
       head: [['Description', 'Qty', 'Price', 'Total']],
       body: tableData,
@@ -286,8 +286,8 @@ export default function Invoices() {
       headStyles: { fillColor: [200, 100, 50] },
     });
     
-    // Totals
-    const finalY = doc.lastAutoTable.finalY + 10;
+    // Totals - get finalY from doc.lastAutoTable
+    const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
     doc.setFontSize(10);
     
     if (business.gst_enabled && invoice.gst_amount > 0) {
