@@ -323,88 +323,84 @@ export default function Invoices() {
     return doc;
   };
 
-  // Share invoice PDF via SMS (with phone pre-filled if possible)
-  const shareInvoiceSMS = async () => {
+  // Send invoice via SMS - downloads PDF and opens Messages with phone pre-filled
+  const sendInvoiceSMS = async () => {
     try {
       const client = clients.find(c => c.id === selectedInvoice?.invoice?.client_id);
+      if (!client?.phone) {
+        toast.error('Client phone number not available');
+        return;
+      }
+      
       const doc = generateInvoicePDF(client);
       if (!doc) {
         toast.error('No invoice selected');
         return;
       }
       
-      const pdfBlob = doc.output('blob');
+      // Save PDF to downloads
       const fileName = `Invoice_${selectedInvoice.invoice.invoice_number}.pdf`;
-      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      doc.save(fileName);
       
-      // Check if Web Share API with files is supported
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `Invoice ${selectedInvoice.invoice.invoice_number}`,
-          text: `Invoice from ${settings?.business_name || 'Business'} - Total: $${selectedInvoice.invoice.total.toFixed(2)}`
-        });
-        toast.success('Invoice shared!');
-        setShowSendInvoiceDialog(false);
-      } else {
-        // Fallback: download the PDF
-        doc.save(fileName);
-        toast.success('PDF downloaded - you can share it manually');
-        setShowSendInvoiceDialog(false);
-      }
+      // Open SMS with phone number pre-filled
+      const phone = client.phone.replace(/\D/g, '');
+      const message = `Hi ${client.name}, please find your invoice attached. Total: $${selectedInvoice.invoice.total.toFixed(2)}`;
+      
+      // Small delay to ensure PDF is saved
+      setTimeout(() => {
+        window.location.href = `sms:${phone}&body=${encodeURIComponent(message)}`;
+      }, 500);
+      
+      toast.success('PDF saved! Attach it in Messages');
+      setShowSendInvoiceDialog(false);
     } catch (error) {
-      if (error.name === 'AbortError') return;
-      console.error('Share error:', error);
-      // Fallback: download
-      const client = clients.find(c => c.id === selectedInvoice?.invoice?.client_id);
-      const doc = generateInvoicePDF(client);
-      if (doc) {
-        doc.save(`Invoice_${selectedInvoice.invoice.invoice_number}.pdf`);
-        toast.success('PDF downloaded');
-        setShowSendInvoiceDialog(false);
-      }
+      console.error('SMS error:', error);
+      toast.error('Failed to send SMS');
     }
   };
 
-  // Share invoice PDF via Email (with email pre-filled if possible)
-  const shareInvoiceEmail = async () => {
+  // Send invoice via Email - downloads PDF and opens Mail with email pre-filled
+  const sendInvoiceEmail = async () => {
     try {
       const client = clients.find(c => c.id === selectedInvoice?.invoice?.client_id);
+      if (!client?.email) {
+        toast.error('Client email not available');
+        return;
+      }
+      
       const doc = generateInvoicePDF(client);
       if (!doc) {
         toast.error('No invoice selected');
         return;
       }
       
-      const pdfBlob = doc.output('blob');
+      // Save PDF to downloads
       const fileName = `Invoice_${selectedInvoice.invoice.invoice_number}.pdf`;
-      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      doc.save(fileName);
       
-      // Check if Web Share API with files is supported
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: `Invoice ${selectedInvoice.invoice.invoice_number}`,
-          text: `Invoice from ${settings?.business_name || 'Business'} - Total: $${selectedInvoice.invoice.total.toFixed(2)}`
-        });
-        toast.success('Invoice shared!');
-        setShowSendInvoiceDialog(false);
-      } else {
-        // Fallback: download the PDF
-        doc.save(fileName);
-        toast.success('PDF downloaded - you can share it manually');
-        setShowSendInvoiceDialog(false);
-      }
+      // Prepare email
+      const subject = `Invoice ${selectedInvoice.invoice.invoice_number} from ${settings?.business_name || 'Business'}`;
+      const body = `Hi ${client.name},
+
+Please find your invoice attached.
+
+Invoice: ${selectedInvoice.invoice.invoice_number}
+Total: $${selectedInvoice.invoice.total.toFixed(2)}
+
+Thank you for your business!
+
+${settings?.business_name || ''}`;
+
+      // Small delay to ensure PDF is saved, then open email
+      setTimeout(() => {
+        window.location.href = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      }, 500);
+      
+      toast.success('PDF saved! Attach it in your email');
+      setShowSendInvoiceDialog(false);
     } catch (error) {
-      if (error.name === 'AbortError') return;
-      console.error('Share error:', error);
-      const client = clients.find(c => c.id === selectedInvoice?.invoice?.client_id);
-      const doc = generateInvoicePDF(client);
-      if (doc) {
-        doc.save(`Invoice_${selectedInvoice.invoice.invoice_number}.pdf`);
-        toast.success('PDF downloaded');
-        setShowSendInvoiceDialog(false);
-      }
+      console.error('Email error:', error);
+      toast.error('Failed to open email');
     }
   };
 
