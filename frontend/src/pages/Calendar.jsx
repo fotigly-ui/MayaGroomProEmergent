@@ -712,11 +712,11 @@ export default function CalendarPage() {
           </button>
         </div>
 
-        {/* SCROLLABLE Calendar Grid - ADD TOP PADDING FOR FIXED HEADERS */}
+        {/* SCROLLABLE Calendar Grid - Adjusted padding for new header */}
         {viewMode === 'calendar' ? (
         <div 
           className="flex-1 overflow-y-auto relative touch-pan-y bg-white dark:bg-gray-900"
-          style={{paddingTop: '130px'}}
+          style={{paddingTop: '110px'}}
           ref={scrollRef}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
@@ -837,7 +837,7 @@ export default function CalendarPage() {
         </div>
         ) : (
         // LIST VIEW
-        <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900" style={{paddingTop: '130px'}}>
+        <div className="flex-1 overflow-y-auto bg-white dark:bg-gray-900" style={{paddingTop: '60px'}}>
           <div className="max-w-4xl mx-auto p-4">
             <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
               {format(selectedDate, 'EEEE, MMMM d, yyyy')}
