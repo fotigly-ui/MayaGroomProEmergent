@@ -774,55 +774,58 @@ export default function Invoices() {
             <DialogTitle>Send Invoice</DialogTitle>
           </DialogHeader>
           
-          {/* Show customer contact info */}
+          {/* Show customer contact info with copy buttons */}
           {selectedInvoice && (() => {
             const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
             return (
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-4">
-                <p className="font-medium text-sm mb-1">Sending to:</p>
-                <p className="text-sm">{client?.name || selectedInvoice.invoice.client_name}</p>
+                <p className="font-medium text-sm mb-2">{client?.name || selectedInvoice.invoice.client_name}</p>
                 {client?.phone && (
-                  <p className="text-xs text-primary font-medium">📱 {client.phone}</p>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-gray-600">📱 {client.phone}</span>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-6 px-2 text-xs"
+                      onClick={() => copyToClipboard(client.phone, 'Phone')}
+                    >
+                      <Copy size={12} className="mr-1" /> Copy
+                    </Button>
+                  </div>
                 )}
                 {client?.email && (
-                  <p className="text-xs text-primary font-medium">✉️ {client.email}</p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">✉️ {client.email}</span>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-6 px-2 text-xs"
+                      onClick={() => copyToClipboard(client.email, 'Email')}
+                    >
+                      <Copy size={12} className="mr-1" /> Copy
+                    </Button>
+                  </div>
                 )}
               </div>
             );
           })()}
           
           <p className="text-xs text-gray-500 mb-4">
-            PDF will be saved to your device. Then attach it in Messages or Mail.
+            Tap below to share the PDF invoice. Select Messages or Mail, then choose the recipient.
           </p>
-          <div className="flex flex-col gap-3">
-            {/* SMS Invoice */}
-            <Button
-              onClick={sendInvoiceSMS}
-              className="w-full justify-start h-auto py-4 border-primary"
-              variant="outline"
-              data-testid="sms-invoice-btn"
-            >
-              <MessageSquare size={20} className="mr-3 text-primary" />
-              <div className="text-left">
-                <div className="font-medium">SMS Invoice</div>
-                <div className="text-xs text-gray-500">Opens Messages with phone pre-filled</div>
-              </div>
-            </Button>
-            
-            {/* Email Invoice */}
-            <Button
-              onClick={sendInvoiceEmail}
-              className="w-full justify-start h-auto py-4"
-              variant="outline"
-              data-testid="email-invoice-btn"
-            >
-              <Mail size={20} className="mr-3" />
-              <div className="text-left">
-                <div className="font-medium">Email Invoice</div>
-                <div className="text-xs text-gray-500">Opens Mail with email pre-filled</div>
-              </div>
-            </Button>
-          </div>
+          
+          {/* Single Share Button */}
+          <Button
+            onClick={shareInvoicePDF}
+            className="w-full h-auto py-4"
+            data-testid="share-invoice-btn"
+          >
+            <Share2 size={20} className="mr-3" />
+            <div className="text-left">
+              <div className="font-medium">Share Invoice PDF</div>
+              <div className="text-xs opacity-80">Send via Messages, Mail, WhatsApp, etc.</div>
+            </div>
+          </Button>
         </DialogContent>
       </Dialog>
     </Layout>
