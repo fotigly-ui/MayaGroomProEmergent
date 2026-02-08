@@ -1748,7 +1748,7 @@ export default function CalendarPage() {
             </Button>
 
 
-      {/* Send Invoice Dialog - Share PDF or Email */}
+      {/* Send Invoice Dialog - SMS and Email both share PDF */}
       <Dialog open={showSendInvoiceDialog} onOpenChange={setShowSendInvoiceDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
@@ -1758,7 +1758,7 @@ export default function CalendarPage() {
             How would you like to send the invoice to {selectedAppointment?.client_name}?
           </p>
           <div className="flex flex-col gap-3">
-            {/* Share PDF - Primary option for iOS */}
+            {/* SMS Invoice - Share PDF via Messages */}
             <Button
               onClick={async () => {
                 try {
@@ -1782,7 +1782,7 @@ export default function CalendarPage() {
                   doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 20, 48);
                   doc.text(`Time: ${format(new Date(selectedAppointment?.date_time), 'h:mm a')}`, 20, 54);
                   
-                  // Items table
+                  // Items table using correct autoTable syntax
                   const tableData = checkoutItems.map(item => [
                     item.name,
                     item.quantity,
@@ -1790,7 +1790,7 @@ export default function CalendarPage() {
                     `$${item.total.toFixed(2)}`
                   ]);
                   
-                  doc.autoTable({
+                  autoTable(doc, {
                     startY: 65,
                     head: [['Description', 'Qty', 'Price', 'Total']],
                     body: tableData,
@@ -1799,7 +1799,7 @@ export default function CalendarPage() {
                   });
                   
                   // Totals
-                  const finalY = doc.lastAutoTable.finalY + 10;
+                  const finalY = (doc.lastAutoTable?.finalY || 100) + 10;
                   doc.setFontSize(10);
                   doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
                   if (discountAmount > 0) {
@@ -1841,64 +1841,104 @@ export default function CalendarPage() {
               }}
               className="w-full justify-start h-auto py-4 border-primary"
               variant="outline"
-              data-testid="share-pdf-btn"
+              data-testid="sms-invoice-btn"
             >
-              <Share2 size={20} className="mr-3 text-primary" />
+              <MessageSquare size={20} className="mr-3 text-primary" />
               <div className="text-left">
-                <div className="font-medium">Share PDF</div>
-                <div className="text-xs text-gray-500">Share invoice as PDF via SMS, WhatsApp, etc.</div>
+                <div className="font-medium">SMS Invoice</div>
+                <div className="text-xs text-gray-500">Share PDF via Messages, WhatsApp, etc.</div>
               </div>
             </Button>
             
-            {/* Email option */}
+            {/* Email Invoice - Also shares PDF */}
             <Button
-              onClick={() => {
+              onClick={async () => {
                 try {
-                  const client = clients.find(c => c.id === selectedAppointment?.client_id);
-                  if (!client?.email) {
-                    toast.error('Client email not available');
-                    return;
-                  }
-                  
+                  // Generate PDF
                   const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
                   const discountAmount = checkoutDiscount.type === 'percent' 
                     ? subtotal * (checkoutDiscount.value || 0) / 100 
                     : (checkoutDiscount.value || 0);
                   const total = subtotal - discountAmount;
                   
-                  const subject = `Invoice from ${settings?.business_name || 'Maya Pet Grooming'}`;
-                  const body = `Dear ${selectedAppointment?.client_name},
-
-Invoice Details:
-Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}
-Total: $${total.toFixed(2)}
-
-Thank you for your business!
-
-${settings?.business_name || ''}
-${settings?.business_phone || ''}`;
-
-                  // Use window.open for better iOS compatibility
-                  const mailtoLink = `mailto:${encodeURIComponent(client.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                  window.open(mailtoLink, '_self');
+                  const doc = new jsPDF();
                   
-                  setTimeout(() => {
+                  // Header
+                  doc.setFontSize(20);
+                  doc.text(settings?.business_name || 'Maya Pet Grooming', 20, 25);
+                  
+                  // Invoice details
+                  doc.setFontSize(12);
+                  doc.text(`Invoice for ${selectedAppointment?.client_name}`, 20, 40);
+                  doc.setFontSize(10);
+                  doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 20, 48);
+                  doc.text(`Time: ${format(new Date(selectedAppointment?.date_time), 'h:mm a')}`, 20, 54);
+                  
+                  // Items table using correct autoTable syntax
+                  const tableData = checkoutItems.map(item => [
+                    item.name,
+                    item.quantity,
+                    `$${item.unit_price.toFixed(2)}`,
+                    `$${item.total.toFixed(2)}`
+                  ]);
+                  
+                  autoTable(doc, {
+                    startY: 65,
+                    head: [['Description', 'Qty', 'Price', 'Total']],
+                    body: tableData,
+                    theme: 'striped',
+                    headStyles: { fillColor: [200, 100, 50] },
+                  });
+                  
+                  // Totals
+                  const finalY = (doc.lastAutoTable?.finalY || 100) + 10;
+                  doc.setFontSize(10);
+                  doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
+                  if (discountAmount > 0) {
+                    doc.text(`Discount: -$${discountAmount.toFixed(2)}`, 140, finalY + 6);
+                  }
+                  doc.setFontSize(14);
+                  doc.setFont(undefined, 'bold');
+                  doc.text(`Total: $${total.toFixed(2)}`, 140, finalY + (discountAmount > 0 ? 14 : 6));
+                  
+                  // Footer
+                  doc.setFontSize(9);
+                  doc.setFont(undefined, 'normal');
+                  doc.text('Thank you for your business!', 20, 280);
+                  
+                  const pdfBlob = doc.output('blob');
+                  const fileName = `Invoice_${selectedAppointment?.client_name?.replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+                  const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+                  
+                  // Check if Web Share API with files is supported
+                  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                      files: [file],
+                      title: `Invoice - ${selectedAppointment?.client_name}`,
+                      text: `Invoice from ${settings?.business_name || 'Maya Pet Grooming'} - Total: $${total.toFixed(2)}`
+                    });
+                    toast.success('Invoice shared!');
                     setShowSendInvoiceDialog(false);
-                    toast.success('Opening email app...');
-                  }, 300);
+                  } else {
+                    // Fallback: download the PDF
+                    doc.save(fileName);
+                    toast.success('PDF downloaded - you can share it manually');
+                    setShowSendInvoiceDialog(false);
+                  }
                 } catch (error) {
-                  console.error('Email error:', error);
-                  toast.error('Failed to open email');
+                  if (error.name === 'AbortError') return;
+                  console.error('Share error:', error);
+                  toast.error('Could not share PDF');
                 }
               }}
               className="w-full justify-start h-auto py-4"
               variant="outline"
-              data-testid="send-email-btn"
+              data-testid="email-invoice-btn"
             >
               <Mail size={20} className="mr-3" />
               <div className="text-left">
-                <div className="font-medium">Send via Email</div>
-                <div className="text-xs text-gray-500">Open email app with invoice details</div>
+                <div className="font-medium">Email Invoice</div>
+                <div className="text-xs text-gray-500">Share PDF via email</div>
               </div>
             </Button>
           </div>
