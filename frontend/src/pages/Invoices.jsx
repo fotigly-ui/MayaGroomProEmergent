@@ -231,6 +231,172 @@ export default function Invoices() {
     window.print();
   };
 
+  // Generate PDF for the invoice
+  const generateInvoicePDF = () => {
+    if (!selectedInvoice) return null;
+    
+    const doc = new jsPDF();
+    const invoice = selectedInvoice.invoice;
+    const business = selectedInvoice.business;
+    
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(40);
+    doc.text(business.name || 'Business', 20, 25);
+    
+    if (business.abn) {
+      doc.setFontSize(10);
+      doc.text(`ABN: ${business.abn}`, 20, 32);
+    }
+    
+    // Invoice details
+    doc.setFontSize(14);
+    doc.text(`Invoice ${invoice.invoice_number}`, 140, 25);
+    doc.setFontSize(10);
+    doc.text(`Date: ${format(new Date(invoice.created_at), 'MMM d, yyyy')}`, 140, 32);
+    if (invoice.due_date) {
+      doc.text(`Due: ${format(new Date(invoice.due_date), 'MMM d, yyyy')}`, 140, 38);
+    }
+    
+    // Bill To
+    doc.setFontSize(12);
+    doc.text('Bill To:', 20, 50);
+    doc.setFontSize(10);
+    doc.text(invoice.client_name || 'Customer', 20, 57);
+    if (invoice.client_address) {
+      doc.text(invoice.client_address, 20, 63);
+    }
+    if (invoice.client_phone) {
+      doc.text(invoice.client_phone, 20, 69);
+    }
+    
+    // Items table
+    const tableData = invoice.items.map(item => [
+      item.name,
+      item.quantity,
+      `$${item.unit_price.toFixed(2)}`,
+      `$${item.total.toFixed(2)}`
+    ]);
+    
+    doc.autoTable({
+      startY: 80,
+      head: [['Description', 'Qty', 'Price', 'Total']],
+      body: tableData,
+      theme: 'striped',
+      headStyles: { fillColor: [200, 100, 50] },
+    });
+    
+    // Totals
+    const finalY = doc.lastAutoTable.finalY + 10;
+    doc.setFontSize(10);
+    
+    if (business.gst_enabled && invoice.gst_amount > 0) {
+      doc.text(`Subtotal: $${(invoice.total - invoice.gst_amount).toFixed(2)}`, 140, finalY);
+      doc.text(`GST (incl.): $${invoice.gst_amount.toFixed(2)}`, 140, finalY + 6);
+    }
+    
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Total: $${invoice.total.toFixed(2)}`, 140, finalY + (business.gst_enabled ? 16 : 6));
+    
+    // Notes
+    if (invoice.notes) {
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'normal');
+      doc.text('Notes:', 20, finalY + 30);
+      doc.text(invoice.notes, 20, finalY + 36);
+    }
+    
+    // Footer
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.text('Thank you for your business!', 20, 280);
+    
+    return doc;
+  };
+
+  // Share invoice PDF using Web Share API (works on iOS)
+  const shareInvoicePDF = async () => {
+    try {
+      const doc = generateInvoicePDF();
+      if (!doc) {
+        toast.error('No invoice selected');
+        return;
+      }
+      
+      const pdfBlob = doc.output('blob');
+      const fileName = `Invoice_${selectedInvoice.invoice.invoice_number}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      
+      // Check if Web Share API with files is supported
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Invoice ${selectedInvoice.invoice.invoice_number}`,
+          text: `Invoice from ${settings?.business_name || 'Business'} - Total: $${selectedInvoice.invoice.total.toFixed(2)}`
+        });
+        toast.success('Invoice shared!');
+        setShowSendInvoiceDialog(false);
+      } else {
+        // Fallback: download the PDF
+        doc.save(fileName);
+        toast.success('PDF downloaded - you can share it manually');
+        setShowSendInvoiceDialog(false);
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        // User cancelled the share
+        return;
+      }
+      console.error('Share error:', error);
+      // Fallback: download
+      const doc = generateInvoicePDF();
+      if (doc) {
+        doc.save(`Invoice_${selectedInvoice.invoice.invoice_number}.pdf`);
+        toast.success('PDF downloaded');
+        setShowSendInvoiceDialog(false);
+      }
+    }
+  };
+
+  // Send invoice via email with mailto
+  const sendInvoiceEmail = () => {
+    if (!selectedInvoice) return;
+    
+    const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
+    if (!client?.email) {
+      toast.error('Client email not available');
+      return;
+    }
+    
+    const invoice = selectedInvoice.invoice;
+    const subject = `Invoice ${invoice.invoice_number} from ${settings?.business_name || 'Business'}`;
+    
+    // Keep email body short and simple for iOS compatibility
+    const body = `Dear ${client.name},
+
+Please find your invoice details:
+
+Invoice: ${invoice.invoice_number}
+Date: ${format(new Date(invoice.created_at), 'MMM d, yyyy')}
+Total: $${invoice.total.toFixed(2)}
+
+Thank you for your business!
+
+${settings?.business_name || ''}
+${settings?.business_phone || ''}`;
+
+    // Use window.open for better iOS compatibility
+    const mailtoLink = `mailto:${encodeURIComponent(client.email)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    window.open(mailtoLink, '_self');
+    
+    setTimeout(() => {
+      setShowSendInvoiceDialog(false);
+      toast.success('Opening email app...');
+    }, 300);
+  };
+
   const getStatusIcon = (status) => {
     switch (status) {
       case 'paid': return <CheckCircle className="text-maya-success" size={16} />;
