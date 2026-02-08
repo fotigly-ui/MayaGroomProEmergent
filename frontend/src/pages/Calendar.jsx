@@ -598,14 +598,14 @@ export default function CalendarPage() {
   return (
     <Layout>
       <div className="h-full flex flex-col bg-white dark:bg-gray-900">
-        {/* FIXED Header - Month & Year on One Line with View Dropdown */}
-        <div className="fixed top-0 left-0 right-0 flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-30">
+        {/* FIXED Header - Compact Single Line */}
+        <div className="fixed top-0 left-0 right-0 flex items-center justify-between px-3 py-2 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-30">
 
           <Popover>
             <PopoverTrigger asChild>
-              <button className="text-lg font-semibold text-gray-900 dark:text-white hover:text-primary flex items-center gap-1">
-                {format(selectedDate, 'MMMM yyyy')}
-                <ChevronRight size={16} className="rotate-90" />
+              <button className="text-base font-semibold text-gray-900 dark:text-white hover:text-primary flex items-center gap-1">
+                {format(selectedDate, 'MMM yyyy')}
+                <ChevronRight size={14} className="rotate-90" />
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -641,11 +641,11 @@ export default function CalendarPage() {
               </div>
             </PopoverContent>
           </Popover>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <select 
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value)}
-              className="text-xs border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="text-xs border border-gray-300 dark:border-gray-600 rounded px-2 py-1 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
               <option value="calendar">Calendar</option>
               <option value="list">List</option>
@@ -655,53 +655,49 @@ export default function CalendarPage() {
               variant="outline"
               size="sm"
               onClick={goToToday}
-              className="text-xs"
+              className="text-xs px-2 py-1 h-7"
               data-testid="today-btn"
             >
-              <CalendarIcon size={14} className="mr-1" />
               Today
             </Button>
             <button
               onClick={() => { setSelectedSlot(new Date()); setSelectedAppointment(null); setShowModal(true); }}
-              className="w-8 h-8 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary-hover"
+              className="w-7 h-7 flex items-center justify-center bg-primary text-white rounded-full hover:bg-primary-hover"
               data-testid="new-appointment-btn"
             >
-              <Plus size={20} />
+              <Plus size={16} />
             </button>
           </div>
         </div>
 
-        {/* FIXED Week Day Selector - BOLD and VISIBLE */}
-        <div className="fixed top-[60px] left-0 right-0 flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 py-3">
-          <button onClick={navigatePrev} className="px-3 flex items-center text-gray-400 hover:text-primary">
-            <ChevronLeft size={20} />
+        {/* FIXED Week Day Selector - Compact and Clear */}
+        <div className="fixed top-[48px] left-0 right-0 flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 py-2">
+          <button onClick={navigatePrev} className="px-2 flex items-center text-gray-400 hover:text-primary">
+            <ChevronLeft size={18} />
           </button>
           {weekDates.map((date, i) => (
             <button
               key={i}
               onClick={() => setSelectedDate(date)}
-              className={cn(
-                "flex-1 text-center transition-colors",
-                isSameDay(date, selectedDate) && "bg-gray-50 dark:bg-gray-800"
-              )}
+              className="flex-1 text-center"
             >
               <div className={cn(
-                "text-xs font-bold uppercase mb-1.5 tracking-wider",
-                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-700 dark:text-gray-300"
+                "text-[10px] font-bold uppercase tracking-wide mb-0.5",
+                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-800 dark:text-gray-200"
               )}>
                 {format(date, 'EEE')}
               </div>
               <div className={cn(
-                "text-sm font-bold w-8 h-8 mx-auto flex items-center justify-center rounded-full",
+                "text-sm font-bold w-7 h-7 mx-auto flex items-center justify-center rounded-full",
                 isSameDay(date, selectedDate) && "bg-primary text-white",
-                isToday(date) && !isSameDay(date, selectedDate) && "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
+                isToday(date) && !isSameDay(date, selectedDate) && "bg-green-100 text-green-700"
               )}>
                 {format(date, 'd')}
               </div>
             </button>
           ))}
-          <button onClick={navigateNext} className="px-3 flex items-center text-gray-400 hover:text-primary">
-            <ChevronRight size={20} />
+          <button onClick={navigateNext} className="px-2 flex items-center text-gray-400 hover:text-primary">
+            <ChevronRight size={18} />
           </button>
         </div>
 
@@ -709,7 +705,7 @@ export default function CalendarPage() {
         {viewMode === 'calendar' ? (
         <div 
           className="flex-1 overflow-y-auto relative touch-pan-y bg-white dark:bg-gray-900"
-          style={{paddingTop: '120px'}}
+          style={{paddingTop: '100px'}}
           ref={scrollRef}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
