@@ -808,24 +808,25 @@ ${settings?.business_name || ''}`;
             const client = clients.find(c => c.id === selectedInvoice.invoice.client_id);
             return (
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-4">
-                <p className="font-medium text-sm">{client?.name || selectedInvoice.invoice.client_name}</p>
+                <p className="font-medium text-sm mb-1">Sending to:</p>
+                <p className="text-sm">{client?.name || selectedInvoice.invoice.client_name}</p>
                 {client?.phone && (
-                  <p className="text-xs text-gray-600 dark:text-gray-400">Phone: {client.phone}</p>
+                  <p className="text-xs text-primary font-medium">📱 {client.phone}</p>
                 )}
                 {client?.email && (
-                  <p className="text-xs text-gray-600 dark:text-gray-400">Email: {client.email}</p>
+                  <p className="text-xs text-primary font-medium">✉️ {client.email}</p>
                 )}
               </div>
             );
           })()}
           
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Choose how to send the PDF invoice:
+          <p className="text-xs text-gray-500 mb-4">
+            PDF will be saved to your device. Then attach it in Messages or Mail.
           </p>
           <div className="flex flex-col gap-3">
-            {/* SMS Invoice - Share PDF via Messages */}
+            {/* SMS Invoice */}
             <Button
-              onClick={shareInvoiceSMS}
+              onClick={sendInvoiceSMS}
               className="w-full justify-start h-auto py-4 border-primary"
               variant="outline"
               data-testid="sms-invoice-btn"
@@ -833,13 +834,13 @@ ${settings?.business_name || ''}`;
               <MessageSquare size={20} className="mr-3 text-primary" />
               <div className="text-left">
                 <div className="font-medium">SMS Invoice</div>
-                <div className="text-xs text-gray-500">Share PDF via Messages, WhatsApp, etc.</div>
+                <div className="text-xs text-gray-500">Opens Messages with phone pre-filled</div>
               </div>
             </Button>
             
-            {/* Email Invoice - Share PDF via Mail */}
+            {/* Email Invoice */}
             <Button
-              onClick={shareInvoiceEmail}
+              onClick={sendInvoiceEmail}
               className="w-full justify-start h-auto py-4"
               variant="outline"
               data-testid="email-invoice-btn"
@@ -847,7 +848,7 @@ ${settings?.business_name || ''}`;
               <Mail size={20} className="mr-3" />
               <div className="text-left">
                 <div className="font-medium">Email Invoice</div>
-                <div className="text-xs text-gray-500">Share PDF via email</div>
+                <div className="text-xs text-gray-500">Opens Mail with email pre-filled</div>
               </div>
             </Button>
           </div>
