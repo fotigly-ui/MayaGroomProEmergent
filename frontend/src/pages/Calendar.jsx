@@ -671,8 +671,8 @@ export default function CalendarPage() {
           </div>
         </div>
 
-        {/* FIXED Week Day Selector - More Visible */}
-        <div className="fixed top-[52px] left-0 right-0 flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 py-2">
+        {/* FIXED Week Day Selector - BOLD and VISIBLE */}
+        <div className="fixed top-[60px] left-0 right-0 flex border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-20 py-3">
           <button onClick={navigatePrev} className="px-3 flex items-center text-gray-400 hover:text-primary">
             <ChevronLeft size={20} />
           </button>
@@ -681,18 +681,18 @@ export default function CalendarPage() {
               key={i}
               onClick={() => setSelectedDate(date)}
               className={cn(
-                "flex-1 text-center transition-colors py-1",
+                "flex-1 text-center transition-colors",
                 isSameDay(date, selectedDate) && "bg-gray-50 dark:bg-gray-800"
               )}
             >
               <div className={cn(
-                "text-[11px] font-semibold uppercase tracking-wide mb-1",
-                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-600 dark:text-gray-400"
+                "text-xs font-bold uppercase mb-1.5 tracking-wider",
+                isSameDay(date, selectedDate) ? "text-primary" : "text-gray-700 dark:text-gray-300"
               )}>
                 {format(date, 'EEE')}
               </div>
               <div className={cn(
-                "text-sm font-bold w-7 h-7 mx-auto flex items-center justify-center rounded-full",
+                "text-sm font-bold w-8 h-8 mx-auto flex items-center justify-center rounded-full",
                 isSameDay(date, selectedDate) && "bg-primary text-white",
                 isToday(date) && !isSameDay(date, selectedDate) && "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200"
               )}>
