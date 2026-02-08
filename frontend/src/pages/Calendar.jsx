@@ -598,7 +598,7 @@ export default function CalendarPage() {
   return (
     <Layout>
       <div className="h-full flex flex-col bg-white dark:bg-gray-900">
-        {/* FIXED Header - Month - POSITION FIXED */}
+        {/* FIXED Header - Month & Year on One Line with View Dropdown */}
         <div className="fixed top-0 left-0 right-0 flex items-center justify-between p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 z-30">
 
           <Popover>
@@ -642,22 +642,15 @@ export default function CalendarPage() {
             </PopoverContent>
           </Popover>
           <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'calendar' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('calendar')}
-              className="text-xs"
+            <select 
+              value={viewMode}
+              onChange={(e) => setViewMode(e.target.value)}
+              className="text-xs border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
-              Calendar
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-              className="text-xs"
-            >
-              List
-            </Button>
+              <option value="calendar">Calendar</option>
+              <option value="list">List</option>
+            </select>
+            
             <Button
               variant="outline"
               size="sm"
