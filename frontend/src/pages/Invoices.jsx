@@ -232,7 +232,7 @@ export default function Invoices() {
   };
 
   // Generate PDF for the invoice
-  const generateInvoicePDF = () => {
+  const generateInvoicePDF = (client) => {
     if (!selectedInvoice) return null;
     
     const doc = new jsPDF();
@@ -258,16 +258,24 @@ export default function Invoices() {
       doc.text(`Due: ${format(new Date(invoice.due_date), 'MMM d, yyyy')}`, 140, 38);
     }
     
-    // Bill To
+    // Bill To - include customer details from client object
     doc.setFontSize(12);
     doc.text('Bill To:', 20, 50);
     doc.setFontSize(10);
-    doc.text(invoice.client_name || 'Customer', 20, 57);
-    if (invoice.client_address) {
-      doc.text(invoice.client_address, 20, 63);
+    let billToY = 57;
+    doc.text(client?.name || invoice.client_name || 'Customer', 20, billToY);
+    billToY += 6;
+    if (client?.address || invoice.client_address) {
+      doc.text(client?.address || invoice.client_address, 20, billToY);
+      billToY += 6;
     }
-    if (invoice.client_phone) {
-      doc.text(invoice.client_phone, 20, 69);
+    if (client?.phone || invoice.client_phone) {
+      doc.text(`Phone: ${client?.phone || invoice.client_phone}`, 20, billToY);
+      billToY += 6;
+    }
+    if (client?.email) {
+      doc.text(`Email: ${client.email}`, 20, billToY);
+      billToY += 6;
     }
     
     // Items table using new autoTable syntax
@@ -279,7 +287,7 @@ export default function Invoices() {
     ]);
     
     autoTable(doc, {
-      startY: 80,
+      startY: Math.max(billToY + 10, 80),
       head: [['Description', 'Qty', 'Price', 'Total']],
       body: tableData,
       theme: 'striped',
@@ -315,9 +323,90 @@ export default function Invoices() {
     return doc;
   };
 
-  // Share invoice PDF using Web Share API (works on iOS)
-  const shareInvoicePDF = async () => {
+  // Share invoice PDF via SMS (with phone pre-filled if possible)
+  const shareInvoiceSMS = async () => {
     try {
+      const client = clients.find(c => c.id === selectedInvoice?.invoice?.client_id);
+      const doc = generateInvoicePDF(client);
+      if (!doc) {
+        toast.error('No invoice selected');
+        return;
+      }
+      
+      const pdfBlob = doc.output('blob');
+      const fileName = `Invoice_${selectedInvoice.invoice.invoice_number}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      
+      // Check if Web Share API with files is supported
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Invoice ${selectedInvoice.invoice.invoice_number}`,
+          text: `Invoice from ${settings?.business_name || 'Business'} - Total: $${selectedInvoice.invoice.total.toFixed(2)}`
+        });
+        toast.success('Invoice shared!');
+        setShowSendInvoiceDialog(false);
+      } else {
+        // Fallback: download the PDF
+        doc.save(fileName);
+        toast.success('PDF downloaded - you can share it manually');
+        setShowSendInvoiceDialog(false);
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+      console.error('Share error:', error);
+      // Fallback: download
+      const client = clients.find(c => c.id === selectedInvoice?.invoice?.client_id);
+      const doc = generateInvoicePDF(client);
+      if (doc) {
+        doc.save(`Invoice_${selectedInvoice.invoice.invoice_number}.pdf`);
+        toast.success('PDF downloaded');
+        setShowSendInvoiceDialog(false);
+      }
+    }
+  };
+
+  // Share invoice PDF via Email (with email pre-filled if possible)
+  const shareInvoiceEmail = async () => {
+    try {
+      const client = clients.find(c => c.id === selectedInvoice?.invoice?.client_id);
+      const doc = generateInvoicePDF(client);
+      if (!doc) {
+        toast.error('No invoice selected');
+        return;
+      }
+      
+      const pdfBlob = doc.output('blob');
+      const fileName = `Invoice_${selectedInvoice.invoice.invoice_number}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      
+      // Check if Web Share API with files is supported
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: `Invoice ${selectedInvoice.invoice.invoice_number}`,
+          text: `Invoice from ${settings?.business_name || 'Business'} - Total: $${selectedInvoice.invoice.total.toFixed(2)}`
+        });
+        toast.success('Invoice shared!');
+        setShowSendInvoiceDialog(false);
+      } else {
+        // Fallback: download the PDF
+        doc.save(fileName);
+        toast.success('PDF downloaded - you can share it manually');
+        setShowSendInvoiceDialog(false);
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') return;
+      console.error('Share error:', error);
+      const client = clients.find(c => c.id === selectedInvoice?.invoice?.client_id);
+      const doc = generateInvoicePDF(client);
+      if (doc) {
+        doc.save(`Invoice_${selectedInvoice.invoice.invoice_number}.pdf`);
+        toast.success('PDF downloaded');
+        setShowSendInvoiceDialog(false);
+      }
+    }
+  };
       const doc = generateInvoicePDF();
       if (!doc) {
         toast.error('No invoice selected');
