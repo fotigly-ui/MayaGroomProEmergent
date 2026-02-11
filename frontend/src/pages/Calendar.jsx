@@ -1908,25 +1908,25 @@ export default function CalendarPage() {
                 
                 // Totals section - aligned with table's Amount column
                 const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-                const amountsRightX = pageWidth - 22;
+                const amountsRightX = pageWidth - 20; // Same as table right margin
                 
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
                 
                 let currentY = finalY;
                 if (discountAmount > 0) {
-                  doc.text('Discount:', amountsRightX - 45, currentY);
+                  doc.text('Discount:', amountsRightX - 40, currentY);
                   doc.text(`-$${discountAmount.toFixed(2)}`, amountsRightX, currentY, { align: 'right' });
                   currentY += 10;
                 }
                 
                 // Total with highlight
                 doc.setFillColor(...brandColor);
-                doc.rect(amountsRightX - 90, currentY - 6, 92, 12, 'F');
+                doc.rect(amountsRightX - 80, currentY - 6, 80, 12, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
-                doc.text('TOTAL:', amountsRightX - 45, currentY);
+                doc.text('TOTAL:', amountsRightX - 40, currentY);
                 doc.text(`$${total.toFixed(2)}`, amountsRightX, currentY, { align: 'right' });
                 
                 // Footer
