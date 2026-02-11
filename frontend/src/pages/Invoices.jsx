@@ -356,10 +356,10 @@ export default function Invoices() {
     
     // Totals section - position at exact right edge of Amount column
     const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-    // Amount column ends at: left margin (20) + Description (90) + Qty (25) + Unit Price (35) + Amount (35) = 205
-    // But with right margin 20, actual table width is pageWidth - 40 = 170
-    // Using pageWidth - 20 to match the table's right edge
-    const tableRightEdge = pageWidth - 20;
+    // Table right edge is pageWidth - 20, but Amount column text has 4px padding
+    // So actual text ends at pageWidth - 20 - 4 = pageWidth - 24
+    // But we want amounts to align with table's Amount column which ends at pageWidth - 20
+    const amountColRight = pageWidth - 20;
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
@@ -367,19 +367,17 @@ export default function Invoices() {
     // GST if applicable
     let currentY = finalY;
     if (business.gst_enabled && invoice.gst_amount > 0) {
-      doc.text('GST (incl.):', tableRightEdge - 35, currentY);
-      doc.text(`$${invoice.gst_amount.toFixed(2)}`, tableRightEdge, currentY, { align: 'right' });
+      doc.text(`GST (incl.):    $${invoice.gst_amount.toFixed(2)}`, amountColRight, currentY, { align: 'right' });
       currentY += 10;
     }
     
     // Total with highlight
     doc.setFillColor(...brandColor);
-    doc.rect(tableRightEdge - 75, currentY - 6, 75, 12, 'F');
+    doc.rect(amountColRight - 75, currentY - 6, 75, 12, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text('TOTAL:', tableRightEdge - 35, currentY);
-    doc.text(`$${invoice.total.toFixed(2)}`, tableRightEdge, currentY, { align: 'right' });
+    doc.text(`TOTAL:    $${invoice.total.toFixed(2)}`, amountColRight, currentY, { align: 'right' });
     
     // Notes section
     doc.setTextColor(60, 60, 60);
