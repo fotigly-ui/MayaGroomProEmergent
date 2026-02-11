@@ -1748,188 +1748,137 @@ export default function CalendarPage() {
             </Button>
 
 
-      {/* Send Invoice Dialog - Downloads PDF and opens SMS/Email with recipient pre-filled */}
+      {/* Send Invoice Dialog - Share PDF with Web Share API */}
       <Dialog open={showSendInvoiceDialog} onOpenChange={setShowSendInvoiceDialog}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Send Invoice</DialogTitle>
           </DialogHeader>
           
-          {/* Show customer contact info */}
+          {/* Show customer contact info with copy buttons */}
           {selectedAppointment && (() => {
             const client = clients.find(c => c.id === selectedAppointment.client_id);
+            const copyToClipboard = (text, label) => {
+              navigator.clipboard.writeText(text).then(() => {
+                toast.success(`${label} copied!`);
+              }).catch(() => {
+                toast.error('Failed to copy');
+              });
+            };
             return (
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-4">
-                <p className="font-medium text-sm mb-1">Sending to:</p>
-                <p className="text-sm">{client?.name || selectedAppointment.client_name}</p>
+                <p className="font-medium text-sm mb-2">{client?.name || selectedAppointment.client_name}</p>
                 {client?.phone && (
-                  <p className="text-xs text-primary font-medium">📱 {client.phone}</p>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-gray-600">📱 {client.phone}</span>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-6 px-2 text-xs"
+                      onClick={() => copyToClipboard(client.phone, 'Phone')}
+                    >
+                      <Copy size={12} className="mr-1" /> Copy
+                    </Button>
+                  </div>
                 )}
                 {client?.email && (
-                  <p className="text-xs text-primary font-medium">✉️ {client.email}</p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">✉️ {client.email}</span>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-6 px-2 text-xs"
+                      onClick={() => copyToClipboard(client.email, 'Email')}
+                    >
+                      <Copy size={12} className="mr-1" /> Copy
+                    </Button>
+                  </div>
                 )}
               </div>
             );
           })()}
           
           <p className="text-xs text-gray-500 mb-4">
-            PDF will be saved to your device. Then attach it in Messages or Mail.
+            Tap below to share the PDF invoice. Select Messages or Mail, then choose the recipient.
           </p>
-          <div className="flex flex-col gap-3">
-            {/* SMS Invoice */}
-            <Button
-              onClick={async () => {
-                try {
-                  const client = clients.find(c => c.id === selectedAppointment?.client_id);
-                  if (!client?.phone) {
-                    toast.error('Client phone number not available');
-                    return;
-                  }
-                  
-                  // Generate PDF
-                  const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
-                  const discountAmount = checkoutDiscount.type === 'percent' 
-                    ? subtotal * (checkoutDiscount.value || 0) / 100 
-                    : (checkoutDiscount.value || 0);
-                  const total = subtotal - discountAmount;
-                  
-                  const doc = new jsPDF();
-                  doc.setFontSize(20);
-                  doc.text(settings?.business_name || 'Maya Pet Grooming', 20, 25);
-                  
-                  doc.setFontSize(12);
-                  doc.text('Bill To:', 20, 40);
-                  doc.setFontSize(10);
-                  let billToY = 47;
-                  doc.text(client?.name || selectedAppointment?.client_name || 'Customer', 20, billToY);
-                  billToY += 6;
-                  if (client?.address) { doc.text(client.address, 20, billToY); billToY += 6; }
-                  if (client?.phone) { doc.text(`Phone: ${client.phone}`, 20, billToY); billToY += 6; }
-                  if (client?.email) { doc.text(`Email: ${client.email}`, 20, billToY); billToY += 6; }
-                  
-                  doc.setFontSize(10);
-                  doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 140, 40);
-                  
-                  const tableData = checkoutItems.map(item => [item.name, item.quantity, `$${item.unit_price.toFixed(2)}`, `$${item.total.toFixed(2)}`]);
-                  autoTable(doc, { startY: Math.max(billToY + 10, 70), head: [['Description', 'Qty', 'Price', 'Total']], body: tableData, theme: 'striped', headStyles: { fillColor: [200, 100, 50] } });
-                  
-                  const finalY = (doc.lastAutoTable?.finalY || 100) + 10;
-                  doc.setFontSize(10);
-                  doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
-                  if (discountAmount > 0) { doc.text(`Discount: -$${discountAmount.toFixed(2)}`, 140, finalY + 6); }
-                  doc.setFontSize(14);
-                  doc.setFont(undefined, 'bold');
-                  doc.text(`Total: $${total.toFixed(2)}`, 140, finalY + (discountAmount > 0 ? 14 : 6));
-                  doc.setFontSize(9);
-                  doc.setFont(undefined, 'normal');
-                  doc.text('Thank you for your business!', 20, 280);
-                  
-                  // Save PDF
-                  const fileName = `Invoice_${selectedAppointment?.client_name?.replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.pdf`;
-                  doc.save(fileName);
-                  
-                  // Open SMS with phone pre-filled
-                  const phone = client.phone.replace(/\D/g, '');
-                  const message = `Hi ${client.name}, please find your invoice attached. Total: $${total.toFixed(2)}`;
-                  setTimeout(() => {
-                    window.location.href = `sms:${phone}&body=${encodeURIComponent(message)}`;
-                  }, 500);
-                  
-                  toast.success('PDF saved! Attach it in Messages');
+          
+          {/* Single Share Button */}
+          <Button
+            onClick={async () => {
+              try {
+                const client = clients.find(c => c.id === selectedAppointment?.client_id);
+                
+                // Generate PDF
+                const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
+                const discountAmount = checkoutDiscount.type === 'percent' 
+                  ? subtotal * (checkoutDiscount.value || 0) / 100 
+                  : (checkoutDiscount.value || 0);
+                const total = subtotal - discountAmount;
+                
+                const doc = new jsPDF();
+                doc.setFontSize(20);
+                doc.text(settings?.business_name || 'Maya Pet Grooming', 20, 25);
+                
+                doc.setFontSize(12);
+                doc.text('Bill To:', 20, 40);
+                doc.setFontSize(10);
+                let billToY = 47;
+                doc.text(client?.name || selectedAppointment?.client_name || 'Customer', 20, billToY);
+                billToY += 6;
+                if (client?.address) { doc.text(client.address, 20, billToY); billToY += 6; }
+                if (client?.phone) { doc.text(`Phone: ${client.phone}`, 20, billToY); billToY += 6; }
+                if (client?.email) { doc.text(`Email: ${client.email}`, 20, billToY); billToY += 6; }
+                
+                doc.setFontSize(10);
+                doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 140, 40);
+                
+                const tableData = checkoutItems.map(item => [item.name, item.quantity, `$${item.unit_price.toFixed(2)}`, `$${item.total.toFixed(2)}`]);
+                autoTable(doc, { startY: Math.max(billToY + 10, 70), head: [['Description', 'Qty', 'Price', 'Total']], body: tableData, theme: 'striped', headStyles: { fillColor: [200, 100, 50] } });
+                
+                const finalY = (doc.lastAutoTable?.finalY || 100) + 10;
+                doc.setFontSize(10);
+                doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
+                if (discountAmount > 0) { doc.text(`Discount: -$${discountAmount.toFixed(2)}`, 140, finalY + 6); }
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.text(`Total: $${total.toFixed(2)}`, 140, finalY + (discountAmount > 0 ? 14 : 6));
+                doc.setFontSize(9);
+                doc.setFont(undefined, 'normal');
+                doc.text('Thank you for your business!', 20, 280);
+                
+                const pdfBlob = doc.output('blob');
+                const fileName = `Invoice_${selectedAppointment?.client_name?.replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+                const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+                
+                // Use Web Share API - allows attaching PDF to SMS/Email
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                  await navigator.share({
+                    files: [file],
+                    title: `Invoice - ${selectedAppointment?.client_name}`,
+                    text: `Invoice from ${settings?.business_name || 'Maya Pet Grooming'} - Total: $${total.toFixed(2)}`
+                  });
+                  toast.success('Invoice shared!');
                   setShowSendInvoiceDialog(false);
-                } catch (error) {
-                  console.error('SMS error:', error);
-                  toast.error('Could not send SMS');
-                }
-              }}
-              className="w-full justify-start h-auto py-4 border-primary"
-              variant="outline"
-              data-testid="sms-invoice-btn"
-            >
-              <MessageSquare size={20} className="mr-3 text-primary" />
-              <div className="text-left">
-                <div className="font-medium">SMS Invoice</div>
-                <div className="text-xs text-gray-500">Opens Messages with phone pre-filled</div>
-              </div>
-            </Button>
-            
-            {/* Email Invoice */}
-            <Button
-              onClick={async () => {
-                try {
-                  const client = clients.find(c => c.id === selectedAppointment?.client_id);
-                  if (!client?.email) {
-                    toast.error('Client email not available');
-                    return;
-                  }
-                  
-                  // Generate PDF
-                  const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
-                  const discountAmount = checkoutDiscount.type === 'percent' 
-                    ? subtotal * (checkoutDiscount.value || 0) / 100 
-                    : (checkoutDiscount.value || 0);
-                  const total = subtotal - discountAmount;
-                  
-                  const doc = new jsPDF();
-                  doc.setFontSize(20);
-                  doc.text(settings?.business_name || 'Maya Pet Grooming', 20, 25);
-                  
-                  doc.setFontSize(12);
-                  doc.text('Bill To:', 20, 40);
-                  doc.setFontSize(10);
-                  let billToY = 47;
-                  doc.text(client?.name || selectedAppointment?.client_name || 'Customer', 20, billToY);
-                  billToY += 6;
-                  if (client?.address) { doc.text(client.address, 20, billToY); billToY += 6; }
-                  if (client?.phone) { doc.text(`Phone: ${client.phone}`, 20, billToY); billToY += 6; }
-                  if (client?.email) { doc.text(`Email: ${client.email}`, 20, billToY); billToY += 6; }
-                  
-                  doc.setFontSize(10);
-                  doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 140, 40);
-                  
-                  const tableData = checkoutItems.map(item => [item.name, item.quantity, `$${item.unit_price.toFixed(2)}`, `$${item.total.toFixed(2)}`]);
-                  autoTable(doc, { startY: Math.max(billToY + 10, 70), head: [['Description', 'Qty', 'Price', 'Total']], body: tableData, theme: 'striped', headStyles: { fillColor: [200, 100, 50] } });
-                  
-                  const finalY = (doc.lastAutoTable?.finalY || 100) + 10;
-                  doc.setFontSize(10);
-                  doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
-                  if (discountAmount > 0) { doc.text(`Discount: -$${discountAmount.toFixed(2)}`, 140, finalY + 6); }
-                  doc.setFontSize(14);
-                  doc.setFont(undefined, 'bold');
-                  doc.text(`Total: $${total.toFixed(2)}`, 140, finalY + (discountAmount > 0 ? 14 : 6));
-                  doc.setFontSize(9);
-                  doc.setFont(undefined, 'normal');
-                  doc.text('Thank you for your business!', 20, 280);
-                  
-                  // Save PDF
-                  const fileName = `Invoice_${selectedAppointment?.client_name?.replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.pdf`;
+                } else {
                   doc.save(fileName);
-                  
-                  // Open email with recipient pre-filled
-                  const subject = `Invoice from ${settings?.business_name || 'Maya Pet Grooming'} - Total: $${total.toFixed(2)}`;
-                  const body = `Hi ${client.name},\n\nPlease find your invoice attached.\n\nTotal: $${total.toFixed(2)}\n\nThank you for your business!\n\n${settings?.business_name || ''}`;
-                  setTimeout(() => {
-                    window.location.href = `mailto:${client.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-                  }, 500);
-                  
-                  toast.success('PDF saved! Attach it in your email');
+                  toast.success('PDF downloaded');
                   setShowSendInvoiceDialog(false);
-                } catch (error) {
-                  console.error('Email error:', error);
-                  toast.error('Could not open email');
                 }
-              }}
-              className="w-full justify-start h-auto py-4"
-              variant="outline"
-              data-testid="email-invoice-btn"
-            >
-              <Mail size={20} className="mr-3" />
-              <div className="text-left">
-                <div className="font-medium">Email Invoice</div>
-                <div className="text-xs text-gray-500">Opens Mail with email pre-filled</div>
-              </div>
-            </Button>
-          </div>
+              } catch (error) {
+                if (error.name === 'AbortError') return;
+                console.error('Share error:', error);
+                toast.error('Could not share PDF');
+              }
+            }}
+            className="w-full h-auto py-4"
+            data-testid="share-invoice-btn"
+          >
+            <Share2 size={20} className="mr-3" />
+            <div className="text-left">
+              <div className="font-medium">Share Invoice PDF</div>
+              <div className="text-xs opacity-80">Send via Messages, Mail, WhatsApp, etc.</div>
+            </div>
+          </Button>
         </DialogContent>
       </Dialog>
 
