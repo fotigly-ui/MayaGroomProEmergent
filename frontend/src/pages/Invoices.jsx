@@ -231,94 +231,186 @@ export default function Invoices() {
     window.print();
   };
 
-  // Generate PDF for the invoice
+  // Generate PDF for the invoice - Professional design
   const generateInvoicePDF = (client) => {
     if (!selectedInvoice) return null;
     
     const doc = new jsPDF();
     const invoice = selectedInvoice.invoice;
     const business = selectedInvoice.business;
+    const pageWidth = doc.internal.pageSize.getWidth();
     
-    // Header
-    doc.setFontSize(20);
-    doc.setTextColor(40);
-    doc.text(business.name || 'Business', 20, 25);
+    // Brand color (terracotta/orange)
+    const brandColor = [200, 100, 50];
     
+    // Header bar with brand color
+    doc.setFillColor(...brandColor);
+    doc.rect(0, 0, pageWidth, 35, 'F');
+    
+    // Business name in header
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.setFont(undefined, 'bold');
+    doc.text(business.name || 'Business', 20, 22);
+    
+    // ABN in header if exists
     if (business.abn) {
       doc.setFontSize(10);
-      doc.text(`ABN: ${business.abn}`, 20, 32);
+      doc.setFont(undefined, 'normal');
+      doc.text(`ABN: ${business.abn}`, 20, 30);
     }
     
-    // Invoice details
-    doc.setFontSize(14);
-    doc.text(`Invoice ${invoice.invoice_number}`, 140, 25);
+    // INVOICE title on right
+    doc.setFontSize(24);
+    doc.setFont(undefined, 'bold');
+    doc.text('INVOICE', pageWidth - 20, 22, { align: 'right' });
+    
+    // Reset text color
+    doc.setTextColor(60, 60, 60);
+    
+    // Invoice details box
     doc.setFontSize(10);
-    doc.text(`Date: ${format(new Date(invoice.created_at), 'MMM d, yyyy')}`, 140, 32);
+    doc.setFont(undefined, 'normal');
+    const detailsX = pageWidth - 70;
+    doc.text('Invoice No:', detailsX, 50);
+    doc.setFont(undefined, 'bold');
+    doc.text(invoice.invoice_number, detailsX + 35, 50);
+    
+    doc.setFont(undefined, 'normal');
+    doc.text('Date:', detailsX, 58);
+    doc.text(format(new Date(invoice.created_at), 'dd MMM yyyy'), detailsX + 35, 58);
+    
     if (invoice.due_date) {
-      doc.text(`Due: ${format(new Date(invoice.due_date), 'MMM d, yyyy')}`, 140, 38);
+      doc.text('Due Date:', detailsX, 66);
+      doc.text(format(new Date(invoice.due_date), 'dd MMM yyyy'), detailsX + 35, 66);
     }
     
-    // Bill To - include customer details from client object
-    doc.setFontSize(12);
-    doc.text('Bill To:', 20, 50);
+    // Bill To section
+    doc.setFillColor(245, 245, 245);
+    doc.rect(20, 45, 80, 35, 'F');
+    
+    doc.setTextColor(...brandColor);
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.text('BILL TO', 25, 53);
+    
+    doc.setTextColor(60, 60, 60);
     doc.setFontSize(10);
-    let billToY = 57;
-    doc.text(client?.name || invoice.client_name || 'Customer', 20, billToY);
+    doc.setFont(undefined, 'normal');
+    let billToY = 61;
+    doc.setFont(undefined, 'bold');
+    doc.text(client?.name || invoice.client_name || 'Customer', 25, billToY);
+    doc.setFont(undefined, 'normal');
     billToY += 6;
+    
     if (client?.address || invoice.client_address) {
-      doc.text(client?.address || invoice.client_address, 20, billToY);
-      billToY += 6;
+      const address = client?.address || invoice.client_address;
+      const addressLines = doc.splitTextToSize(address, 70);
+      doc.text(addressLines, 25, billToY);
+      billToY += addressLines.length * 5;
     }
     if (client?.phone || invoice.client_phone) {
-      doc.text(`Phone: ${client?.phone || invoice.client_phone}`, 20, billToY);
-      billToY += 6;
+      doc.text(client?.phone || invoice.client_phone, 25, billToY);
+      billToY += 5;
     }
     if (client?.email) {
-      doc.text(`Email: ${client.email}`, 20, billToY);
-      billToY += 6;
+      doc.text(client.email, 25, billToY);
     }
     
-    // Items table using new autoTable syntax
+    // Items table with professional styling
     const tableData = invoice.items.map(item => [
       item.name,
-      item.quantity,
+      item.quantity.toString(),
       `$${item.unit_price.toFixed(2)}`,
       `$${item.total.toFixed(2)}`
     ]);
     
     autoTable(doc, {
-      startY: Math.max(billToY + 10, 80),
-      head: [['Description', 'Qty', 'Price', 'Total']],
+      startY: 90,
+      head: [['Description', 'Qty', 'Unit Price', 'Amount']],
       body: tableData,
-      theme: 'striped',
-      headStyles: { fillColor: [200, 100, 50] },
+      theme: 'plain',
+      headStyles: { 
+        fillColor: brandColor,
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 10,
+        cellPadding: 4
+      },
+      bodyStyles: {
+        fontSize: 10,
+        cellPadding: 4,
+        textColor: [60, 60, 60]
+      },
+      alternateRowStyles: {
+        fillColor: [250, 250, 250]
+      },
+      columnStyles: {
+        0: { cellWidth: 90 },
+        1: { cellWidth: 25, halign: 'center' },
+        2: { cellWidth: 35, halign: 'right' },
+        3: { cellWidth: 35, halign: 'right' }
+      },
+      margin: { left: 20, right: 20 }
     });
     
-    // Totals - get finalY from doc.lastAutoTable
+    // Totals section
     const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-    doc.setFontSize(10);
+    const totalsX = pageWidth - 80;
     
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    
+    // Subtotal
+    const subtotal = invoice.total - (invoice.gst_amount || 0);
+    doc.text('Subtotal:', totalsX, finalY);
+    doc.text(`$${subtotal.toFixed(2)}`, pageWidth - 20, finalY, { align: 'right' });
+    
+    // GST if applicable
+    let currentY = finalY;
     if (business.gst_enabled && invoice.gst_amount > 0) {
-      doc.text(`Subtotal: $${(invoice.total - invoice.gst_amount).toFixed(2)}`, 140, finalY);
-      doc.text(`GST (incl.): $${invoice.gst_amount.toFixed(2)}`, 140, finalY + 6);
+      currentY += 8;
+      doc.text('GST (incl.):', totalsX, currentY);
+      doc.text(`$${invoice.gst_amount.toFixed(2)}`, pageWidth - 20, currentY, { align: 'right' });
     }
     
-    doc.setFontSize(14);
+    // Total with highlight
+    currentY += 12;
+    doc.setFillColor(...brandColor);
+    doc.rect(totalsX - 5, currentY - 6, pageWidth - totalsX + 5, 12, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text(`Total: $${invoice.total.toFixed(2)}`, 140, finalY + (business.gst_enabled ? 16 : 6));
+    doc.text('TOTAL:', totalsX, currentY);
+    doc.text(`$${invoice.total.toFixed(2)}`, pageWidth - 20, currentY, { align: 'right' });
     
-    // Notes
+    // Notes section
+    doc.setTextColor(60, 60, 60);
     if (invoice.notes) {
+      currentY += 25;
       doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text('Notes:', 20, currentY);
       doc.setFont(undefined, 'normal');
-      doc.text('Notes:', 20, finalY + 30);
-      doc.text(invoice.notes, 20, finalY + 36);
+      const noteLines = doc.splitTextToSize(invoice.notes, pageWidth - 40);
+      doc.text(noteLines, 20, currentY + 6);
     }
     
     // Footer
+    const footerY = 280;
+    doc.setDrawColor(...brandColor);
+    doc.setLineWidth(0.5);
+    doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
+    
     doc.setFontSize(9);
+    doc.setTextColor(120, 120, 120);
     doc.setFont(undefined, 'normal');
-    doc.text('Thank you for your business!', 20, 280);
+    doc.text('Thank you for your business!', pageWidth / 2, footerY, { align: 'center' });
+    
+    if (business.phone || business.email) {
+      const contactInfo = [business.phone, business.email].filter(Boolean).join(' | ');
+      doc.text(contactInfo, pageWidth / 2, footerY + 5, { align: 'center' });
+    }
     
     return doc;
   };
