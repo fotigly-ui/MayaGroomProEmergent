@@ -1808,7 +1808,7 @@ export default function CalendarPage() {
               try {
                 const client = clients.find(c => c.id === selectedAppointment?.client_id);
                 
-                // Generate PDF
+                // Generate PDF - Professional design
                 const subtotal = checkoutItems.reduce((sum, item) => sum + (item.total || 0), 0);
                 const discountAmount = checkoutDiscount.type === 'percent' 
                   ? subtotal * (checkoutDiscount.value || 0) / 100 
@@ -1816,35 +1816,133 @@ export default function CalendarPage() {
                 const total = subtotal - discountAmount;
                 
                 const doc = new jsPDF();
-                doc.setFontSize(20);
-                doc.text(settings?.business_name || 'Maya Pet Grooming', 20, 25);
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const brandColor = [200, 100, 50];
                 
-                doc.setFontSize(12);
-                doc.text('Bill To:', 20, 40);
-                doc.setFontSize(10);
-                let billToY = 47;
-                doc.text(client?.name || selectedAppointment?.client_name || 'Customer', 20, billToY);
-                billToY += 6;
-                if (client?.address) { doc.text(client.address, 20, billToY); billToY += 6; }
-                if (client?.phone) { doc.text(`Phone: ${client.phone}`, 20, billToY); billToY += 6; }
-                if (client?.email) { doc.text(`Email: ${client.email}`, 20, billToY); billToY += 6; }
+                // Header bar with brand color
+                doc.setFillColor(...brandColor);
+                doc.rect(0, 0, pageWidth, 35, 'F');
                 
-                doc.setFontSize(10);
-                doc.text(`Date: ${format(new Date(selectedAppointment?.date_time), 'MMM d, yyyy')}`, 140, 40);
-                
-                const tableData = checkoutItems.map(item => [item.name, item.quantity, `$${item.unit_price.toFixed(2)}`, `$${item.total.toFixed(2)}`]);
-                autoTable(doc, { startY: Math.max(billToY + 10, 70), head: [['Description', 'Qty', 'Price', 'Total']], body: tableData, theme: 'striped', headStyles: { fillColor: [200, 100, 50] } });
-                
-                const finalY = (doc.lastAutoTable?.finalY || 100) + 10;
-                doc.setFontSize(10);
-                doc.text(`Subtotal: $${subtotal.toFixed(2)}`, 140, finalY);
-                if (discountAmount > 0) { doc.text(`Discount: -$${discountAmount.toFixed(2)}`, 140, finalY + 6); }
-                doc.setFontSize(14);
+                // Business name in header
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(22);
                 doc.setFont(undefined, 'bold');
-                doc.text(`Total: $${total.toFixed(2)}`, 140, finalY + (discountAmount > 0 ? 14 : 6));
-                doc.setFontSize(9);
+                doc.text(settings?.business_name || 'Maya Pet Grooming', 20, 22);
+                
+                // INVOICE title on right
+                doc.setFontSize(24);
+                doc.text('INVOICE', pageWidth - 20, 22, { align: 'right' });
+                
+                // Reset text color
+                doc.setTextColor(60, 60, 60);
+                
+                // Invoice details
+                doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
-                doc.text('Thank you for your business!', 20, 280);
+                const detailsX = pageWidth - 70;
+                doc.text('Date:', detailsX, 50);
+                doc.text(format(new Date(selectedAppointment?.date_time), 'dd MMM yyyy'), detailsX + 35, 50);
+                doc.text('Time:', detailsX, 58);
+                doc.text(format(new Date(selectedAppointment?.date_time), 'h:mm a'), detailsX + 35, 58);
+                
+                // Bill To section
+                doc.setFillColor(245, 245, 245);
+                doc.rect(20, 45, 80, 35, 'F');
+                
+                doc.setTextColor(...brandColor);
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text('BILL TO', 25, 53);
+                
+                doc.setTextColor(60, 60, 60);
+                doc.setFontSize(10);
+                let billToY = 61;
+                doc.setFont(undefined, 'bold');
+                doc.text(client?.name || selectedAppointment?.client_name || 'Customer', 25, billToY);
+                doc.setFont(undefined, 'normal');
+                billToY += 6;
+                if (client?.address) { 
+                  const addressLines = doc.splitTextToSize(client.address, 70);
+                  doc.text(addressLines, 25, billToY);
+                  billToY += addressLines.length * 5;
+                }
+                if (client?.phone) { doc.text(client.phone, 25, billToY); billToY += 5; }
+                if (client?.email) { doc.text(client.email, 25, billToY); }
+                
+                // Items table with professional styling
+                const tableData = checkoutItems.map(item => [
+                  item.name,
+                  item.quantity.toString(),
+                  `$${item.unit_price.toFixed(2)}`,
+                  `$${item.total.toFixed(2)}`
+                ]);
+                
+                autoTable(doc, {
+                  startY: 90,
+                  head: [['Description', 'Qty', 'Unit Price', 'Amount']],
+                  body: tableData,
+                  theme: 'plain',
+                  headStyles: { 
+                    fillColor: brandColor,
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold',
+                    fontSize: 10,
+                    cellPadding: 4
+                  },
+                  bodyStyles: {
+                    fontSize: 10,
+                    cellPadding: 4,
+                    textColor: [60, 60, 60]
+                  },
+                  alternateRowStyles: {
+                    fillColor: [250, 250, 250]
+                  },
+                  columnStyles: {
+                    0: { cellWidth: 90 },
+                    1: { cellWidth: 25, halign: 'center' },
+                    2: { cellWidth: 35, halign: 'right' },
+                    3: { cellWidth: 35, halign: 'right' }
+                  },
+                  margin: { left: 20, right: 20 }
+                });
+                
+                // Totals section
+                const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
+                const totalsX = pageWidth - 80;
+                
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                
+                doc.text('Subtotal:', totalsX, finalY);
+                doc.text(`$${subtotal.toFixed(2)}`, pageWidth - 20, finalY, { align: 'right' });
+                
+                let currentY = finalY;
+                if (discountAmount > 0) {
+                  currentY += 8;
+                  doc.text('Discount:', totalsX, currentY);
+                  doc.text(`-$${discountAmount.toFixed(2)}`, pageWidth - 20, currentY, { align: 'right' });
+                }
+                
+                // Total with highlight
+                currentY += 12;
+                doc.setFillColor(...brandColor);
+                doc.rect(totalsX - 5, currentY - 6, pageWidth - totalsX + 5, 12, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'bold');
+                doc.text('TOTAL:', totalsX, currentY);
+                doc.text(`$${total.toFixed(2)}`, pageWidth - 20, currentY, { align: 'right' });
+                
+                // Footer
+                const footerY = 280;
+                doc.setDrawColor(...brandColor);
+                doc.setLineWidth(0.5);
+                doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
+                
+                doc.setFontSize(9);
+                doc.setTextColor(120, 120, 120);
+                doc.setFont(undefined, 'normal');
+                doc.text('Thank you for your business!', pageWidth / 2, footerY, { align: 'center' });
                 
                 const pdfBlob = doc.output('blob');
                 const fileName = `Invoice_${selectedAppointment?.client_name?.replace(/\s+/g, '_')}_${format(new Date(), 'yyyyMMdd')}.pdf`;
