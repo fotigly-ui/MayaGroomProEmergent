@@ -354,12 +354,12 @@ export default function Invoices() {
       margin: { left: 20, right: 20 }
     });
     
-    // Totals section - get exact position from autoTable
+    // Totals section - position at exact right edge of Amount column
     const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-    // Table right edge is at pageWidth - 20 (margin)
-    // Amount column is 35 wide with 4 cellPadding, right-aligned
-    // So amounts end at: pageWidth - 20 - 4 (right padding) = pageWidth - 24
-    const amountsRightX = pageWidth - 24;
+    // Amount column ends at: left margin (20) + Description (90) + Qty (25) + Unit Price (35) + Amount (35) = 205
+    // But with right margin 20, actual table width is pageWidth - 40 = 170
+    // Using pageWidth - 20 to match the table's right edge
+    const tableRightEdge = pageWidth - 20;
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
