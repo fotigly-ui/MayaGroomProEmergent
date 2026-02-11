@@ -1906,28 +1906,29 @@ export default function CalendarPage() {
                   margin: { left: 20, right: 20 }
                 });
                 
-                // Totals section
+                // Totals section - aligned with table's Amount column
                 const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-                const totalsX = pageWidth - 80;
+                const tableRightEdge = pageWidth - 20;
+                const totalsLabelX = tableRightEdge - 55;
                 
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
                 
                 let currentY = finalY;
                 if (discountAmount > 0) {
-                  doc.text('Discount:', totalsX, currentY);
-                  doc.text(`-$${discountAmount.toFixed(2)}`, pageWidth - 20, currentY, { align: 'right' });
+                  doc.text('Discount:', totalsLabelX, currentY, { align: 'right' });
+                  doc.text(`-$${discountAmount.toFixed(2)}`, tableRightEdge, currentY, { align: 'right' });
                   currentY += 10;
                 }
                 
                 // Total with highlight
                 doc.setFillColor(...brandColor);
-                doc.rect(totalsX - 5, currentY - 6, pageWidth - totalsX + 5, 12, 'F');
+                doc.rect(totalsLabelX - 15, currentY - 6, tableRightEdge - totalsLabelX + 35, 12, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
-                doc.text('TOTAL:', totalsX, currentY);
-                doc.text(`$${total.toFixed(2)}`, pageWidth - 20, currentY, { align: 'right' });
+                doc.text('TOTAL:', totalsLabelX, currentY, { align: 'right' });
+                doc.text(`$${total.toFixed(2)}`, tableRightEdge, currentY, { align: 'right' });
                 
                 // Footer
                 const footerY = 280;
