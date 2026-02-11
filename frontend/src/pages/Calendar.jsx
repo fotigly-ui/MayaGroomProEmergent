@@ -1906,9 +1906,9 @@ export default function CalendarPage() {
                   margin: { left: 20, right: 20 }
                 });
                 
-                // Totals section - aligned with table's Amount column
+                // Totals section
                 const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-                const amountsRightX = pageWidth - 18; // Adjusted to match table Amount column
+                const amountsRightX = pageWidth - 24; // Match table's Amount column position
                 
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
