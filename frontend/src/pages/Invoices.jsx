@@ -742,11 +742,6 @@ export default function Invoices() {
                   {selectedInvoice.invoice.status}
                 </span>
                 <div className="flex gap-2 w-full sm:w-auto">
-                  {selectedInvoice.invoice.status === 'draft' && (
-                    <Button variant="outline" size="sm" onClick={() => updateStatus(selectedInvoice.invoice.id, 'sent')} className="text-xs flex-1 sm:flex-none">
-                      Mark Sent
-                    </Button>
-                  )}
                   {['draft', 'sent', 'overdue'].includes(selectedInvoice.invoice.status) && (
                     <Button size="sm" className="btn-maya-primary text-xs flex-1 sm:flex-none" onClick={() => updateStatus(selectedInvoice.invoice.id, 'paid')}>
                       Mark Paid
