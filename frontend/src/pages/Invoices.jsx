@@ -367,19 +367,19 @@ export default function Invoices() {
     // GST if applicable
     let currentY = finalY;
     if (business.gst_enabled && invoice.gst_amount > 0) {
-      doc.text('GST (incl.):', amountsRightX - 35, currentY);
-      doc.text(`$${invoice.gst_amount.toFixed(2)}`, amountsRightX, currentY, { align: 'right' });
+      doc.text('GST (incl.):', tableRightEdge - 35, currentY);
+      doc.text(`$${invoice.gst_amount.toFixed(2)}`, tableRightEdge, currentY, { align: 'right' });
       currentY += 10;
     }
     
     // Total with highlight
     doc.setFillColor(...brandColor);
-    doc.rect(amountsRightX - 75, currentY - 6, 77, 12, 'F');
+    doc.rect(tableRightEdge - 75, currentY - 6, 75, 12, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text('TOTAL:', amountsRightX - 35, currentY);
-    doc.text(`$${invoice.total.toFixed(2)}`, amountsRightX, currentY, { align: 'right' });
+    doc.text('TOTAL:', tableRightEdge - 35, currentY);
+    doc.text(`$${invoice.total.toFixed(2)}`, tableRightEdge, currentY, { align: 'right' });
     
     // Notes section
     doc.setTextColor(60, 60, 60);
