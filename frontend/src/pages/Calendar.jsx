@@ -1908,26 +1908,26 @@ export default function CalendarPage() {
                 
                 // Totals section
                 const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-                const amountsRightX = pageWidth - 24; // Match table's Amount column position
+                const tableRightEdge = pageWidth - 20;
                 
                 doc.setFontSize(10);
                 doc.setFont(undefined, 'normal');
                 
                 let currentY = finalY;
                 if (discountAmount > 0) {
-                  doc.text('Discount:', amountsRightX - 35, currentY);
-                  doc.text(`-$${discountAmount.toFixed(2)}`, amountsRightX, currentY, { align: 'right' });
+                  doc.text('Discount:', tableRightEdge - 35, currentY);
+                  doc.text(`-$${discountAmount.toFixed(2)}`, tableRightEdge, currentY, { align: 'right' });
                   currentY += 10;
                 }
                 
                 // Total with highlight
                 doc.setFillColor(...brandColor);
-                doc.rect(amountsRightX - 75, currentY - 6, 77, 12, 'F');
+                doc.rect(tableRightEdge - 75, currentY - 6, 75, 12, 'F');
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(12);
                 doc.setFont(undefined, 'bold');
-                doc.text('TOTAL:', amountsRightX - 35, currentY);
-                doc.text(`$${total.toFixed(2)}`, amountsRightX, currentY, { align: 'right' });
+                doc.text('TOTAL:', tableRightEdge - 35, currentY);
+                doc.text(`$${total.toFixed(2)}`, tableRightEdge, currentY, { align: 'right' });
                 
                 // Footer
                 const footerY = 280;
