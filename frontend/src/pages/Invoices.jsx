@@ -354,9 +354,12 @@ export default function Invoices() {
       margin: { left: 20, right: 20 }
     });
     
-    // Totals section - aligned with table's Amount column
+    // Totals section - get exact position from autoTable
     const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-    const amountsRightX = pageWidth - 18; // Adjusted to match table Amount column
+    // Table right edge is at pageWidth - 20 (margin)
+    // Amount column is 35 wide with 4 cellPadding, right-aligned
+    // So amounts end at: pageWidth - 20 - 4 (right padding) = pageWidth - 24
+    const amountsRightX = pageWidth - 24;
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
