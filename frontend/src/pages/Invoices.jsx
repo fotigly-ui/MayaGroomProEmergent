@@ -356,8 +356,7 @@ export default function Invoices() {
     
     // Totals section - aligned with table's Amount column
     const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-    // The Amount column right edge is at pageWidth - 20 (table's right margin)
-    const amountsRightX = pageWidth - 22; // Slight adjustment to match table rendering
+    const amountsRightX = pageWidth - 20; // Same as table right margin
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
@@ -365,18 +364,18 @@ export default function Invoices() {
     // GST if applicable
     let currentY = finalY;
     if (business.gst_enabled && invoice.gst_amount > 0) {
-      doc.text('GST (incl.):', amountsRightX - 45, currentY);
+      doc.text('GST (incl.):', amountsRightX - 40, currentY);
       doc.text(`$${invoice.gst_amount.toFixed(2)}`, amountsRightX, currentY, { align: 'right' });
       currentY += 10;
     }
     
     // Total with highlight
     doc.setFillColor(...brandColor);
-    doc.rect(amountsRightX - 90, currentY - 6, 92, 12, 'F');
+    doc.rect(amountsRightX - 80, currentY - 6, 80, 12, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text('TOTAL:', amountsRightX - 45, currentY);
+    doc.text('TOTAL:', amountsRightX - 40, currentY);
     doc.text(`$${invoice.total.toFixed(2)}`, amountsRightX, currentY, { align: 'right' });
     
     // Notes section
