@@ -354,12 +354,12 @@ export default function Invoices() {
       margin: { left: 20, right: 20 }
     });
     
-    // Totals section - position at exact right edge of Amount column
+    // Totals section - align with table's Amount column text position
     const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-    // Table right edge is pageWidth - 20, but Amount column text has 4px padding
-    // So actual text ends at pageWidth - 20 - 4 = pageWidth - 24
-    // But we want amounts to align with table's Amount column which ends at pageWidth - 20
-    const amountColRight = pageWidth - 20;
+    // Table has margin right: 20 and cellPadding: 4
+    // So Amount column text ends at: pageWidth - 20 - 4 = pageWidth - 24
+    const amountTextRight = pageWidth - 24;
+    const labelX = amountTextRight - 45; // Position for labels
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
@@ -367,17 +367,19 @@ export default function Invoices() {
     // GST if applicable
     let currentY = finalY;
     if (business.gst_enabled && invoice.gst_amount > 0) {
-      doc.text(`GST (incl.):    $${invoice.gst_amount.toFixed(2)}`, amountColRight, currentY, { align: 'right' });
+      doc.text('GST (incl.):', labelX, currentY);
+      doc.text(`$${invoice.gst_amount.toFixed(2)}`, amountTextRight, currentY, { align: 'right' });
       currentY += 10;
     }
     
-    // Total with highlight
+    // Total with highlight - bar extends to table edge (pageWidth - 20)
     doc.setFillColor(...brandColor);
-    doc.rect(amountColRight - 75, currentY - 6, 75, 12, 'F');
+    doc.rect(labelX - 10, currentY - 6, pageWidth - 20 - labelX + 10, 12, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(12);
     doc.setFont(undefined, 'bold');
-    doc.text(`TOTAL:    $${invoice.total.toFixed(2)}`, amountColRight, currentY, { align: 'right' });
+    doc.text('TOTAL:', labelX, currentY);
+    doc.text(`$${invoice.total.toFixed(2)}`, amountTextRight, currentY, { align: 'right' });
     
     // Notes section
     doc.setTextColor(60, 60, 60);
