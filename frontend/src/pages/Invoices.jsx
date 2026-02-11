@@ -361,21 +361,15 @@ export default function Invoices() {
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
     
-    // Subtotal
-    const subtotal = invoice.total - (invoice.gst_amount || 0);
-    doc.text('Subtotal:', totalsX, finalY);
-    doc.text(`$${subtotal.toFixed(2)}`, pageWidth - 20, finalY, { align: 'right' });
-    
     // GST if applicable
     let currentY = finalY;
     if (business.gst_enabled && invoice.gst_amount > 0) {
-      currentY += 8;
       doc.text('GST (incl.):', totalsX, currentY);
       doc.text(`$${invoice.gst_amount.toFixed(2)}`, pageWidth - 20, currentY, { align: 'right' });
+      currentY += 10;
     }
     
     // Total with highlight
-    currentY += 12;
     doc.setFillColor(...brandColor);
     doc.rect(totalsX - 5, currentY - 6, pageWidth - totalsX + 5, 12, 'F');
     doc.setTextColor(255, 255, 255);
