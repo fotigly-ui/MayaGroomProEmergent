@@ -387,8 +387,8 @@ export default function Invoices() {
         2: { cellWidth: 40, halign: 'right' },
         3: { cellWidth: 40, halign: 'right' }
       },
-      margin: { left: 20, right: 15 },
-      tableWidth: pageWidth - 35,
+      margin: { left: 20, right: 10 },
+      tableWidth: pageWidth - 30,
       didParseCell: function(data) {
         // Style the TOTAL row
         if (data.row.index === tableBody.length - 1) {
