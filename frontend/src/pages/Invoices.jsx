@@ -317,18 +317,29 @@ export default function Invoices() {
       doc.text(client.email, 25, billToY);
     }
     
-    // Items table with professional styling
-    const tableData = invoice.items.map(item => [
+    // Build table data including totals
+    const tableBody = invoice.items.map(item => [
       item.name,
       item.quantity.toString(),
       `$${item.unit_price.toFixed(2)}`,
       `$${item.total.toFixed(2)}`
     ]);
     
+    // Add empty row for spacing
+    tableBody.push(['', '', '', '']);
+    
+    // Add GST row if applicable
+    if (business.gst_enabled && invoice.gst_amount > 0) {
+      tableBody.push(['', '', 'GST (incl.):', `$${invoice.gst_amount.toFixed(2)}`]);
+    }
+    
+    // Add TOTAL row
+    tableBody.push(['', '', 'TOTAL:', `$${invoice.total.toFixed(2)}`]);
+    
     autoTable(doc, {
       startY: 90,
       head: [['Description', 'Qty', 'Unit Price', 'Amount']],
-      body: tableData,
+      body: tableBody,
       theme: 'plain',
       headStyles: { 
         fillColor: brandColor,
@@ -346,51 +357,46 @@ export default function Invoices() {
         fillColor: [250, 250, 250]
       },
       columnStyles: {
-        0: { cellWidth: 90 },
+        0: { cellWidth: 'auto' },
         1: { cellWidth: 25, halign: 'center' },
-        2: { cellWidth: 35, halign: 'right' },
-        3: { cellWidth: 35, halign: 'right' }
+        2: { cellWidth: 40, halign: 'right' },
+        3: { cellWidth: 40, halign: 'right' }
       },
-      margin: { left: 20, right: 20 }
+      margin: { left: 20, right: 20 },
+      didParseCell: function(data) {
+        // Style the TOTAL row
+        if (data.row.index === tableBody.length - 1) {
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fontSize = 11;
+          if (data.column.index >= 2) {
+            data.cell.styles.fillColor = brandColor;
+            data.cell.styles.textColor = [255, 255, 255];
+          }
+        }
+        // Style the GST row
+        if (business.gst_enabled && invoice.gst_amount > 0 && data.row.index === tableBody.length - 2) {
+          if (data.column.index >= 2) {
+            data.cell.styles.fontStyle = 'bold';
+          }
+        }
+        // Hide empty spacing row
+        if (data.row.index === tableBody.length - (business.gst_enabled && invoice.gst_amount > 0 ? 3 : 2)) {
+          data.cell.styles.fillColor = [255, 255, 255];
+          data.cell.styles.minCellHeight = 2;
+        }
+      }
     });
     
-    // Totals section - align with table's Amount column text position
-    const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-    // Table has margin right: 20 and cellPadding: 4
-    // So Amount column text ends at: pageWidth - 20 - 4 = pageWidth - 24
-    const amountTextRight = pageWidth - 24;
-    const labelX = amountTextRight - 45; // Position for labels
-    
-    doc.setFontSize(10);
-    doc.setFont(undefined, 'normal');
-    
-    // GST if applicable
-    let currentY = finalY;
-    if (business.gst_enabled && invoice.gst_amount > 0) {
-      doc.text('GST (incl.):', labelX, currentY);
-      doc.text(`$${invoice.gst_amount.toFixed(2)}`, amountTextRight, currentY, { align: 'right' });
-      currentY += 10;
-    }
-    
-    // Total with highlight - bar extends to table edge (pageWidth - 20)
-    doc.setFillColor(...brandColor);
-    doc.rect(labelX - 10, currentY - 6, pageWidth - 20 - labelX + 10, 12, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'bold');
-    doc.text('TOTAL:', labelX, currentY);
-    doc.text(`$${invoice.total.toFixed(2)}`, amountTextRight, currentY, { align: 'right' });
-    
     // Notes section
+    const finalY = (doc.lastAutoTable?.finalY || 150) + 15;
     doc.setTextColor(60, 60, 60);
     if (invoice.notes) {
-      currentY += 25;
       doc.setFontSize(10);
       doc.setFont(undefined, 'bold');
-      doc.text('Notes:', 20, currentY);
+      doc.text('Notes:', 20, finalY);
       doc.setFont(undefined, 'normal');
       const noteLines = doc.splitTextToSize(invoice.notes, pageWidth - 40);
-      doc.text(noteLines, 20, currentY + 6);
+      doc.text(noteLines, 20, finalY + 6);
     }
     
     // Footer
