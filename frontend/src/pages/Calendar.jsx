@@ -1845,9 +1845,25 @@ export default function CalendarPage() {
                 doc.text('Time:', detailsX, 58);
                 doc.text(format(new Date(selectedAppointment?.date_time), 'h:mm a'), detailsX + 35, 58);
                 
-                // Bill To section
+                // Bill To section - calculate height dynamically
+                doc.setTextColor(60, 60, 60);
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                
+                // Calculate content height
+                let billToContentHeight = 8; // "BILL TO" header
+                billToContentHeight += 6; // Customer name
+                if (client?.address) {
+                  const addressLines = doc.splitTextToSize(client.address, 70);
+                  billToContentHeight += addressLines.length * 5;
+                }
+                if (client?.phone) billToContentHeight += 5;
+                if (client?.email) billToContentHeight += 5;
+                
+                // Draw grey background with dynamic height
+                const billToBoxHeight = Math.max(35, billToContentHeight + 10);
                 doc.setFillColor(245, 245, 245);
-                doc.rect(20, 45, 80, 35, 'F');
+                doc.rect(20, 45, 90, billToBoxHeight, 'F');
                 
                 doc.setTextColor(...brandColor);
                 doc.setFontSize(11);
@@ -1869,6 +1885,9 @@ export default function CalendarPage() {
                 if (client?.phone) { doc.text(client.phone, 25, billToY); billToY += 5; }
                 if (client?.email) { doc.text(client.email, 25, billToY); }
                 
+                // Table starts after BILL TO section
+                const tableStartY = Math.max(90, 45 + billToBoxHeight + 5);
+                
                 // Build table data including totals
                 const tableBody = checkoutItems.map(item => [
                   item.name,
@@ -1889,7 +1908,7 @@ export default function CalendarPage() {
                 tableBody.push(['', '', 'TOTAL:', `$${total.toFixed(2)}`]);
                 
                 autoTable(doc, {
-                  startY: 90,
+                  startY: tableStartY,
                   head: [['Description', 'Qty', 'Unit Price', 'Amount']],
                   body: tableBody,
                   theme: 'plain',
@@ -1914,7 +1933,8 @@ export default function CalendarPage() {
                     2: { cellWidth: 40, halign: 'right' },
                     3: { cellWidth: 40, halign: 'right' }
                   },
-                  margin: { left: 20, right: 20 },
+                  margin: { left: 20, right: 15 },
+                  tableWidth: pageWidth - 35,
                   didParseCell: function(data) {
                     // Style the TOTAL row (last row)
                     if (data.row.index === tableBody.length - 1) {
