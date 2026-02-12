@@ -1869,18 +1869,29 @@ export default function CalendarPage() {
                 if (client?.phone) { doc.text(client.phone, 25, billToY); billToY += 5; }
                 if (client?.email) { doc.text(client.email, 25, billToY); }
                 
-                // Items table with professional styling
-                const tableData = checkoutItems.map(item => [
+                // Build table data including totals
+                const tableBody = checkoutItems.map(item => [
                   item.name,
                   item.quantity.toString(),
                   `$${item.unit_price.toFixed(2)}`,
                   `$${item.total.toFixed(2)}`
                 ]);
                 
+                // Add empty row for spacing
+                tableBody.push(['', '', '', '']);
+                
+                // Add Discount row if applicable
+                if (discountAmount > 0) {
+                  tableBody.push(['', '', 'Discount:', `-$${discountAmount.toFixed(2)}`]);
+                }
+                
+                // Add TOTAL row
+                tableBody.push(['', '', 'TOTAL:', `$${total.toFixed(2)}`]);
+                
                 autoTable(doc, {
                   startY: 90,
                   head: [['Description', 'Qty', 'Unit Price', 'Amount']],
-                  body: tableData,
+                  body: tableBody,
                   theme: 'plain',
                   headStyles: { 
                     fillColor: brandColor,
@@ -1898,38 +1909,36 @@ export default function CalendarPage() {
                     fillColor: [250, 250, 250]
                   },
                   columnStyles: {
-                    0: { cellWidth: 90 },
+                    0: { cellWidth: 'auto' },
                     1: { cellWidth: 25, halign: 'center' },
-                    2: { cellWidth: 35, halign: 'right' },
-                    3: { cellWidth: 35, halign: 'right' }
+                    2: { cellWidth: 40, halign: 'right' },
+                    3: { cellWidth: 40, halign: 'right' }
                   },
-                  margin: { left: 20, right: 20 }
+                  margin: { left: 20, right: 20 },
+                  didParseCell: function(data) {
+                    // Style the TOTAL row (last row)
+                    if (data.row.index === tableBody.length - 1) {
+                      data.cell.styles.fontStyle = 'bold';
+                      data.cell.styles.fontSize = 11;
+                      if (data.column.index >= 2) {
+                        data.cell.styles.fillColor = brandColor;
+                        data.cell.styles.textColor = [255, 255, 255];
+                      }
+                    }
+                    // Style the Discount row if present
+                    if (discountAmount > 0 && data.row.index === tableBody.length - 2) {
+                      if (data.column.index >= 2) {
+                        data.cell.styles.fontStyle = 'bold';
+                      }
+                    }
+                    // Hide empty spacing row
+                    const spacingRowIndex = discountAmount > 0 ? tableBody.length - 3 : tableBody.length - 2;
+                    if (data.row.index === spacingRowIndex) {
+                      data.cell.styles.fillColor = [255, 255, 255];
+                      data.cell.styles.minCellHeight = 2;
+                    }
+                  }
                 });
-                
-                // Totals section - align with table's Amount column
-                const finalY = (doc.lastAutoTable?.finalY || 120) + 10;
-                // Table has margin right: 20 and cellPadding: 4
-                const amountTextRight = pageWidth - 24;
-                const labelX = amountTextRight - 45;
-                
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-                
-                let currentY = finalY;
-                if (discountAmount > 0) {
-                  doc.text('Discount:', labelX, currentY);
-                  doc.text(`-$${discountAmount.toFixed(2)}`, amountTextRight, currentY, { align: 'right' });
-                  currentY += 10;
-                }
-                
-                // Total with highlight
-                doc.setFillColor(...brandColor);
-                doc.rect(labelX - 10, currentY - 6, pageWidth - 20 - labelX + 10, 12, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('TOTAL:', labelX, currentY);
-                doc.text(`$${total.toFixed(2)}`, amountTextRight, currentY, { align: 'right' });
                 
                 // Footer
                 const footerY = 280;
