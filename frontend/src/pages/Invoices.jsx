@@ -285,9 +285,30 @@ export default function Invoices() {
       doc.text(format(new Date(invoice.due_date), 'dd MMM yyyy'), detailsX + 35, 66);
     }
     
-    // Bill To section
+    // Bill To section - calculate height dynamically
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    
+    // Calculate content height first
+    let billToContentHeight = 8; // "BILL TO" header
+    billToContentHeight += 6; // Customer name
+    if (client?.address || invoice.client_address) {
+      const address = client?.address || invoice.client_address;
+      const addressLines = doc.splitTextToSize(address, 70);
+      billToContentHeight += addressLines.length * 5;
+    }
+    if (client?.phone || invoice.client_phone) {
+      billToContentHeight += 5;
+    }
+    if (client?.email) {
+      billToContentHeight += 5;
+    }
+    
+    // Draw grey background with dynamic height (minimum 35, or content height + padding)
+    const billToBoxHeight = Math.max(35, billToContentHeight + 10);
     doc.setFillColor(245, 245, 245);
-    doc.rect(20, 45, 80, 35, 'F');
+    doc.rect(20, 45, 90, billToBoxHeight, 'F');
     
     doc.setTextColor(...brandColor);
     doc.setFontSize(11);
@@ -317,6 +338,9 @@ export default function Invoices() {
       doc.text(client.email, 25, billToY);
     }
     
+    // Table starts after BILL TO section
+    const tableStartY = Math.max(90, 45 + billToBoxHeight + 5);
+    
     // Build table data including totals
     const tableBody = invoice.items.map(item => [
       item.name,
@@ -336,8 +360,9 @@ export default function Invoices() {
     // Add TOTAL row
     tableBody.push(['', '', 'TOTAL:', `$${invoice.total.toFixed(2)}`]);
     
+    // Table extends from left margin to align with invoice number on right
     autoTable(doc, {
-      startY: 90,
+      startY: tableStartY,
       head: [['Description', 'Qty', 'Unit Price', 'Amount']],
       body: tableBody,
       theme: 'plain',
@@ -362,7 +387,8 @@ export default function Invoices() {
         2: { cellWidth: 40, halign: 'right' },
         3: { cellWidth: 40, halign: 'right' }
       },
-      margin: { left: 20, right: 20 },
+      margin: { left: 20, right: 15 },
+      tableWidth: pageWidth - 35,
       didParseCell: function(data) {
         // Style the TOTAL row
         if (data.row.index === tableBody.length - 1) {
