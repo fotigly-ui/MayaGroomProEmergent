@@ -2146,6 +2146,33 @@ def start_reminder_scheduler():
 
 # ==================== SMS ROUTES ====================
 
+@api_router.post("/reminders/trigger")
+async def trigger_reminders(user_id: str = Depends(get_current_user)):
+    """Manually trigger reminder check (for testing)"""
+    await check_and_send_reminders()
+    return {"message": "Reminder check triggered"}
+
+@api_router.get("/reminders/status")
+async def get_reminder_status(user_id: str = Depends(get_current_user)):
+    """Get reminder status for upcoming appointments"""
+    now = datetime.now(timezone.utc)
+    upcoming_window = now + timedelta(days=7)
+    
+    appointments = await db.appointments.find({
+        "user_id": user_id,
+        "status": "scheduled",
+        "date_time": {
+            "$gte": now.isoformat(),
+            "$lte": upcoming_window.isoformat()
+        }
+    }, {"_id": 0, "id": 1, "client_name": 1, "date_time": 1, 
+        "reminder_24h_sent": 1, "confirmation_sent": 1}).to_list(None)
+    
+    return {
+        "appointments": appointments,
+        "scheduler_running": scheduler.running
+    }
+
 @api_router.get("/sms/templates")
 async def get_sms_templates(user_id: str = Depends(get_current_user)):
     """Get SMS templates for user"""
