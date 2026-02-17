@@ -647,7 +647,7 @@ export default function CalendarPage() {
             <select 
               value={viewMode}
               onChange={(e) => setViewMode(e.target.value)}
-              className="text-sm font-medium border border-gray-300 dark:border-gray-600 rounded px-2.5 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="text-base font-semibold border border-gray-300 dark:border-gray-600 rounded px-3 py-1.5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
             >
               <option value="calendar">Calendar</option>
               <option value="list">List</option>
@@ -657,7 +657,7 @@ export default function CalendarPage() {
               variant="outline"
               size="sm"
               onClick={goToToday}
-              className="text-sm font-medium px-3 py-1.5 h-8"
+              className="text-base font-semibold px-4 py-1.5 h-9"
               data-testid="today-btn"
             >
               Today
