@@ -70,6 +70,14 @@ Build a pet grooming appointment application with features including:
 - Analyzed comprehensive test report (iteration_7.json) - 100% pass rate (13/13 backend, 10/10 frontend)
 - Fixed login for fresh fork environment (recreated test user in correct database)
 - Increased "Calendar" and "Today" button text sizes for better visibility (text-sm → text-base)
+- **Implemented Automated Appointment Reminders**:
+  - Added APScheduler for background job scheduling (runs every 15 minutes)
+  - Sends confirmation requests (configurable: X hours/days/weeks before)
+  - Sends 24-hour reminders (configurable: X hours/days before)
+  - Tracks sent reminders to avoid duplicates (`reminder_24h_sent`, `confirmation_sent` flags)
+  - Added `/api/reminders/status` endpoint to check reminder status
+  - Added `/api/reminders/trigger` endpoint for manual testing
+  - Added green "Automated reminders are active" indicator in Settings when enabled
 
 ### Session Jan 2025
 - Fixed "Send Invoice" feature for iOS compatibility
