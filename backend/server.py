@@ -2867,6 +2867,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_event():
+    """Start background services on app startup"""
+    start_reminder_scheduler()
+    logger.info("Application started with reminder scheduler")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    scheduler.shutdown(wait=False)
     client.close()
