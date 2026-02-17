@@ -132,8 +132,8 @@ export function Layout({ children }) {
                   isActive ? "text-primary" : "text-maya-text-muted"
                 )}
               >
-                <Icon size={20} strokeWidth={isActive ? 2 : 1.5} />
-                <span className={cn("text-xs mt-1", isActive && "font-semibold")}>{item.label}</span>
+                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                <span className={cn("text-xs mt-1 font-medium", isActive && "font-bold")}>{item.label}</span>
               </Link>
             );
           })}
@@ -142,8 +142,8 @@ export function Layout({ children }) {
             onClick={() => setShowMobileMenu(true)}
             className="flex flex-col items-center justify-center flex-1 h-full text-maya-text-muted"
           >
-            <Menu size={20} strokeWidth={1.5} />
-            <span className="text-xs mt-1">More</span>
+            <Menu size={20} strokeWidth={2} />
+            <span className="text-xs mt-1 font-medium">More</span>
           </button>
         </div>
       </nav>
