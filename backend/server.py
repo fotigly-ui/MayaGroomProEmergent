@@ -1960,6 +1960,190 @@ async def send_appointment_sms(user_id: str, appointment: dict, message_type: st
     except Exception as e:
         logger.error(f"Error sending appointment SMS: {e}")
 
+# ==================== AUTOMATED REMINDER SYSTEM ====================
+
+async def check_and_send_reminders():
+    """Check for upcoming appointments and send reminders"""
+    try:
+        logger.info("Running automated reminder check...")
+        
+        # Get all users with SMS enabled
+        users_with_sms = await db.settings.find(
+            {"sms_enabled": True, "sms_mode": "automated"},
+            {"_id": 0, "user_id": 1, "send_24h_reminder": 1, "reminder_value": 1, 
+             "reminder_unit": 1, "send_confirmation_request": 1, 
+             "confirmation_request_value": 1, "confirmation_request_unit": 1}
+        ).to_list(None)
+        
+        now = datetime.now(timezone.utc)
+        
+        for user_settings in users_with_sms:
+            user_id = user_settings.get("user_id")
+            if not user_id:
+                continue
+            
+            # Get full settings for this user
+            full_settings = await get_user_settings(user_id)
+            
+            # Check 24h reminder
+            if user_settings.get("send_24h_reminder", True):
+                reminder_value = user_settings.get("reminder_value", 24)
+                reminder_unit = user_settings.get("reminder_unit", "hours")
+                
+                # Calculate the reminder window
+                if reminder_unit == "hours":
+                    reminder_delta = timedelta(hours=reminder_value)
+                else:  # days
+                    reminder_delta = timedelta(days=reminder_value)
+                
+                # Find appointments that need 24h reminder
+                # Window: appointments between (now + reminder_delta - 30min) and (now + reminder_delta + 30min)
+                window_start = now + reminder_delta - timedelta(minutes=30)
+                window_end = now + reminder_delta + timedelta(minutes=30)
+                
+                appointments_for_reminder = await db.appointments.find({
+                    "user_id": user_id,
+                    "status": "scheduled",
+                    "date_time": {
+                        "$gte": window_start.isoformat(),
+                        "$lte": window_end.isoformat()
+                    },
+                    "reminder_24h_sent": {"$ne": True}
+                }, {"_id": 0}).to_list(None)
+                
+                for appt in appointments_for_reminder:
+                    try:
+                        await send_reminder_sms(user_id, appt, "reminder_24h", full_settings)
+                        # Mark as sent
+                        await db.appointments.update_one(
+                            {"id": appt["id"]},
+                            {"$set": {"reminder_24h_sent": True}}
+                        )
+                        logger.info(f"Sent 24h reminder for appointment {appt['id']}")
+                    except Exception as e:
+                        logger.error(f"Failed to send 24h reminder for {appt['id']}: {e}")
+            
+            # Check confirmation request (e.g., 2 days before)
+            if user_settings.get("send_confirmation_request", True):
+                conf_value = user_settings.get("confirmation_request_value", 2)
+                conf_unit = user_settings.get("confirmation_request_unit", "days")
+                
+                # Calculate the confirmation window
+                if conf_unit == "days":
+                    conf_delta = timedelta(days=conf_value)
+                elif conf_unit == "weeks":
+                    conf_delta = timedelta(weeks=conf_value)
+                else:  # months (approx 30 days)
+                    conf_delta = timedelta(days=conf_value * 30)
+                
+                # Window: appointments between (now + conf_delta - 30min) and (now + conf_delta + 30min)
+                window_start = now + conf_delta - timedelta(minutes=30)
+                window_end = now + conf_delta + timedelta(minutes=30)
+                
+                appointments_for_confirmation = await db.appointments.find({
+                    "user_id": user_id,
+                    "status": "scheduled",
+                    "date_time": {
+                        "$gte": window_start.isoformat(),
+                        "$lte": window_end.isoformat()
+                    },
+                    "confirmation_sent": {"$ne": True}
+                }, {"_id": 0}).to_list(None)
+                
+                for appt in appointments_for_confirmation:
+                    try:
+                        await send_reminder_sms(user_id, appt, "confirmation_request", full_settings)
+                        # Mark as sent
+                        await db.appointments.update_one(
+                            {"id": appt["id"]},
+                            {"$set": {"confirmation_sent": True}}
+                        )
+                        logger.info(f"Sent confirmation request for appointment {appt['id']}")
+                    except Exception as e:
+                        logger.error(f"Failed to send confirmation for {appt['id']}: {e}")
+        
+        logger.info("Reminder check completed")
+        
+    except Exception as e:
+        logger.error(f"Error in reminder check: {e}")
+
+async def send_reminder_sms(user_id: str, appointment: dict, message_type: str, settings: dict):
+    """Send a reminder SMS for an appointment"""
+    try:
+        templates = settings.get("sms_templates", DEFAULT_SMS_TEMPLATES)
+        template_config = templates.get(message_type)
+        
+        if not template_config or not template_config.get("enabled"):
+            logger.info(f"Template {message_type} is disabled, skipping")
+            return
+        
+        # Get client info
+        client_doc = await db.clients.find_one({"id": appointment["client_id"]}, {"_id": 0})
+        if not client_doc or not client_doc.get("phone"):
+            logger.warning(f"Client {appointment['client_id']} has no phone, skipping reminder")
+            return
+        
+        # Format message
+        appt_date_str = appointment["date_time"]
+        if isinstance(appt_date_str, str):
+            appt_date = datetime.fromisoformat(appt_date_str.replace("Z", "+00:00"))
+        else:
+            appt_date = appt_date_str
+            
+        pet_names = ", ".join([p.get("pet_name", "") for p in appointment.get("pets", [])])
+        
+        variables = {
+            "client_name": client_doc.get("name", ""),
+            "pet_names": pet_names or "your pet",
+            "business_name": settings.get("business_name", "our salon"),
+            "business_phone": settings.get("phone", ""),
+            "date": appt_date.strftime("%A, %B %d"),
+            "time": appt_date.strftime("%I:%M %p") if not settings.get("use_24_hour_clock") else appt_date.strftime("%H:%M")
+        }
+        
+        message = format_sms_template(template_config["template"], variables)
+        
+        # Send via Twilio if configured
+        if settings.get("sms_provider") == "twilio":
+            success, result = await send_twilio_sms(client_doc["phone"], message, settings)
+            status = "sent" if success else "failed"
+            error = None if success else result
+        else:
+            # Manual/native mode - just log it
+            status = "pending"
+            error = None
+        
+        await create_sms_log(
+            user_id=user_id,
+            client_id=client_doc["id"],
+            client_name=client_doc["name"],
+            phone=client_doc["phone"],
+            message_type=message_type,
+            message_text=message,
+            appointment_id=appointment.get("id"),
+            status=status,
+            error_message=error
+        )
+        
+    except Exception as e:
+        logger.error(f"Error sending reminder SMS: {e}")
+        raise
+
+# Initialize the scheduler
+scheduler = AsyncIOScheduler()
+
+def start_reminder_scheduler():
+    """Start the background scheduler for reminders"""
+    # Run every 15 minutes
+    scheduler.add_job(
+        check_and_send_reminders,
+        IntervalTrigger(minutes=15),
+        id="reminder_check",
+        replace_existing=True
+    )
+    scheduler.start()
+    logger.info("Reminder scheduler started - checking every 15 minutes")
+
 # ==================== SMS ROUTES ====================
 
 @api_router.get("/sms/templates")
